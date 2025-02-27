@@ -1,0 +1,14 @@
+{
+  "id": "Our.Umbraco.ContentLock",
+  "name": "Content Lock",
+  "version": "0.0.0",
+  "allowPackageTelemetry": true,
+  "extensions": [
+    {
+      "name": "Content Lock Bundle",
+      "alias": "ContentLock.Bundle",
+      "type": "bundle",
+      "js": "/App_Plugins/ContentLock/content-lock.js"
+    }
+  ]
+}
