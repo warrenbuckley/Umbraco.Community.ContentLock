@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Razor">
+﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
@@ -7,9 +7,9 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <PackageId>Our.Umbraco.ContentLock</PackageId>
-    <Product>Our.Umbraco.ContentLock</Product>
-    <Title>Our.Umbraco.ContentLock</Title>
+    <PackageId>Umbraco.Community.ContentLock</PackageId>
+    <Product>Umbraco.Community.ContentLock</Product>
+    <Title>Umbraco.Community.ContentLock</Title>
   </PropertyGroup>
 
 

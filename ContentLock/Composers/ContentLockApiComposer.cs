@@ -9,6 +9,8 @@ using Umbraco.Cms.Core.Composing;
 using Umbraco.Cms.Core.DependencyInjection;
 using Umbraco.Cms.Api.Management.OpenApi;
 using Umbraco.Cms.Api.Common.OpenApi;
+using ContentLock.Interfaces;
+using ContentLock.Services;
 
 namespace ContentLock.Composers
 {
@@ -16,9 +18,13 @@ namespace ContentLock.Composers
     {
         public void Compose(IUmbracoBuilder builder)
         {
+            // Service
+            builder.Services.AddScoped<IContentLockService, ContentLockService>();
 
+            // Swagger Operation Handler to generate the OpenAPI Spec nicer
             builder.Services.AddSingleton<IOperationIdHandler, CustomOperationHandler>();
 
+            // Configure SwaggerGen (OpenAPI Doc)
             builder.Services.Configure<SwaggerGenOptions>(opt =>
             {
                 // Related documentation:
@@ -34,12 +40,12 @@ namespace ContentLock.Composers
                 {
                     Title = "Content Lock Backoffice API",
                     Version = "1.0",
-                    // Contact = new OpenApiContact
-                    // {
-                    //     Name = "Some Developer",
-                    //     Email = "you@company.com",
-                    //     Url = new Uri("https://company.com")
-                    // }
+                    Contact = new OpenApiContact
+                    {
+                        Name = "Warren Buckley",
+                        Email = "warren@hackmakedo.com",
+                        Url = new Uri("https://hackmakedo.com")
+                    }
                 });
 
                 // Enable Umbraco authentication for the "Example" Swagger document
@@ -54,7 +60,7 @@ namespace ContentLock.Composers
         }
 
         // This is used to generate nice operation IDs in our swagger json file
-        // So that the gnerated TypeScript client has nice method names and not too verbose
+        // So that the generated TypeScript client has nice method names and not too verbose
         // https://docs.umbraco.com/umbraco-cms/tutorials/creating-a-backoffice-api/umbraco-schema-and-operation-ids#operation-ids
         public class CustomOperationHandler : OperationIdHandler
         {

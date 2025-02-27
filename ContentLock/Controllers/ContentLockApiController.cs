@@ -1,43 +1,101 @@
 using Asp.Versioning;
+using ContentLock.Extensions;
+using ContentLock.Interfaces;
+using ContentLock.Models.Backoffice;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Umbraco.Cms.Core.Models.Membership;
+using Umbraco.Cms.Api.Common.Builders;
 using Umbraco.Cms.Core.Security;
 
 namespace ContentLock.Controllers
 {
     [ApiVersion("1.0")]
-    [ApiExplorerSettings(GroupName = "ContentLock")]
+    [ApiExplorerSettings(GroupName = "Content Lock")]
     public class ContentLockApiController : ContentLockApiControllerBase
     {
         private readonly IBackOfficeSecurityAccessor _backOfficeSecurityAccessor;
+        private readonly IContentLockService _contentLockService;
 
-        public ContentLockApiController(IBackOfficeSecurityAccessor backOfficeSecurityAccessor)
+        public ContentLockApiController(IBackOfficeSecurityAccessor backOfficeSecurityAccessor, IContentLockService contentLockService)
         {
             _backOfficeSecurityAccessor = backOfficeSecurityAccessor;
+            _contentLockService = contentLockService;
         }
 
-        [HttpGet("ping")]
-        [ProducesResponseType<string>(StatusCodes.Status200OK)]
-        public string Ping() => "Pong";
-
-        [HttpGet("whatsTheTimeMrWolf")]
-        [ProducesResponseType(typeof(DateTime), 200)]
-        public DateTime WhatsTheTimeMrWolf() => DateTime.Now;
-
-        [HttpGet("whatsMyName")]
-        [ProducesResponseType<string>(StatusCodes.Status200OK)]
-        public string WhatsMyName()
+        [HttpGet("ContentGuard/Status/{key:guid}")]
+        [ProducesResponseType<ContentLockStatus>(StatusCodes.Status200OK)]
+        public async Task<ContentLockStatus> StatusAsync(Guid key)
         {
-            // So we can see a long request in the dashboard with a spinning progress wheel
-            Thread.Sleep(2000);
-
-            var currentUser = _backOfficeSecurityAccessor.BackOfficeSecurity?.CurrentUser;
-            return currentUser?.Name ?? "I have no idea who you are";
+            var userKey = _backOfficeSecurityAccessor.BackOfficeSecurity?.CurrentUser?.Key;
+            var result = await _contentLockService.GetLockInfoAsync(key, userKey.Value);
+            return result;
         }
 
-        [HttpGet("whoAmI")]
-        [ProducesResponseType<IUser>(StatusCodes.Status200OK)]
-        public IUser? WhoAmI() => _backOfficeSecurityAccessor.BackOfficeSecurity?.CurrentUser;
+        [HttpGet("ContentGuard/Lock/{key:guid}")]
+        public async Task<IActionResult> LockContentAsync(Guid key)
+        {
+            var userKey = _backOfficeSecurityAccessor.BackOfficeSecurity?.CurrentUser?.Key;
+            await _contentLockService.LockContentAsync(key, userKey.Value);
+            return Ok();
+        }
+
+        [HttpGet("ContentGuard/Unlock/{key:guid}")]
+        public async Task<IActionResult> UnlockContentAsync(Guid key)
+        {
+            var userKey = _backOfficeSecurityAccessor.BackOfficeSecurity?.CurrentUser?.Key;
+
+            // Get current info for lock
+            var lockInfo = await _contentLockService.GetLockInfoAsync(key, userKey.Value);
+
+            // Look for current user granular permissions
+            var hasUnlockPermission = _backOfficeSecurityAccessor.BackOfficeSecurity?.CurrentUser?.HasContentUnlockPermission();
+
+            // Ensure the requesting user here is the same as the one who locked it
+            if (userKey != lockInfo.LockedByKey && hasUnlockPermission is false)
+            {
+                return BadRequest(new ProblemDetailsBuilder()
+                    .WithTitle("Unauthorized")
+                    .WithDetail("Only the original user who locked this content can unlock it or a super user with the unlocking permission")
+                    .Build());
+            }
+
+            await _contentLockService.UnlockContentAsync(key, userKey.Value);
+            return Ok();
+        }
+
+        [HttpGet("ContentGuard/LockOverview")]
+        [ProducesResponseType<ContentLockOverview>(StatusCodes.Status200OK)]
+        public async Task<ContentLockOverview> LockOverviewAsync()
+        {
+            return await _contentLockService.GetLockOverviewAsync();
+        }
+
+
+        [HttpPost("ContentGuard/BulkUnlock")]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> BulkUnlockAsync(IEnumerable<Guid> keys)
+        {
+            var hasUnlockPermission = _backOfficeSecurityAccessor.BackOfficeSecurity?.CurrentUser?.HasContentUnlockPermission();
+
+            // Only users with the 'ContentLock.Unlocker' permission can BULK unlock content
+            if (hasUnlockPermission is false)
+            {
+                return BadRequest(new ProblemDetailsBuilder()
+                    .WithTitle("Invalid permission")
+                    .WithDetail("Only users with the Content Lock 'Unlocker' permission is allowed to peform a bulk unlock.")
+                    .Build());
+            }
+
+            var userKey = _backOfficeSecurityAccessor.BackOfficeSecurity?.CurrentUser?.Key;
+
+            // For each item posted to bulk unlock
+            foreach (var contentKey in keys)
+            {
+                // Call unlock on service
+                await _contentLockService.UnlockContentAsync(contentKey, userKey.Value);
+            }
+
+            return Ok();
+        }
     }
 }
