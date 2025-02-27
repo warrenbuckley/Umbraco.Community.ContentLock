@@ -482,3 +482,4 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+ContentLock/wwwroot/App_Plugins/ContentLock
