@@ -41,8 +41,7 @@ namespace ContentLock.Controllers
             // Get current info for lock
             var lockInfo = await _contentLockService.GetLockInfoAsync(key, userKey.Value);
 
-            // Ensure the requesting user here is the same as the one who locked it
-            if (userKey != lockInfo.LockedByKey)
+            if(lockInfo.IsLocked && userKey != lockInfo.LockedByKey)
             {
                 return BadRequest(new ProblemDetailsBuilder()
                     .WithTitle("Unauthorized")
