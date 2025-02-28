@@ -31,6 +31,8 @@ namespace ContentLock.Controllers
             return result;
         }
 
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         [HttpGet("ContentGuard/Lock/{key:guid}")]
         public async Task<IActionResult> LockContentAsync(Guid key)
         {
@@ -40,6 +42,8 @@ namespace ContentLock.Controllers
         }
 
         [HttpGet("ContentGuard/Unlock/{key:guid}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> UnlockContentAsync(Guid key)
         {
             var userKey = _backOfficeSecurityAccessor.BackOfficeSecurity?.CurrentUser?.Key;
@@ -72,6 +76,7 @@ namespace ContentLock.Controllers
 
 
         [HttpPost("ContentGuard/BulkUnlock")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> BulkUnlockAsync(IEnumerable<Guid> keys)
         {
