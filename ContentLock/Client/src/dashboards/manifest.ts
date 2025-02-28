@@ -1,17 +1,18 @@
 export const manifests: Array<UmbExtensionManifest> = [
   {
-    name: "Content Lock Dashboard",
-    alias: "ContentLock.Dashboard",
+    name: '[Content Lock] Overview Dashboard',
+    alias: 'ContentLock.Dashboard',
     type: 'dashboard',
-    js: () => import("./dashboard.element"),
+    weight: 19, // 20 is default Umbraco News/promo dashboard
+    js: () => import('./dashboard.element'),
     meta: {
-      label: "Example Dashboard",
-      pathname: "example-dashboard"
+      label: 'Content Locks',
+      pathname: 'content-locks'
     },
     conditions: [
       {
-        alias: 'Umb.Condition.SectionAlias',
-        match: 'Umb.Section.Content',
+        alias: 'Umb.Condition.SectionAlias', // Only allow dashboard in Content Section/App
+        match: 'Umb.Section.Content', //TODO: Is there a CONST we can use?
       }
     ],
   }
