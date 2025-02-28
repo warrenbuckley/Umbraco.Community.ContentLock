@@ -51,7 +51,7 @@ namespace ContentLock.Controllers
             }
 
             await _contentLockService.LockContentAsync(key, userKey.Value);
-            return Ok();
+            return Ok($"Locked content with key {key}");
         }
 
         [HttpGet("ContentGuard/Unlock/{key:guid}")]
@@ -77,7 +77,7 @@ namespace ContentLock.Controllers
             }
 
             await _contentLockService.UnlockContentAsync(key, userKey.Value);
-            return Ok();
+            return Ok($"Unlocked content with key {key}");
         }
 
         [HttpGet("ContentGuard/LockOverview")]
