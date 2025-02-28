@@ -82,7 +82,7 @@ namespace ContentLock.Controllers
             {
                 return BadRequest(new ProblemDetailsBuilder()
                     .WithTitle("Invalid permission")
-                    .WithDetail("Only users with the Content Lock 'Unlocker' permission is allowed to peform a bulk unlock.")
+                    .WithDetail("Only users with the Content Lock 'Unlocker' permission is allowed to perform a bulk unlock.")
                     .Build());
             }
 
