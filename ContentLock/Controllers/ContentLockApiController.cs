@@ -37,6 +37,19 @@ namespace ContentLock.Controllers
         public async Task<IActionResult> LockContentAsync(Guid key)
         {
             var userKey = _backOfficeSecurityAccessor.BackOfficeSecurity?.CurrentUser?.Key;
+
+            // Get current info for lock
+            var lockInfo = await _contentLockService.GetLockInfoAsync(key, userKey.Value);
+
+            // Ensure the requesting user here is the same as the one who locked it
+            if (userKey != lockInfo.LockedByKey)
+            {
+                return BadRequest(new ProblemDetailsBuilder()
+                    .WithTitle("Unauthorized")
+                    .WithDetail("Someone else already has the piece of content locked and only the original user who locked this content can unlock it or a super user with the unlocking permission")
+                    .Build());
+            }
+
             await _contentLockService.LockContentAsync(key, userKey.Value);
             return Ok();
         }
