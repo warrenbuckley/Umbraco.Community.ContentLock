@@ -2,7 +2,7 @@
 
 export type ContentLockOverview = {
     totalResults: number;
-    items: Array<(ContentLockOverviewItem)>;
+    items: Array<ContentLockOverviewItem>;
 };
 
 export type ContentLockOverviewItem = {
@@ -17,7 +17,7 @@ export type ContentLockOverviewItem = {
 export type ContentLockStatus = {
     isLocked: boolean;
     lockedByKey: string;
-    lockedByName?: (string) | null;
+    lockedByName?: string | null;
     lockedBySelf: boolean;
 };
 
@@ -30,52 +30,147 @@ export type NotificationHeaderModel = {
 };
 
 export type ProblemDetails = {
-    type?: (string) | null;
-    title?: (string) | null;
-    status?: (number) | null;
-    detail?: (string) | null;
-    instance?: (string) | null;
-    [key: string]: (unknown | string | number) | undefined;
+    type?: string | null;
+    title?: string | null;
+    status?: number | null;
+    detail?: string | null;
+    instance?: string | null;
+    [key: string]: unknown | (string | null) | (string | null) | (number | null) | (string | null) | (string | null) | undefined;
 };
 
 export type BulkUnlockData = {
-    body?: Array<(string)>;
+    body?: Array<string>;
+    path?: never;
+    query?: never;
+    url: '/umbraco/contentlock/api/v1/BulkUnlock';
 };
 
-export type BulkUnlockResponse = (string);
+export type BulkUnlockErrors = {
+    /**
+     * Bad Request
+     */
+    400: ProblemDetails;
+    /**
+     * The resource is protected and requires an authentication token
+     */
+    401: unknown;
+};
 
-export type BulkUnlockError = ((ProblemDetails) | unknown);
+export type BulkUnlockError = BulkUnlockErrors[keyof BulkUnlockErrors];
+
+export type BulkUnlockResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
 
 export type LockContentData = {
+    body?: never;
     path: {
         key: string;
     };
+    query?: never;
+    url: '/umbraco/contentlock/api/v1/Lock/{key}';
 };
 
-export type LockContentResponse = (unknown);
+export type LockContentErrors = {
+    /**
+     * Bad Request
+     */
+    400: ProblemDetails;
+    /**
+     * The resource is protected and requires an authentication token
+     */
+    401: unknown;
+};
 
-export type LockContentError = ((ProblemDetails) | unknown);
+export type LockContentError = LockContentErrors[keyof LockContentErrors];
 
-export type LockOverviewResponse = ((ContentLockOverview));
+export type LockContentResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
 
-export type LockOverviewError = (unknown);
+export type LockOverviewData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/umbraco/contentlock/api/v1/LockOverview';
+};
+
+export type LockOverviewErrors = {
+    /**
+     * The resource is protected and requires an authentication token
+     */
+    401: unknown;
+};
+
+export type LockOverviewResponses = {
+    /**
+     * OK
+     */
+    200: ContentLockOverview;
+};
+
+export type LockOverviewResponse = LockOverviewResponses[keyof LockOverviewResponses];
 
 export type StatusData = {
+    body?: never;
     path: {
         key: string;
     };
+    query?: never;
+    url: '/umbraco/contentlock/api/v1/Status/{key}';
 };
 
-export type StatusResponse = ((ContentLockStatus));
+export type StatusErrors = {
+    /**
+     * The resource is protected and requires an authentication token
+     */
+    401: unknown;
+};
 
-export type StatusError = (unknown);
+export type StatusResponses = {
+    /**
+     * OK
+     */
+    200: ContentLockStatus;
+};
+
+export type StatusResponse = StatusResponses[keyof StatusResponses];
 
 export type UnlockContentData = {
+    body?: never;
     path: {
         key: string;
     };
+    query?: never;
+    url: '/umbraco/contentlock/api/v1/Unlock/{key}';
 };
 
-export type UnlockContentResponse = (unknown);
+export type UnlockContentErrors = {
+    /**
+     * Bad Request
+     */
+    400: ProblemDetails;
+    /**
+     * The resource is protected and requires an authentication token
+     */
+    401: unknown;
+};
 
-export type UnlockContentError = ((ProblemDetails) | unknown);
+export type UnlockContentError = UnlockContentErrors[keyof UnlockContentErrors];
+
+export type UnlockContentResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
+
+export type ClientOptions = {
+    baseUrl: 'https://localhost:44391' | (string & {});
+};

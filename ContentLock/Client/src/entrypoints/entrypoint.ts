@@ -1,6 +1,6 @@
 import { UmbEntryPointOnInit, UmbEntryPointOnUnload } from '@umbraco-cms/backoffice/extension-api';
 import { UMB_AUTH_CONTEXT } from '@umbraco-cms/backoffice/auth';
-import { client } from '../api';
+import { client } from '../api/client.gen';
 
 // load up the manifests here
 export const onInit: UmbEntryPointOnInit = (_host, _extensionRegistry) => {
@@ -15,17 +15,19 @@ export const onInit: UmbEntryPointOnInit = (_host, _extensionRegistry) => {
 
     client.setConfig({
       baseUrl: config.base,
-      credentials: config.credentials
+      credentials: config.credentials,
+      auth: () => config.token(), // Dont need to use the interceptor approach below anymore
     });
 
     // For every request being made, add the token to the headers
     // Can't use the setConfig approach above as its set only once and
     // tokens expire and get refreshed
-    client.interceptors.request.use(async (request, _options) => {
-      const token = await config.token();
-      request.headers.set('Authorization', `Bearer ${token}`);
-      return request;
-    });
+
+    // client.interceptors.request.use(async (request, _options) => {
+    //   const token = await config.token();
+    //   request.headers.set('Authorization', `Bearer ${token}`);
+    //   return request;
+    // });
   });
 };
 
