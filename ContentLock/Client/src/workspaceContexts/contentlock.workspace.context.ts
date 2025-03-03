@@ -2,17 +2,17 @@ import { UmbControllerBase } from '@umbraco-cms/backoffice/class-api';
 import { UmbContextToken } from '@umbraco-cms/backoffice/context-api';
 import { type UmbControllerHost } from '@umbraco-cms/backoffice/controller-api';
 import { UMB_DOCUMENT_WORKSPACE_CONTEXT, UmbDocumentWorkspaceContext } from '@umbraco-cms/backoffice/document';
-import { UMB_MODAL_MANAGER_CONTEXT, UmbModalManagerContext } from '@umbraco-cms/backoffice/modal';
 import { UmbBooleanState, UmbStringState } from '@umbraco-cms/backoffice/observable-api';
 import { ContentLockService, ContentLockStatus } from '../api';
-import { LOCKED_CONTENT_MODAL } from '../modals/locked.modal.token';
 import { UmbEntityUnique } from '@umbraco-cms/backoffice/entity';
+
+import '../components/dialog/locked-content-dialog';
 
 export class ContentLockWorkspaceContext extends UmbControllerBase {
 
-    private _modalManager?: UmbModalManagerContext;
     private _docWorkspaceCtx?: UmbDocumentWorkspaceContext;
     private _unique: UmbEntityUnique | undefined;
+    private _dialogElement: HTMLElement | null = null;
   
     #isLocked = new UmbBooleanState(false);
     isLocked = this.#isLocked.asObservable();
@@ -27,10 +27,6 @@ export class ContentLockWorkspaceContext extends UmbControllerBase {
 		super(host, CONTENTLOCK_WORKSPACE_CONTEXT.toString());
 		this.provideContext(CONTENTLOCK_WORKSPACE_CONTEXT, this);
 
-        this.consumeContext(UMB_MODAL_MANAGER_CONTEXT, (modalManager) => {
-            this._modalManager = modalManager;
-        });
-
         this.consumeContext(UMB_DOCUMENT_WORKSPACE_CONTEXT, (docWorkspaceCtx) => {
             this._docWorkspaceCtx = docWorkspaceCtx;
             this._docWorkspaceCtx?.unique.subscribe((unique) => {
@@ -41,10 +37,30 @@ export class ContentLockWorkspaceContext extends UmbControllerBase {
                 }
 
                 // Call API now we have assigned the unique
-                this.checkContentGuardState();
+                this.checkContentLockState();
             });
         });
+
+        // Create and append the dialog element to the body
+        // This feels a bit hacky to use a native HTML5 dialog and not modalManager context
+        // As the modal manager closes the modal immediately after opening it when we navigate to the page
+        // This is due to closeNoneRoutableModals AFAIK from Umbraco modalManagerCtx
+        this._dialogElement = document.createElement('locked-content-dialog');
+        document.body.appendChild(this._dialogElement);
 	}
+
+    override destroy() {
+        super.destroy();
+
+        console.log('DESTROY THE DIALOG');
+
+        if (this._dialogElement) {
+            document.body.removeChild(this._dialogElement);
+            this._dialogElement = null;
+        }
+    } 
+    
+    
 
     private async _getStatus(key: string) : Promise<ContentLockStatus | undefined> {
 
@@ -57,7 +73,9 @@ export class ContentLockWorkspaceContext extends UmbControllerBase {
         return data;
     }
 
-    async checkContentGuardState() {
+    async checkContentLockState() {
+        console.log('Checking content lock state to open MODAL');
+
 
         // Check if the current document is locked and its not locked by self
         await this._getStatus(this._unique!).then(async (status) => {
@@ -68,12 +86,15 @@ export class ContentLockWorkspaceContext extends UmbControllerBase {
             this.setLockedByName(status?.lockedByName ?? '');
 
             if(status?.isLocked && status.lockedBySelf === false){
-                // Display a modal if the document is locked by someone else
-                this._modalManager?.open(this, LOCKED_CONTENT_MODAL, {
-                    data: {
-                        lockedBy: status.lockedByName!
-                    }
-                });
+                try {
+                    // Display the dialog if the document is locked by someone else
+                    // TODO: Remember to use a nice type and not any !
+                    const dialog = this._dialogElement as any;
+                    dialog.lockedBy = status.lockedByName!;
+                    dialog.openDialog();
+                } catch (error) {
+                    console.error('Error opening dialog:', error);
+                }
             }
         });
     }
