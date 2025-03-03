@@ -189,7 +189,7 @@ export class ContentLockWorkspaceViewElement extends UmbElementMixin(LitElement)
                             <div>
                                 <h2>This page is currently <uui-icon name="icon-combination-lock"></uui-icon> <span>locked</span> by you</h2>
                                 <p>You are now free to edit the content of this page.<br/>
-                                Content Guard blocks other editors from accessing the page and prevents overwriting changes.</p>
+                                Content Lock blocks other editors from accessing the page and prevents overwriting changes.</p>
                                 <p>
                                     <uui-button look="primary" @click=${(ev: Event) => this._unlock(ev)}>
                                         <uui-icon name="icon-combination-lock-open"></uui-icon> Unlock page
@@ -214,7 +214,7 @@ export class ContentLockWorkspaceViewElement extends UmbElementMixin(LitElement)
                             <div>
                                 <h2>This page is not locked</h2>
                                 <p>If yount to lock it, press the button. You'll be free to edit the content of this page.<br/>
-                                Content Guard will block other editors from accessing the page and prevents overwriting changes.</p>
+                                Content Lock will block other editors from accessing the page and prevents overwriting changes.</p>
                                 <p>
                                     <uui-button look="primary" @click=${(ev: Event) => this._lock(ev)}>
                                         <uui-icon name="icon-combination-lock"></uui-icon> Lock page for other editors
