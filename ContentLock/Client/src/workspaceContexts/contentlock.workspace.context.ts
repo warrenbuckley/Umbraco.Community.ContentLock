@@ -7,12 +7,13 @@ import { ContentLockService, ContentLockStatus } from '../api';
 import { UmbEntityUnique } from '@umbraco-cms/backoffice/entity';
 
 import '../components/dialog/locked-content-dialog';
+import { LockedContentDialogElement } from '../components/dialog/locked-content-dialog';
 
 export class ContentLockWorkspaceContext extends UmbControllerBase {
 
     private _docWorkspaceCtx?: UmbDocumentWorkspaceContext;
     private _unique: UmbEntityUnique | undefined;
-    private _dialogElement: HTMLElement | null = null;
+    private _dialogElement: LockedContentDialogElement | null = null;
   
     #isLocked = new UmbBooleanState(false);
     isLocked = this.#isLocked.asObservable();
@@ -45,7 +46,10 @@ export class ContentLockWorkspaceContext extends UmbControllerBase {
         // This feels a bit hacky to use a native HTML5 dialog and not modalManager context
         // As the modal manager closes the modal immediately after opening it when we navigate to the page
         // This is due to closeNoneRoutableModals AFAIK from Umbraco modalManagerCtx
-        this._dialogElement = document.createElement('locked-content-dialog');
+        console.log('Add dialog to body for us to open');
+
+        // Create and append the dialog element to the body
+        this._dialogElement = document.createElement('locked-content-dialog') as LockedContentDialogElement;
         document.body.appendChild(this._dialogElement);
 	}
 
@@ -58,9 +62,7 @@ export class ContentLockWorkspaceContext extends UmbControllerBase {
             document.body.removeChild(this._dialogElement);
             this._dialogElement = null;
         }
-    } 
-    
-    
+    }
 
     private async _getStatus(key: string) : Promise<ContentLockStatus | undefined> {
 
@@ -74,9 +76,6 @@ export class ContentLockWorkspaceContext extends UmbControllerBase {
     }
 
     async checkContentLockState() {
-        console.log('Checking content lock state to open MODAL');
-
-
         // Check if the current document is locked and its not locked by self
         await this._getStatus(this._unique!).then(async (status) => {
 
@@ -86,12 +85,14 @@ export class ContentLockWorkspaceContext extends UmbControllerBase {
             this.setLockedByName(status?.lockedByName ?? '');
 
             if(status?.isLocked && status.lockedBySelf === false){
+                
                 try {
                     // Display the dialog if the document is locked by someone else
-                    // TODO: Remember to use a nice type and not any !
-                    const dialog = this._dialogElement as any;
-                    dialog.lockedBy = status.lockedByName!;
-                    dialog.openDialog();
+                    const dialog = this._dialogElement;
+                    if(dialog){
+                        dialog.lockedBy = status.lockedByName!;
+                        dialog.openDialog();
+                    }
                 } catch (error) {
                     console.error('Error opening dialog:', error);
                 }
