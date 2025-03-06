@@ -2,7 +2,7 @@
 ...
 
 ## TODOs
-- [ ] Investigate issue with Modal open & closing immediately
+- [x] Investigate issue with Modal open & closing immediately
 - [ ] Add in image or perhaps a new vector image (animated)
 - [ ] Ensure Hey-API newer client can generate type for errors (Problem Details)
 - [ ] Display error in notification from responses
