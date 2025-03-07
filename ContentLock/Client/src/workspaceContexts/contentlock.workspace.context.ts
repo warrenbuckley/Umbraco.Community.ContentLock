@@ -5,9 +5,9 @@ import { UMB_DOCUMENT_WORKSPACE_CONTEXT, UmbDocumentWorkspaceContext } from '@um
 import { UmbBooleanState, UmbStringState } from '@umbraco-cms/backoffice/observable-api';
 import { ContentLockService, ContentLockStatus } from '../api';
 import { UmbEntityUnique } from '@umbraco-cms/backoffice/entity';
-
-import '../components/dialog/locked-content-dialog';
+import { DomNodeUtils } from '../utils/dom.nodes';
 import { LockedContentDialogElement } from '../components/dialog/locked-content-dialog';
+import '../components/dialog/locked-content-dialog';
 
 export class ContentLockWorkspaceContext extends UmbControllerBase {
 
@@ -39,6 +39,10 @@ export class ContentLockWorkspaceContext extends UmbControllerBase {
 
                 // Call API now we have assigned the unique
                 this.checkContentLockState();
+
+                // Add an event listener into the window for the navigation success router event
+                // Why? - well the findInShadowRoot() util method won't find the DOM elements until all the items been loaded in from router slots
+                window.addEventListener('navigationsuccess', this._navigationSuccessHandler);
             });
         });
 
@@ -61,6 +65,21 @@ export class ContentLockWorkspaceContext extends UmbControllerBase {
         if (this._dialogElement) {
             document.body.removeChild(this._dialogElement);
             this._dialogElement = null;
+        }
+
+        window.removeEventListener('navigationsuccess', this._navigationSuccessHandler);
+    }
+
+    private _navigationSuccessHandler = () => {
+        // Check to see if we have our NODE in the DOM
+        // As it fires as we change from tab to tab in the document workspace
+        // And dont want to duplicate the notice over and over
+        const tryFindNotice = DomNodeUtils.findInShadowRoot(document, '#locked-by-notice');
+        if(!tryFindNotice){
+            const tryFindInsertBefore = DomNodeUtils.findInShadowRoot(document, 'umb-content-workspace-view-edit-tab');
+            if(tryFindInsertBefore){
+                tryFindInsertBefore.insertAdjacentHTML('beforebegin', `<div id="locked-by-notice" style="margin-bottom: var(--uui-size-4); padding: var(--uui-size-5); background: var(--uui-color-current);">This node is locked by ${this.#lockedByName.getValue()}</div>`)
+            }
         }
     }
 
