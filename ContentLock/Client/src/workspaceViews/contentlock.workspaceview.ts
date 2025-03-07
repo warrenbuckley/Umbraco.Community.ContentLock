@@ -5,7 +5,8 @@ import { UMB_DOCUMENT_WORKSPACE_CONTEXT, UmbDocumentWorkspaceContext } from "@um
 import { UMB_NOTIFICATION_CONTEXT, UmbNotificationContext } from "@umbraco-cms/backoffice/notification";
 import { UmbTextStyles } from '@umbraco-cms/backoffice/style';
 import PageState from "../enums/PageStateEnum";
-import { ContentLockService, ContentLockStatus } from "../api";
+import { ContentLockService } from "../api";
+import { CONTENTLOCK_WORKSPACE_CONTEXT, ContentLockWorkspaceContext } from "../workspaceContexts/contentlock.workspace.context";
 
 @customElement('contentlock-workspaceview')
 export class ContentLockWorkspaceViewElement extends UmbElementMixin(LitElement) {
@@ -14,11 +15,18 @@ export class ContentLockWorkspaceViewElement extends UmbElementMixin(LitElement)
 	private pageState: PageState;
 
     @state()
-    private lockedByName: string | null | undefined;
+    private _lockedByName: string | null | undefined;
+
+    @state()
+    private _isLocked: boolean | undefined;
+
+    @state()
+    private _lockedBySelf: boolean | undefined;
 
     private _notificationCtx?: UmbNotificationContext;
     private _docWorkspaceCtx?: UmbDocumentWorkspaceContext;
     private _unique: string | null | undefined;
+    private _contentLockCtx?: ContentLockWorkspaceContext;
 
     constructor() {
         super();
@@ -33,43 +41,25 @@ export class ContentLockWorkspaceViewElement extends UmbElementMixin(LitElement)
         this.consumeContext(UMB_DOCUMENT_WORKSPACE_CONTEXT, (docWorkspaceCtx) => {
             this._docWorkspaceCtx = docWorkspaceCtx;
             this._unique = this._docWorkspaceCtx?.getUnique();
-
-            // Call API now we have assigned the unique
-            // TODO: Consume our CTX where we have observable for isLocked, isLockedBySelf, lockedByName
-            this._checkStatus();
         });
-    }
 
-    private async _getStatus(key: string) : Promise<ContentLockStatus | undefined> {
+        this.consumeContext(CONTENTLOCK_WORKSPACE_CONTEXT, (contentLockCtx) => {
+            this._contentLockCtx = contentLockCtx;
 
-        const { data, error } = await ContentLockService.status({path:{key: key}});
-        if (error){
-            console.error(error);
-            return undefined;
-        }
+            // Or should I observe ??
+            this._lockedByName = this._contentLockCtx.getLockedByName();
+            this._isLocked = this._contentLockCtx.getIsLocked();
+            this._lockedBySelf = this._contentLockCtx.getIsLockedBySelf();
 
-        return data;
-    }
-
-    private async _checkStatus() {
-        if (!this._unique) {
-            console.error('No unique key found');
-            return;
-        }
-
-        // Call API to get the status of the page
-        this._getStatus(this._unique).then((result) => {
-            this.lockedByName = result?.lockedByName;
-
-            if(result?.isLocked == false){
+            if(this._isLocked == false){
                 this.pageState = PageState.Unlocked;
             }
 
-            if(result?.isLocked == true && result.lockedBySelf == true){
+            if(this._isLocked == true && this._lockedBySelf == true){
                 this.pageState = PageState.LockedByYou;
             }
 
-            if(result?.isLocked == true && result.lockedBySelf == false){
+            if(this._isLocked == true && this._lockedBySelf == false){
                 this.pageState = PageState.LockedByAnother;
                 
             }
@@ -166,7 +156,7 @@ export class ContentLockWorkspaceViewElement extends UmbElementMixin(LitElement)
 
                         <div class="grid">
                             <div>
-                                <h2>This page is currently <uui-icon name="icon-combination-lock"></uui-icon> <span>locked</span> by ${this.lockedByName}</h2>
+                                <h2>This page is currently <uui-icon name="icon-combination-lock"></uui-icon> <span>locked</span> by ${this._lockedByName}</h2>
                                 <p>You cannot edit the content of this page</p>
                             </div>
                             <div>
