@@ -34,7 +34,7 @@ export class LockedContentDialog extends LitElement {
                                 src="https://lottie.host/ad442657-73e5-4495-876b-a825f34b836e/Da2Zx8BXSz.lottie" 
                                 autoplay 
                                 loop
-                                style="width: 90px; height: 90px"></dotlottie-wc>
+                                style="width: 90px; height: 90px" width="90"></dotlottie-wc>
                         </div>
                     </div>
                     <uui-button slot="actions" @click=${this.closeDialog}>Close</uui-button>
