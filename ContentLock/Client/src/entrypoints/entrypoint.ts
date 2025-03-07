@@ -1,6 +1,7 @@
-import { UmbEntryPointOnInit, UmbEntryPointOnUnload } from '@umbraco-cms/backoffice/extension-api';
+import { UmbConditionConfigBase, UmbEntryPointOnInit, UmbEntryPointOnUnload } from '@umbraco-cms/backoffice/extension-api';
 import { UMB_AUTH_CONTEXT } from '@umbraco-cms/backoffice/auth';
 import { client } from '../api/client.gen';
+import { CONTENTLOCK_IS_LOCKED_NOT_ALLOWED_CONDITION_ALIAS } from '../conditions/ContentLocked.NotAllowed.Condition';
 
 // load up the manifests here
 export const onInit: UmbEntryPointOnInit = (_host, _extensionRegistry) => {
@@ -16,18 +17,35 @@ export const onInit: UmbEntryPointOnInit = (_host, _extensionRegistry) => {
     client.setConfig({
       baseUrl: config.base,
       credentials: config.credentials,
-      auth: () => config.token(), // Dont need to use the interceptor approach below anymore
+      auth: () => config.token(), // Dont need to use the interceptor approach anymore
     });
 
-    // For every request being made, add the token to the headers
-    // Can't use the setConfig approach above as its set only once and
-    // tokens expire and get refreshed
+    // Add in our Content Lock conditions to existing Umbraco Core manifests
+    // In order to hide/remove functionality such as publish, save, move 
+    // that you should not be able to do in the UI when node is locked
 
-    // client.interceptors.request.use(async (request, _options) => {
-    //   const token = await config.token();
-    //   request.headers.set('Authorization', `Bearer ${token}`);
-    //   return request;
-    // });
+    const extenionsToAddCondition = [
+      'Umb.WorkspaceAction.Document.SaveAndPublish',  // Save & Publish - Button in footer
+      'Umb.WorkspaceAction.Document.Save',            // Save - Button in footer
+      'Umb.WorkspaceAction.Document.SaveAndPreview',  // Save & Preview - Button in footer
+      'Umb.EntityAction.Document.Publish',            // Publish - Right click action from tree or actions top right
+      'Umb.EntityAction.Document.Unpublish',          // Unpublish - Right click action from tree or actions top right
+      'Umb.EntityAction.Document.RecycleBin.Trash',   // Trash - Right click action from tree or actions top right
+      'Umb.EntityAction.Document.Rollback',           // Rollback - Right click action from tree or actions top right
+      'Umb.EntityAction.Document.MoveTo',             // Move - Right click action from tree or actions top right
+      'Umb.EntityAction.Document.Delete',             // Delete - Right click action from tree or actions top right
+    ]
+
+    // Add our Content Locked condition to the list of extensions
+    const contentLockedCondition:UmbConditionConfigBase = {
+      alias: CONTENTLOCK_IS_LOCKED_NOT_ALLOWED_CONDITION_ALIAS,
+    };
+
+    // Loop over the array above & append
+    extenionsToAddCondition.forEach((extensionAlias) => {
+      _extensionRegistry.appendCondition(extensionAlias, contentLockedCondition);
+    });
+
   });
 };
 
