@@ -152,9 +152,7 @@ export class ContentLockWorkspaceViewElement extends UmbElementMixin(LitElement)
                                 <uui-loader></uui-loader>
                             </div>
                             <div>
-                                <!-- https://outlane.co/graphics/animated-svg-icons/ -->
-                                <!-- TODO - Fix image & path -->
-                                <img src="/App_Plugins/EU.Council.Newsroom/images/protection.png" />
+                                <img src="/App_Plugins/ContentLock/images/protection.png" />
                             </div>
                         </div>
                     </uui-box>
@@ -172,9 +170,7 @@ export class ContentLockWorkspaceViewElement extends UmbElementMixin(LitElement)
                                 <p>You cannot edit the content of this page</p>
                             </div>
                             <div>
-                                <!-- https://outlane.co/graphics/animated-svg-icons/ -->
-                                <!-- TODO - Fix image & path -->
-                                <img src="/App_Plugins/EU.Council.Newsroom/images/protection.png" />
+                                <img src="/App_Plugins/ContentLock/images/protection.png" />
                             </div>
                         </div>
                     </uui-box>
@@ -197,9 +193,7 @@ export class ContentLockWorkspaceViewElement extends UmbElementMixin(LitElement)
                                 </p>
                             </div>
                             <div>
-                                <!-- https://outlane.co/graphics/animated-svg-icons/ -->
-                                <!-- TODO - Fix image & path -->
-                                <img src="/App_Plugins/EU.Council.Newsroom/images/protection.png" />
+                                <img src="/App_Plugins/ContentLock/images/protection.png" />
                             </div>
                         </div>
                     </uui-box>
@@ -222,9 +216,7 @@ export class ContentLockWorkspaceViewElement extends UmbElementMixin(LitElement)
                                 </p>
                             </div>
                             <div>
-                                <!-- https://outlane.co/graphics/animated-svg-icons/ -->
-                                <!-- TODO - Fix image & path -->
-                                <img src="/App_Plugins/EU.Council.Newsroom/images/protection.png" />
+                                <img src="/App_Plugins/ContentLock/images/protection.png" />
                             </div>
                         </div>
                     </uui-box>
