@@ -20,5 +20,7 @@
         public Guid CheckedOutByKey { get; set; }
 
         public DateTime LastEdited { get; set; }
+
+        public DateTime LockedAtDate { get; set; }
     }
 }

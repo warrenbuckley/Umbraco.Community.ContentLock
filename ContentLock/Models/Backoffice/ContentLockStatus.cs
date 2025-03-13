@@ -21,5 +21,10 @@
         /// Is the content node locked by the current user
         /// </summary>
         public bool LockedBySelf { get; set; }
+
+        /// <summary>
+        /// Date/Time of when the node was locked
+        /// </summary>
+        public DateTime LockedAtDate { get; set; }
     }
 }

@@ -18,5 +18,10 @@ namespace ContentLock.Models.Database
         [Column("UserKey")]
         [NullSetting(NullSetting = NullSettings.NotNull)]
         public Guid UserKey { get; set; }
+
+        [Column("LockedAtDate")]
+        [NullSetting(NullSetting = NullSettings.NotNull)]
+        public DateTime LockedAtDate { get; set; }
+
     }
 }

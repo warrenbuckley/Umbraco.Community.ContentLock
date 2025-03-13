@@ -2,8 +2,8 @@
 using ContentLock.Models.Backoffice;
 using ContentLock.Models.Database;
 using Microsoft.Extensions.Logging;
-using NPoco;
 using Umbraco.Cms.Core;
+using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Services;
 using Umbraco.Cms.Infrastructure.Scoping;
 
@@ -15,16 +15,25 @@ namespace ContentLock.Services
         private readonly IScopeProvider _scopeProvider;
         private readonly IUserService _userService;
         private readonly IPublishedContentQuery _publishedContentQuery;
+        private readonly IAuditService _auditService;
+        private readonly IUserIdKeyResolver _userIdKeyResolver;
+        private readonly IIdKeyMap _idKeyMap;
 
         public ContentLockService(ILogger<ContentLockService> logger,
             IScopeProvider scopeProvider,
             IUserService userService,
-            IPublishedContentQuery publishedContentQuery)
+            IPublishedContentQuery publishedContentQuery,
+            IAuditService auditService,
+            IUserIdKeyResolver userIdKeyResolver,
+            IIdKeyMap idKeyMap)
         {
             _logger = logger;
             _scopeProvider = scopeProvider;
             _userService = userService;
             _publishedContentQuery = publishedContentQuery;
+            _auditService = auditService;
+            _userIdKeyResolver = userIdKeyResolver;
+            _idKeyMap = idKeyMap;
         }
 
         public async Task<ContentLockStatus> GetLockInfoAsync(Guid contentKey, Guid userKey)
@@ -50,7 +59,8 @@ namespace ContentLock.Services
                         IsLocked = lockInfo != null,
                         LockedByKey = lockInfo.UserKey,
                         LockedByName = userName,
-                        LockedBySelf = userKey == lockInfo.UserKey
+                        LockedBySelf = userKey == lockInfo.UserKey,
+                        LockedAtDate = lockInfo.LockedAtDate
                     };
                 }
             }
@@ -89,7 +99,8 @@ namespace ContentLock.Services
                             ContentType = contentNode.ContentType.Alias,
                             CheckedOutBy = userName,
                             CheckedOutByKey = conLock.UserKey,
-                            LastEdited = contentNode.UpdateDate
+                            LastEdited = contentNode.UpdateDate,
+                            LockedAtDate = conLock.LockedAtDate
                         });
                     }
 
@@ -115,8 +126,17 @@ namespace ContentLock.Services
             {
                 using (var scope = _scopeProvider.CreateScope(autoComplete: true))
                 {
-                    await scope.Database.SaveAsync(new ContentLocks { ContentKey = contentKey, UserKey = userKey });
+                    await scope.Database.SaveAsync(new ContentLocks { 
+                        ContentKey = contentKey,
+                        UserKey = userKey,
+                        LockedAtDate = DateTime.Now
+                    });
                 }
+
+                // Convert Key to old style int's to use with AuditService
+                var userAsAnId = await _userIdKeyResolver.GetAsync(userKey); // Inject and use IUserIdKeyResolver
+                var contentNodeAsAnId = _idKeyMap.GetIdForKey(contentKey, UmbracoObjectTypes.Document).Result; // Inject and use IIdKeyMap
+                _auditService.Add(AuditType.Custom, userAsAnId, contentNodeAsAnId, Umbraco.Cms.Core.Constants.ObjectTypes.Strings.Document, "Page Locked", "Page Locked");
             }
             catch (Exception ex)
             {
@@ -135,6 +155,11 @@ namespace ContentLock.Services
                 {
                     await scope.Database.DeleteAsync(new ContentLocks { ContentKey = contentKey, UserKey = userKey });
                 }
+
+                // Convert Key to old style int's to use with AuditService
+                var userAsAnId = await _userIdKeyResolver.GetAsync(userKey);
+                var contentNodeAsAnId = _idKeyMap.GetIdForKey(contentKey, UmbracoObjectTypes.Document).Result;
+                _auditService.Add(AuditType.Custom, userAsAnId, contentNodeAsAnId, Umbraco.Cms.Core.Constants.ObjectTypes.Strings.Document, "Page Unlocked", "Page Unlocked");
             }
             catch (Exception ex)
             {
