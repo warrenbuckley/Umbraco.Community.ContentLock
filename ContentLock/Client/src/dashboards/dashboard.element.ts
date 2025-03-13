@@ -85,9 +85,32 @@ export class ContentLockDashboardElement extends UmbElementMixin(LitElement) {
       },
     },
     {
+      name: 'Checked out at',
+      alias: 'checkedOutAt',
+      allowSorting: true,
+      sortFunc: (items: Array<UmbTableItem>, desc: boolean) => {
+        const sortedItems = [...items].sort((a, b) => {
+          const aValue = a.data.find(d => d.columnAlias === 'checkedOutAt')?.value || '';
+          const bValue = b.data.find(d => d.columnAlias === 'checkedOutAt')?.value || '';
+
+          return desc ? bValue.localeCompare(aValue) : aValue.localeCompare(bValue);
+        });
+        return sortedItems;
+      },
+    },
+    {
       name: 'Last Edited',
       alias: 'lastEdited',
-      allowSorting: false
+      allowSorting: true,
+      sortFunc: (items: Array<UmbTableItem>, desc: boolean) => {
+        const sortedItems = [...items].sort((a, b) => {
+          const aValue = a.data.find(d => d.columnAlias === 'lastEdited')?.value || '';
+          const bValue = b.data.find(d => d.columnAlias === 'lastEdited')?.value || '';
+
+          return desc ? bValue.localeCompare(aValue) : aValue.localeCompare(bValue);
+        });
+        return sortedItems;
+      },
     }
   ];
 
@@ -143,6 +166,7 @@ if (error) {
           { columnAlias: 'pageName', value: item.nodeName },
           { columnAlias: 'contentType', value: item.contentType },
           { columnAlias: 'checkedOutBy', value: item.checkedOutBy },
+          { columnAlias: 'checkedOutAt', value: new Date(item.lockedAtDate).toLocaleString() },
           { columnAlias: 'lastEdited', value: new Date(item.lastEdited).toLocaleString() }
         ]
       }));
