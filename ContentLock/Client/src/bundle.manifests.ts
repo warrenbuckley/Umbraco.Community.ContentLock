@@ -1,6 +1,6 @@
 import { manifests as entrypoints } from './entrypoints/manifest';
-import { manifests as dashboards } from './dashboards/manifest';
 import { manifests as conditions } from './conditions/manifest';
+import { manifests as dashboards } from './dashboards/manifest';
 import { manifests as modals } from './modals/manifest';
 import { manifests as userPermissions } from './userpermissions/manifest';
 import { manifests as workspaceActions } from './workspaceActions/manifest';
