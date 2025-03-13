@@ -12,6 +12,7 @@ export type ContentLockOverviewItem = {
     checkedOutBy: string;
     checkedOutByKey: string;
     lastEdited: string;
+    lockedAtDate: string;
 };
 
 export type ContentLockStatus = {
@@ -19,6 +20,7 @@ export type ContentLockStatus = {
     lockedByKey: string;
     lockedByName?: string | null;
     lockedBySelf: boolean;
+    lockedAtDate: string;
 };
 
 export type EventMessageTypeModel = 'Default' | 'Info' | 'Error' | 'Success' | 'Warning';
