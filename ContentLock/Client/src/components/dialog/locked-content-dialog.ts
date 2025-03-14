@@ -1,6 +1,4 @@
 import { css, customElement, html, LitElement, property, query } from '@umbraco-cms/backoffice/external/lit';
-import '@lottiefiles/dotlottie-wc';
-
 
 @customElement('locked-content-dialog')
 export class LockedContentDialog extends LitElement {
@@ -24,19 +22,7 @@ export class LockedContentDialog extends LitElement {
         return html`
             <dialog id="locked-modal">
                 <uui-dialog-layout headline="Content Lock - This page is locked">
-                    <div id="grid-container">
-                        <div id="text">
-                            <p>This page is currently locked by <strong>${this.lockedBy}</strong></p>
-                        </div>
-                        <div id="vector">
-                            <!-- Lottie Animation  -->
-                            <dotlottie-wc 
-                                src="https://lottie.host/ad442657-73e5-4495-876b-a825f34b836e/Da2Zx8BXSz.lottie" 
-                                autoplay 
-                                loop
-                                style="width: 90px; height: 90px" width="90"></dotlottie-wc>
-                        </div>
-                    </div>
+                    <p>This page is currently locked by <strong>${this.lockedBy}</strong></p>
                     <uui-button slot="actions" @click=${this.closeDialog}>Close</uui-button>
                 </uui-dialog-layout>
             </dialog>

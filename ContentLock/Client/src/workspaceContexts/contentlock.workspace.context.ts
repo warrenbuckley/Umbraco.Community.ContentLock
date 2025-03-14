@@ -56,8 +56,6 @@ export class ContentLockWorkspaceContext extends UmbControllerBase {
     override destroy() {
         super.destroy();
 
-        console.log('DESTROY THE DIALOG');
-
         if (this._dialogElement) {
             document.body.removeChild(this._dialogElement);
             this._dialogElement = null;
