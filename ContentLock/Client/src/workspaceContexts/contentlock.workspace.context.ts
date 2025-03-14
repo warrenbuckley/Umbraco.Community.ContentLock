@@ -8,6 +8,8 @@ import { UmbEntityUnique } from '@umbraco-cms/backoffice/entity';
 
 import '../components/dialog/locked-content-dialog';
 import { LockedContentDialogElement } from '../components/dialog/locked-content-dialog';
+import { umbExtensionsRegistry } from '@umbraco-cms/backoffice/extension-registry';
+import { ManifestWorkspaceView } from '@umbraco-cms/backoffice/workspace';
 
 export class ContentLockWorkspaceContext extends UmbControllerBase {
 
@@ -24,9 +26,15 @@ export class ContentLockWorkspaceContext extends UmbControllerBase {
     #lockedByName = new UmbStringState('');
     lockedByName = this.#lockedByName.asObservable();
 
+    private _manifest: ManifestWorkspaceView;
+
 	constructor(host: UmbControllerHost) {
 		super(host, CONTENTLOCK_WORKSPACE_CONTEXT.toString());
 		this.provideContext(CONTENTLOCK_WORKSPACE_CONTEXT, this);
+
+        // Get the manifest of this Workspace View
+        // UmbExtensionManifest
+        this._manifest = umbExtensionsRegistry.getByAlias('contentlock.workspaceview') as ManifestWorkspaceView;
 
         this.consumeContext(UMB_DOCUMENT_WORKSPACE_CONTEXT, (docWorkspaceCtx) => {
             this._docWorkspaceCtx = docWorkspaceCtx;
@@ -94,6 +102,22 @@ export class ContentLockWorkspaceContext extends UmbControllerBase {
                 } catch (error) {
                     console.error('Error opening dialog:', error);
                 }
+            }
+
+            // Update the workspace view (tab icon) to show lock or unlocked icon
+            if(status?.isLocked == false){
+                // Page is not locked by anyone
+                this._manifest.meta.icon = 'icon-unlocked';
+            }
+
+            if(status?.isLocked == true && status?.lockedBySelf == true){
+                // Page is locked by the current user
+                this._manifest.meta.icon = 'icon-lock';
+            }
+
+            if(status?.isLocked == true && status?.lockedBySelf == false){
+                // Page is locked by someone else
+                this._manifest.meta.icon = 'icon-lock';
             }
         });
     }
