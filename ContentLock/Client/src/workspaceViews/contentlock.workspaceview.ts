@@ -7,6 +7,7 @@ import { UmbTextStyles } from '@umbraco-cms/backoffice/style';
 import PageState from "../enums/PageStateEnum";
 import { ContentLockService } from "../api";
 import { CONTENTLOCK_WORKSPACE_CONTEXT, ContentLockWorkspaceContext } from "../workspaceContexts/contentlock.workspace.context";
+import { observeMultiple } from "@umbraco-cms/backoffice/observable-api";
 
 @customElement('contentlock-workspaceview')
 export class ContentLockWorkspaceViewElement extends UmbElementMixin(LitElement) {
@@ -46,10 +47,13 @@ export class ContentLockWorkspaceViewElement extends UmbElementMixin(LitElement)
         this.consumeContext(CONTENTLOCK_WORKSPACE_CONTEXT, (contentLockCtx) => {
             this._contentLockCtx = contentLockCtx;
 
-            // Or should I observe ??
-            this._lockedByName = this._contentLockCtx.getLockedByName();
-            this._isLocked = this._contentLockCtx.getIsLocked();
-            this._lockedBySelf = this._contentLockCtx.getIsLockedBySelf();
+            // Observe the content lock context obswervables
+            this.observe(observeMultiple([this._contentLockCtx.isLocked, this._contentLockCtx.lockedByName, this._contentLockCtx.isLockedBySelf]),([isLocked, lockedBy, isLockedBySelf]) =>{
+                this._isLocked = isLocked;
+                this._lockedByName = lockedBy;
+                this._lockedBySelf = isLockedBySelf;
+            });
+
 
             if(this._isLocked == false){
                 this.pageState = PageState.Unlocked;
@@ -61,7 +65,6 @@ export class ContentLockWorkspaceViewElement extends UmbElementMixin(LitElement)
 
             if(this._isLocked == true && this._lockedBySelf == false){
                 this.pageState = PageState.LockedByAnother;
-                
             }
         });
     }
