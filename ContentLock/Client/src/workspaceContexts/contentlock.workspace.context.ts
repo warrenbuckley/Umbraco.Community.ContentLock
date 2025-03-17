@@ -10,6 +10,7 @@ import '../components/dialog/locked-content-dialog';
 import { LockedContentDialogElement } from '../components/dialog/locked-content-dialog';
 import { umbExtensionsRegistry } from '@umbraco-cms/backoffice/extension-registry';
 import { ManifestWorkspaceView } from '@umbraco-cms/backoffice/workspace';
+import { UmbVariantId } from '@umbraco-cms/backoffice/variant';
 
 export class ContentLockWorkspaceContext extends UmbControllerBase {
 
@@ -38,6 +39,12 @@ export class ContentLockWorkspaceContext extends UmbControllerBase {
 
         this.consumeContext(UMB_DOCUMENT_WORKSPACE_CONTEXT, (docWorkspaceCtx) => {
             this._docWorkspaceCtx = docWorkspaceCtx;
+
+            this._docWorkspaceCtx.variants.subscribe((variants) => {
+                console.log('Variants:', variants);
+            });
+
+
             this._docWorkspaceCtx?.unique.subscribe((unique) => {
                 this._unique = unique;
 
@@ -48,6 +55,9 @@ export class ContentLockWorkspaceContext extends UmbControllerBase {
                 // Call API now we have assigned the unique
                 this.checkContentLockState();
             });
+
+            const readOnlyStates = this._docWorkspaceCtx?.readOnlyState.getStates();
+            console.log('Read only states:', readOnlyStates);
         });
 
         // Create and append the dialog element to the body
@@ -90,6 +100,7 @@ export class ContentLockWorkspaceContext extends UmbControllerBase {
             this.setIsLockedBySelf(status?.lockedBySelf ?? false);
             this.setLockedByName(status?.lockedByName ?? '');
 
+
             if(status?.isLocked && status.lockedBySelf === false){
                 
                 try {
@@ -108,16 +119,27 @@ export class ContentLockWorkspaceContext extends UmbControllerBase {
             if(status?.isLocked == false){
                 // Page is not locked by anyone
                 this._manifest.meta.icon = 'icon-unlocked';
+
+                this._docWorkspaceCtx?.readOnlyState.removeState('dcf18a51-6919-4cf8-89d1-36b94ce4d963');
             }
 
             if(status?.isLocked == true && status?.lockedBySelf == true){
                 // Page is locked by the current user
                 this._manifest.meta.icon = 'icon-lock';
+
+                this._docWorkspaceCtx?.readOnlyState.removeState('dcf18a51-6919-4cf8-89d1-36b94ce4d963');
             }
 
             if(status?.isLocked == true && status?.lockedBySelf == false){
                 // Page is locked by someone else
                 this._manifest.meta.icon = 'icon-lock';
+
+                // Set the read only state of the document
+                this._docWorkspaceCtx?.readOnlyState.addState({
+                    unique: this._unique!.toString(),
+                    variantId: new UmbVariantId(null, null), // This should lock the entire node as not setting the culture or segment
+                    message: 'This page is locked by someone else'
+                });
             }
         });
     }
