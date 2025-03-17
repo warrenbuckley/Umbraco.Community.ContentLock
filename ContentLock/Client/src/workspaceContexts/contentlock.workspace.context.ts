@@ -1,21 +1,21 @@
 import { UmbControllerBase } from '@umbraco-cms/backoffice/class-api';
 import { UmbContextToken } from '@umbraco-cms/backoffice/context-api';
 import { type UmbControllerHost } from '@umbraco-cms/backoffice/controller-api';
-import { UMB_DOCUMENT_WORKSPACE_CONTEXT, UmbDocumentWorkspaceContext } from '@umbraco-cms/backoffice/document';
-import { UmbBooleanState, UmbStringState } from '@umbraco-cms/backoffice/observable-api';
+import { UMB_DOCUMENT_WORKSPACE_CONTEXT, UmbDocumentVariantModel, UmbDocumentWorkspaceContext } from '@umbraco-cms/backoffice/document';
+import { observeMultiple, UmbBooleanState, UmbStringState } from '@umbraco-cms/backoffice/observable-api';
 import { ContentLockService, ContentLockStatus } from '../api';
 import { UmbEntityUnique } from '@umbraco-cms/backoffice/entity';
 
 import '../components/dialog/locked-content-dialog';
 import { LockedContentDialogElement } from '../components/dialog/locked-content-dialog';
-import { umbExtensionsRegistry } from '@umbraco-cms/backoffice/extension-registry';
-import { ManifestWorkspaceView } from '@umbraco-cms/backoffice/workspace';
 import { UmbVariantId } from '@umbraco-cms/backoffice/variant';
 
 export class ContentLockWorkspaceContext extends UmbControllerBase {
 
     private _docWorkspaceCtx?: UmbDocumentWorkspaceContext;
     private _unique: UmbEntityUnique | undefined;
+    private _variants: UmbDocumentVariantModel[] = [];
+
     private _dialogElement: LockedContentDialogElement | null = null;
   
     #isLocked = new UmbBooleanState(false);
@@ -27,37 +27,27 @@ export class ContentLockWorkspaceContext extends UmbControllerBase {
     #lockedByName = new UmbStringState('');
     lockedByName = this.#lockedByName.asObservable();
 
-    private _manifest: ManifestWorkspaceView;
 
 	constructor(host: UmbControllerHost) {
 		super(host, CONTENTLOCK_WORKSPACE_CONTEXT.toString());
 		this.provideContext(CONTENTLOCK_WORKSPACE_CONTEXT, this);
 
-        // Get the manifest of this Workspace View
-        // UmbExtensionManifest
-        this._manifest = umbExtensionsRegistry.getByAlias('contentlock.workspaceview') as ManifestWorkspaceView;
-
         this.consumeContext(UMB_DOCUMENT_WORKSPACE_CONTEXT, (docWorkspaceCtx) => {
             this._docWorkspaceCtx = docWorkspaceCtx;
 
-            this._docWorkspaceCtx.variants.subscribe((variants) => {
-                console.log('Variants:', variants);
-            });
-
-
-            this._docWorkspaceCtx?.unique.subscribe((unique) => {
+            this._docWorkspaceCtx.observe(observeMultiple([this._docWorkspaceCtx?.unique, this._docWorkspaceCtx?.variants]), ([unique, variants]) => {
                 this._unique = unique;
+                this._variants = variants;
 
-                if(!this._unique){
-                    return;
-                }
+                console.log('unique is', unique);
+                console.log('variants are', variants);
+
+                const readonlyStates = this._docWorkspaceCtx?.readOnlyState.getStates();
+                console.log('readonly states in CTOR', readonlyStates);
 
                 // Call API now we have assigned the unique
                 this.checkContentLockState();
             });
-
-            const readOnlyStates = this._docWorkspaceCtx?.readOnlyState.getStates();
-            console.log('Read only states:', readOnlyStates);
         });
 
         // Create and append the dialog element to the body
@@ -101,8 +91,25 @@ export class ContentLockWorkspaceContext extends UmbControllerBase {
             this.setLockedByName(status?.lockedByName ?? '');
 
 
+            console.log('status from server', status);
+
             if(status?.isLocked && status.lockedBySelf === false){
                 
+                // Set the read only state of the document for ALL culture and segment variant combinations
+                console.log('locked set the node to read only with variants', this._variants);
+                this._variants.forEach(variant => {
+
+                    console.log('variant', variant);
+                    console.log('variant culture', variant.culture);
+                    console.log('variant segment', variant.segment);
+
+                    this._docWorkspaceCtx?.readOnlyState.addState({
+                        unique: this._unique!.toString(),
+                        variantId: new UmbVariantId(variant.culture, variant.segment),
+                        message: `This page is locked by ${status?.lockedByName}`
+                    });
+                });
+
                 try {
                     // Display the dialog if the document is locked by someone else
                     const dialog = this._dialogElement;
@@ -114,32 +121,9 @@ export class ContentLockWorkspaceContext extends UmbControllerBase {
                     console.error('Error opening dialog:', error);
                 }
             }
-
-            // Update the workspace view (tab icon) to show lock or unlocked icon
-            if(status?.isLocked == false){
-                // Page is not locked by anyone
-                this._manifest.meta.icon = 'icon-unlocked';
-
-                this._docWorkspaceCtx?.readOnlyState.removeState('dcf18a51-6919-4cf8-89d1-36b94ce4d963');
-            }
-
-            if(status?.isLocked == true && status?.lockedBySelf == true){
-                // Page is locked by the current user
-                this._manifest.meta.icon = 'icon-lock';
-
-                this._docWorkspaceCtx?.readOnlyState.removeState('dcf18a51-6919-4cf8-89d1-36b94ce4d963');
-            }
-
-            if(status?.isLocked == true && status?.lockedBySelf == false){
-                // Page is locked by someone else
-                this._manifest.meta.icon = 'icon-lock';
-
-                // Set the read only state of the document
-                this._docWorkspaceCtx?.readOnlyState.addState({
-                    unique: this._unique!.toString(),
-                    variantId: new UmbVariantId(null, null), // This should lock the entire node as not setting the culture or segment
-                    message: 'This page is locked by someone else'
-                });
+            else {
+                // Page is not locked or its locked by self - remove the readonly
+                this._docWorkspaceCtx?.readOnlyState.removeState(this._unique!.toString());
             }
         });
     }
