@@ -1,3 +1,5 @@
+import { UMB_CONTENT_SECTION_ALIAS } from '@umbraco-cms/backoffice/content';
+
 export const manifests: Array<UmbExtensionManifest> = [
   {
     name: '[Content Lock] Overview Dashboard',
@@ -12,7 +14,7 @@ export const manifests: Array<UmbExtensionManifest> = [
     conditions: [
       {
         alias: 'Umb.Condition.SectionAlias', // Only allow dashboard in Content Section/App
-        match: 'Umb.Section.Content', //TODO: Is there a CONST we can use?
+        match: UMB_CONTENT_SECTION_ALIAS,
       }
     ],
   }

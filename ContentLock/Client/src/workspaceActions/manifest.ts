@@ -1,5 +1,7 @@
 import { UMB_ENTITY_IS_NOT_TRASHED_CONDITION_ALIAS } from '@umbraco-cms/backoffice/recycle-bin';
 import { CONTENTLOCK_IS_LOCKED_ALLOWED_CONDITION_ALIAS } from '../conditions/ContentLocked.Allowed.Condition';
+import { UMB_DOCUMENT_WORKSPACE_ALIAS } from '@umbraco-cms/backoffice/document';
+import { UMB_WORKSPACE_CONDITION_ALIAS } from '@umbraco-cms/backoffice/workspace';
 
 export const manifests: Array<UmbExtensionManifest> = [
     {
@@ -17,8 +19,8 @@ export const manifests: Array<UmbExtensionManifest> = [
         },
         conditions: [
             {
-				alias: 'Umb.Condition.WorkspaceAlias',
-				match: 'Umb.Workspace.Document',
+				alias: UMB_WORKSPACE_CONDITION_ALIAS,
+				match: UMB_DOCUMENT_WORKSPACE_ALIAS,
 			},
             {
 				alias: UMB_ENTITY_IS_NOT_TRASHED_CONDITION_ALIAS,

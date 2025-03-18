@@ -1,5 +1,8 @@
 //import { CONTENTLOCK_IS_LOCKED_NOT_ALLOWED_CONDITION_ALIAS } from "../conditions/ContentLocked.NotAllowed.Condition";
 
+import { UMB_DOCUMENT_WORKSPACE_ALIAS } from '@umbraco-cms/backoffice/document';
+import { UMB_WORKSPACE_CONDITION_ALIAS } from '@umbraco-cms/backoffice/workspace';
+
 export const manifests: Array<UmbExtensionManifest> = [
   {
     alias: 'contentlock.workspacefooterapp',
@@ -10,11 +13,11 @@ export const manifests: Array<UmbExtensionManifest> = [
     conditions: [
       {
         alias: 'Umb.Condition.SectionAlias',
-        match: 'Umb.Section.Content'
+        match: UMB_CONTENT_SECTION_ALIAS
       },
       {
-        alias: "Umb.Condition.WorkspaceAlias",
-        match: "Umb.Workspace.Document"
+        alias: UMB_WORKSPACE_CONDITION_ALIAS,
+        match: UMB_DOCUMENT_WORKSPACE_ALIAS
       }
     ]
   }
