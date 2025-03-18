@@ -48,6 +48,7 @@ export class LockDocumentEntityAction extends UmbEntityActionBase<never> {
         // Update the context observables with the new state of the document
         this._lockCtx?.setIsLocked(true);
         this._lockCtx?.setIsLockedBySelf(true);
+        this._lockCtx?.setLockedByName("TESTING");
 
         // Success notification
         this._notificationCtx?.peek('positive', {

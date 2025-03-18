@@ -5,9 +5,6 @@ import { UMB_DOCUMENT_WORKSPACE_CONTEXT, UmbDocumentVariantModel, UmbDocumentWor
 import { observeMultiple, UmbBooleanState, UmbStringState } from '@umbraco-cms/backoffice/observable-api';
 import { ContentLockService, ContentLockStatus } from '../api';
 import { UmbEntityUnique } from '@umbraco-cms/backoffice/entity';
-
-import '../components/dialog/locked-content-dialog';
-import { LockedContentDialogElement } from '../components/dialog/locked-content-dialog';
 import { UmbVariantId } from '@umbraco-cms/backoffice/variant';
 
 export class ContentLockWorkspaceContext extends UmbControllerBase {
@@ -15,8 +12,6 @@ export class ContentLockWorkspaceContext extends UmbControllerBase {
     private _docWorkspaceCtx?: UmbDocumentWorkspaceContext;
     private _unique: UmbEntityUnique | undefined;
     private _variants: UmbDocumentVariantModel[] = [];
-
-    private _dialogElement: LockedContentDialogElement | null = null;
   
     #isLocked = new UmbBooleanState(false);
     isLocked = this.#isLocked.asObservable();
@@ -39,36 +34,11 @@ export class ContentLockWorkspaceContext extends UmbControllerBase {
                 this._unique = unique;
                 this._variants = variants;
 
-                console.log('unique is', unique);
-                console.log('variants are', variants);
-
-                const readonlyStates = this._docWorkspaceCtx?.readOnlyState.getStates();
-                console.log('readonly states in CTOR', readonlyStates);
-
                 // Call API now we have assigned the unique
                 this.checkContentLockState();
             });
         });
-
-        // Create and append the dialog element to the body
-        // This feels a bit hacky to use a native HTML5 dialog and not modalManager context
-        // As the modal manager closes the modal immediately after opening it when we navigate to the page
-        // This is due to closeNoneRoutableModals AFAIK from Umbraco modalManagerCtx
-        console.log('Add dialog to body for us to open');
-
-        // Create and append the dialog element to the body
-        this._dialogElement = document.createElement('locked-content-dialog') as LockedContentDialogElement;
-        document.body.appendChild(this._dialogElement);
 	}
-
-    override destroy() {
-        super.destroy();
-
-        if (this._dialogElement) {
-            document.body.removeChild(this._dialogElement);
-            this._dialogElement = null;
-        }
-    }
 
     private async _getStatus(key: string) : Promise<ContentLockStatus | undefined> {
 
@@ -85,45 +55,30 @@ export class ContentLockWorkspaceContext extends UmbControllerBase {
         // Check if the current document is locked and its not locked by self
         await this._getStatus(this._unique!).then(async (status) => {
 
-            // Set the observable bool that we consume as part of condition
+            // Set the observable bools
+            // So conditions can react and the Workspace Footer App 
             this.setIsLocked(status?.isLocked ?? false);
             this.setIsLockedBySelf(status?.lockedBySelf ?? false);
             this.setLockedByName(status?.lockedByName ?? '');
 
-
-            console.log('status from server', status);
-
             if(status?.isLocked && status.lockedBySelf === false){
-                
-                // Set the read only state of the document for ALL culture and segment variant combinations
-                console.log('locked set the node to read only with variants', this._variants);
-                this._variants.forEach(variant => {
+                // Page is locked by someone else - set the readonly state
 
-                    console.log('variant', variant);
-                    console.log('variant culture', variant.culture);
-                    console.log('variant segment', variant.segment);
-
-                    this._docWorkspaceCtx?.readOnlyState.addState({
-                        unique: this._unique!.toString(),
+                // Set the read only state of the document for ALL culture & segment variant combinations
+                // Even documents without a variant will have a default variant with the culture and segment set to null
+                this._variants.forEach(async variant => {
+                    await this._docWorkspaceCtx?.readOnlyState.addState({
+                        unique: `${this._unique!.toString()}-${variant.culture}`,
                         variantId: new UmbVariantId(variant.culture, variant.segment),
                         message: `This page is locked by ${status?.lockedByName}`
                     });
                 });
-
-                try {
-                    // Display the dialog if the document is locked by someone else
-                    const dialog = this._dialogElement;
-                    if(dialog){
-                        dialog.lockedBy = status.lockedByName!;
-                        dialog.openDialog();
-                    }
-                } catch (error) {
-                    console.error('Error opening dialog:', error);
-                }
             }
             else {
-                // Page is not locked or its locked by self - remove the readonly
-                this._docWorkspaceCtx?.readOnlyState.removeState(this._unique!.toString());
+                // Page is not locked or its locked by self - remove the readonly state
+                this._variants.forEach(async variant => {
+                    await this._docWorkspaceCtx?.readOnlyState.removeState(`${this._unique!.toString()}-${variant.culture}`);
+                });
             }
         });
     }
