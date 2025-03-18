@@ -71,7 +71,7 @@ export class ContentLockWorkspaceViewElement extends UmbElementMixin(LitElement)
 
     private async _lock(ev: Event) {
         if (!this._unique) {
-            console.error('No unique key found');
+            console.error('No unique key found to peform content lock');
             return;
         }
 
@@ -81,6 +81,8 @@ export class ContentLockWorkspaceViewElement extends UmbElementMixin(LitElement)
         const { error } = await ContentLockService.lockContent({path:{key:this._unique}});
         if (error){
             buttonElement.state = 'failed';
+
+            // TODO: Display Error Notification
             console.error(error);
             return;
         }
@@ -102,7 +104,7 @@ export class ContentLockWorkspaceViewElement extends UmbElementMixin(LitElement)
 
     private async _unlock(ev: Event) {
         if (!this._unique) {
-            console.error('No unique key found');
+            console.error('No unique key found to perform content unlock');
             return;
         }
 
@@ -112,6 +114,8 @@ export class ContentLockWorkspaceViewElement extends UmbElementMixin(LitElement)
         const { error } = await ContentLockService.unlockContent({path:{key:this._unique}});
         if (error){
             buttonElement.state = 'failed';
+
+            // TODO: Display Error Notification
             console.error(error);
             return;
         }

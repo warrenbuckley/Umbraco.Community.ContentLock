@@ -6,7 +6,6 @@ import { CONTENTLOCK_IS_LOCKED_NOT_ALLOWED_CONDITION_ALIAS } from '../conditions
 // load up the manifests here
 export const onInit: UmbEntryPointOnInit = (_host, _extensionRegistry) => {
 
-  console.log('Hello from Content Lock 🎉');
   // Will use only to add in Open API config with generated TS OpenAPI HTTPS Client
   // Do the OAuth token handshake stuff
   _host.consumeContext(UMB_AUTH_CONTEXT, async (authContext) => {
@@ -50,5 +49,5 @@ export const onInit: UmbEntryPointOnInit = (_host, _extensionRegistry) => {
 };
 
 export const onUnload: UmbEntryPointOnUnload = (_host, _extensionRegistry) => {
-  console.log('Goodbye from Content Lock 👋');
+  // If we needed to explicitly do any cleaning up then we would do it here
 };

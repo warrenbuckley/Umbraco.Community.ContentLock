@@ -178,7 +178,6 @@ if (error) {
     const { error } = await ContentLockService.bulkUnlock({body: this._selectedItems});
     if (error) {
       // TODO: Display Error Notification
-      alert(`err: ${error}`);
       console.error(error);
       return;
     }

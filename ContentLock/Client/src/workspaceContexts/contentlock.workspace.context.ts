@@ -44,6 +44,7 @@ export class ContentLockWorkspaceContext extends UmbControllerBase {
 
         const { data, error } = await ContentLockService.status({path:{key:key}});
         if (error){
+            // TODO: Display Error Notification
             console.error(error);
             return undefined;
         }
