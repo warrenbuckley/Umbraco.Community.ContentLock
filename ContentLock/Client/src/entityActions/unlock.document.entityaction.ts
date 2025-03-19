@@ -3,6 +3,7 @@ import { UmbEntityActionArgs, UmbEntityActionBase } from "@umbraco-cms/backoffic
 import { UMB_NOTIFICATION_CONTEXT, UmbNotificationContext } from "@umbraco-cms/backoffice/notification";
 import { ContentLockService } from "../api";
 import { CONTENTLOCK_WORKSPACE_CONTEXT, ContentLockWorkspaceContext } from "../workspaceContexts/contentlock.workspace.context";
+import { ProblemDetailResponse } from "../interfaces/ProblemDetailResponse";
 
 export class UnlockDocumentEntityAction extends UmbEntityActionBase<never> {
     
@@ -30,20 +31,21 @@ export class UnlockDocumentEntityAction extends UmbEntityActionBase<never> {
         }
 
         // Make API call
-        const result = await ContentLockService.unlockContent({
+        const { error } = await ContentLockService.unlockContent({
             path: {
                 key: this.args.unique
             }
         });
 
-        // Kaboom notification
-        if(!result.response.ok){
+        if(error) {
+            const errorResponse = error as ProblemDetailResponse;
             this._notificationCtx?.peek('danger', {
                 data: {
-                    headline: 'Unlocking Failed',
-                    message: 'Unable to unlock document'
+                    headline: errorResponse.title,
+                    message: errorResponse.detail
                 }
             });
+
             return;
         }
 

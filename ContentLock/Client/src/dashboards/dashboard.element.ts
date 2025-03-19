@@ -7,6 +7,7 @@ import { UmbTableColumnWithSort } from "../interfaces/UmbTableColumnWithSort";
 import { ContentLockService } from "../api";
 
 import '../components/table/table.pagelink.element';
+import { ProblemDetailResponse } from "../interfaces/ProblemDetailResponse";
 
 @customElement('contentlock-dashboard')
 export class ContentLockDashboardElement extends UmbElementMixin(LitElement) {
@@ -128,29 +129,20 @@ export class ContentLockDashboardElement extends UmbElementMixin(LitElement) {
 
     this._isLoading = true;
 
-// TODO: error will come back as this shape of JSON
-/*
-{
-  "type": "Error",
-  "title": "Unauthorized",
-  "status": 400,
-  "detail": "Only the original user who locked this content can unlock it or a super user with the unlocking permission"
-}
-*/
-const { data, error } = await ContentLockService.lockOverview();
-if (error) {
-  // TODO: Display Error Notification correctly
 
-  this._notificationCtx?.peek('danger', {
-    data: {
-      headline:'TODO: Get from error',
-      message: 'Kaboom this is an error'
+    const { data, error } = await ContentLockService.lockOverview();
+    if (error) {
+      const errorResponse = error as ProblemDetailResponse;
+      this._notificationCtx?.peek('danger', {
+        data: {
+          headline: errorResponse.title,
+          message: errorResponse.detail
+        }
+      });
+
+      this._isLoading = false;
+      return;
     }
-  });
-
-  this._isLoading = false;
-  return;
-}
 
     if (data) {
       const response = data;
@@ -177,9 +169,16 @@ if (error) {
 
   async #bulkUnlock() {
     // Get the selection currently set
-    const { error } = await ContentLockService.bulkUnlock({body: this._selectedItems});
+    const { error } = await ContentLockService.bulkUnlock({ body: this._selectedItems });
     if (error) {
-      // TODO: Display Error Notification
+      const errorResponse = error as ProblemDetailResponse;
+      this._notificationCtx?.peek('danger', {
+        data: {
+          headline: errorResponse.title,
+          message: errorResponse.detail
+        }
+      });
+
       console.error(error);
       return;
     }

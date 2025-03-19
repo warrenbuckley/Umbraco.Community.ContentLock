@@ -6,6 +6,7 @@ import { observeMultiple, UmbBooleanState, UmbStringState } from '@umbraco-cms/b
 import { ContentLockService, ContentLockStatus } from '../api';
 import { UmbEntityUnique } from '@umbraco-cms/backoffice/entity';
 import { UmbVariantId } from '@umbraco-cms/backoffice/variant';
+import { ProblemDetailResponse } from '../interfaces/ProblemDetailResponse';
 
 export class ContentLockWorkspaceContext extends UmbControllerBase {
 
@@ -44,7 +45,16 @@ export class ContentLockWorkspaceContext extends UmbControllerBase {
 
         const { data, error } = await ContentLockService.status({path:{key:key}});
         if (error){
-            // TODO: Display Error Notification
+            const errorResponse = error as ProblemDetailResponse;
+
+            //TODO: Does it make sense to display a notification if we cant get the current lock status?
+            // this._notificationCtx?.peek('danger', {
+            //     data: {
+            //         headline: errorResponse.title,
+            //         message: errorResponse.detail
+            //     }
+            // });
+
             console.error(error);
             return undefined;
         }
