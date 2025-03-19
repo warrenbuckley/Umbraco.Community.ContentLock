@@ -9,7 +9,12 @@
   <PropertyGroup>
     <PackageId>Umbraco.Community.ContentLock</PackageId>
     <Product>Umbraco.Community.ContentLock</Product>
-    <Title>Umbraco.Community.ContentLock</Title>
+    <Title>Umbraco Community - Content Lock</Title>
+    <Description>Umbraco Community ContentLock is an open-source package for Umbraco CMS that prevents content conflicts by enabling content editors to lock nodes while editing.</Description>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageTags>umbraco; umbraco-marketplace;</PackageTags>
+    <IncludeSymbols>True</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
 
 
@@ -26,6 +31,9 @@
 
     <!-- However make the Umbraco-package.json included for dotnet pack or nuget package and visible to the solution -->
     <None Include="Client\public\umbraco-package.json" Pack="false" />
+
+    <!-- Readme for nuget -->
+    <None Include="..\..\Personal\Umbraco.Community.User2FA\README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
   
 </Project>
