@@ -139,6 +139,8 @@ export class ContentLockDashboardElement extends UmbElementMixin(LitElement) {
 */
 const { data, error } = await ContentLockService.lockOverview();
 if (error) {
+  // TODO: Display Error Notification correctly
+
   this._notificationCtx?.peek('danger', {
     data: {
       headline:'TODO: Get from error',

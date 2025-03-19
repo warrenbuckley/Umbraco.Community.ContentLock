@@ -15,6 +15,7 @@ export const manifests: Array<UmbExtensionManifest> = [
       icon: 'icon-combination-lock',
     },
     forEntityTypes: [ UMB_DOCUMENT_ENTITY_TYPE ],
+    // TODO: Conditions
   },
   {
     name: '[Content Lock] Unlock Document Entity Action',
@@ -28,5 +29,6 @@ export const manifests: Array<UmbExtensionManifest> = [
       icon: 'icon-combination-lock-open',
     },
     forEntityTypes: [ UMB_DOCUMENT_ENTITY_TYPE ],
+    // TODO: Conditions
   }
 ];

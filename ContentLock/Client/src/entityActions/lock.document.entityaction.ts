@@ -19,6 +19,8 @@ export class LockDocumentEntityAction extends UmbEntityActionBase<never> {
 
         this.consumeContext(CONTENTLOCK_WORKSPACE_CONTEXT, (lockCtx) => {
             this._lockCtx = lockCtx;
+            // TODO: Why can I not get this from the tree?
+            console.log('TODO: can i GET lock ctx from tree?', lockCtx);
         });
     }
 
