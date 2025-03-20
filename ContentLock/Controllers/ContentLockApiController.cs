@@ -1,3 +1,5 @@
+using System.Globalization;
+
 using Asp.Versioning;
 using ContentLock.Extensions;
 using ContentLock.Interfaces;
@@ -6,6 +8,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Umbraco.Cms.Api.Common.Builders;
 using Umbraco.Cms.Core.Security;
+using Umbraco.Cms.Core.Services;
 
 namespace ContentLock.Controllers
 {
@@ -15,11 +18,13 @@ namespace ContentLock.Controllers
     {
         private readonly IBackOfficeSecurityAccessor _backOfficeSecurityAccessor;
         private readonly IContentLockService _contentLockService;
+        private readonly ILocalizedTextService _localizedTextService;
 
-        public ContentLockApiController(IBackOfficeSecurityAccessor backOfficeSecurityAccessor, IContentLockService contentLockService)
+        public ContentLockApiController(IBackOfficeSecurityAccessor backOfficeSecurityAccessor, IContentLockService contentLockService, ILocalizedTextService localizedTextService)
         {
             _backOfficeSecurityAccessor = backOfficeSecurityAccessor;
             _contentLockService = contentLockService;
+            _localizedTextService = localizedTextService;
         }
 
         [HttpGet("Status/{key:guid}")]
@@ -37,15 +42,17 @@ namespace ContentLock.Controllers
         public async Task<IActionResult> LockContentAsync(Guid key)
         {
             var userKey = _backOfficeSecurityAccessor.BackOfficeSecurity?.CurrentUser?.Key;
-
+            var userLang = _backOfficeSecurityAccessor.BackOfficeSecurity?.CurrentUser?.Language ?? "en";
+            var cultureInfo = new CultureInfo(userLang);
+    
             // Get current info for lock
             var lockInfo = await _contentLockService.GetLockInfoAsync(key, userKey.Value);
 
             if(lockInfo.IsLocked && userKey != lockInfo.LockedByKey)
             {
                 return BadRequest(new ProblemDetailsBuilder()
-                    .WithTitle("Unauthorized")
-                    .WithDetail("Someone else already has the piece of content locked and only the original user who locked this content can unlock it or a super user with the unlocking permission")
+                    .WithTitle(_localizedTextService.Localize("contentLockResponseTitles", "unauthorized", cultureInfo))
+                    .WithDetail(_localizedTextService.Localize("contentLockResponseDetails", "contentAlreadyLocked", cultureInfo))
                     .Build());
             }
 
@@ -59,6 +66,8 @@ namespace ContentLock.Controllers
         public async Task<IActionResult> UnlockContentAsync(Guid key)
         {
             var userKey = _backOfficeSecurityAccessor.BackOfficeSecurity?.CurrentUser?.Key;
+            var userLang = _backOfficeSecurityAccessor.BackOfficeSecurity?.CurrentUser?.Language ?? "en";
+            var cultureInfo = new CultureInfo(userLang);
 
             // Get current info for lock
             var lockInfo = await _contentLockService.GetLockInfoAsync(key, userKey.Value);
@@ -70,8 +79,8 @@ namespace ContentLock.Controllers
             if (userKey != lockInfo.LockedByKey && hasUnlockPermission is false)
             {
                 return BadRequest(new ProblemDetailsBuilder()
-                    .WithTitle("Unauthorized")
-                    .WithDetail("Only the original user who locked this content can unlock it or a super user with the unlocking permission")
+                    .WithTitle(_localizedTextService.Localize("contentLockResponseTitles", "unauthorized", cultureInfo))
+                    .WithDetail(_localizedTextService.Localize("contentLockResponseDetails", "deniedUnlock", cultureInfo))
                     .Build());
             }
 
@@ -93,13 +102,15 @@ namespace ContentLock.Controllers
         public async Task<IActionResult> BulkUnlockAsync(IEnumerable<Guid> keys)
         {
             var hasUnlockPermission = _backOfficeSecurityAccessor.BackOfficeSecurity?.CurrentUser?.HasContentUnlockPermission();
+            var userLang = _backOfficeSecurityAccessor.BackOfficeSecurity?.CurrentUser?.Language ?? "en";
+            var cultureInfo = new CultureInfo(userLang);
 
             // Only users with the 'ContentLock.Unlocker' permission can BULK unlock content
             if (hasUnlockPermission is false)
             {
                 return BadRequest(new ProblemDetailsBuilder()
-                    .WithTitle("Invalid permission")
-                    .WithDetail("Only users with the Content Lock 'Unlocker' permission is allowed to perform a bulk unlock.")
+                    .WithTitle(_localizedTextService.Localize("contentLockResponseTitles", "invalidPermission", cultureInfo))
+                    .WithDetail(_localizedTextService.Localize("contentLockResponseDetails", "deniedBulkUnlock", cultureInfo))
                     .Build());
             }
 

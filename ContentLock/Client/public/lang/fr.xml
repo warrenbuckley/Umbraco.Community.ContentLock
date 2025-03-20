@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<language alias="fr" intName="French" localName="français" lcid="12" culture="fr-FR">
+    <creator>
+        <name>The Umbraco community</name>
+        <link>https://docs.umbraco.com/umbraco-cms/extending/language-files</link>
+    </creator>
+    <area alias="contentLockResponseTitles">
+        <key alias="unauthorized">FR Unauthorized FR</key>
+        <key alias="invalidPermission">FR Invalid Permission FR</key>
+    </area>
+    <area alias="contentLockResponseDetails">
+        <key alias="contentAlreadyLocked">FR Someone else already has the piece of content locked and only the original user who locked this content can unlock it or a user with with the Content Lock 'Unlocker' permission. FR</key>
+        <key alias="deniedUnlock">FR Only the original user who locked this content can unlock it or a user with with the Content Lock 'Unlocker' permission. FR</key>
+        <key alias="deniedBulkUnlock">FR Only users with the Content Lock 'Unlocker' permission is allowed to perform a bulk unlock. FR</key>
+    </area>
+</language>
