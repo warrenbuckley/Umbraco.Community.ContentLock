@@ -43,7 +43,7 @@ export class ContentLockDashboardElement extends UmbElementMixin(LitElement) {
   @state()
   private _tableColumns: Array<UmbTableColumnWithSort> = [
     {
-      name: 'Page Name',
+      name: this.localize.term('contentLockDashboard_pageNameHeader'),
       alias: 'pageName',
       allowSorting: true,
       elementName: 'contentlock-table-pagelink', // This is a custom element that will be used to render the cell value in an uui-button
@@ -58,7 +58,7 @@ export class ContentLockDashboardElement extends UmbElementMixin(LitElement) {
       },
     },
     {
-      name: 'Content Type',
+      name: this.localize.term('contentLockDashboard_contentTypeHeader'),
       alias: 'contentType',
       allowSorting: true,
       sortFunc: (items: Array<UmbTableItem>, desc: boolean) => {
@@ -72,7 +72,7 @@ export class ContentLockDashboardElement extends UmbElementMixin(LitElement) {
       },
     },
     {
-      name: 'Checked out by',
+      name: this.localize.term('contentLockDashboard_checkedOutByHeader'),
       alias: 'checkedOutBy',
       allowSorting: true,
       sortFunc: (items: Array<UmbTableItem>, desc: boolean) => {
@@ -86,7 +86,7 @@ export class ContentLockDashboardElement extends UmbElementMixin(LitElement) {
       },
     },
     {
-      name: 'Checked out at',
+      name: this.localize.term('contentLockDashboard_checkedOutAtHeader'),
       alias: 'checkedOutAt',
       allowSorting: true,
       sortFunc: (items: Array<UmbTableItem>, desc: boolean) => {
@@ -100,7 +100,7 @@ export class ContentLockDashboardElement extends UmbElementMixin(LitElement) {
       },
     },
     {
-      name: 'Last Edited',
+      name: this.localize.term('contentLockDashboard_lastEditedHeader'),
       alias: 'lastEdited',
       allowSorting: true,
       sortFunc: (items: Array<UmbTableItem>, desc: boolean) => {
@@ -229,7 +229,9 @@ export class ContentLockDashboardElement extends UmbElementMixin(LitElement) {
     if (this._isLoading) {
       return html`
         <uui-button-group>
-          <uui-button label="Unlock" look="primary" color="default" disabled><uui-icon name="icon-lock"></uui-icon> Unlock</uui-button>
+          <uui-button .label=${this.localize.term('contentLockDashboard_unlockAction')} look="primary" color="default" disabled>
+            <uui-icon name="icon-lock"></uui-icon>
+          </uui-button>
         </uui-button-group>
         
         <div class="grid">
@@ -240,7 +242,10 @@ export class ContentLockDashboardElement extends UmbElementMixin(LitElement) {
           </div>
           <div class="container">
             <uui-box class="entries">
-              <span slot="headline"><uui-icon name="icon-combination-lock"></uui-icon> Pages Checked Out</span>
+              <span slot="headline">
+                <uui-icon name="icon-combination-lock"></uui-icon> 
+                <umb-localize key="contentLockDashboard_pagesCheckedOutTitle"></umb-localize>
+              </span>
               <uui-loader></uui-loader>
             </uui-box>
           </div>
@@ -250,7 +255,9 @@ export class ContentLockDashboardElement extends UmbElementMixin(LitElement) {
 
     return html`
       <uui-button-group>
-        <uui-button label="Unlock" look="primary" color="default" @click=${this.#bulkUnlock} ?disabled=${this.#isUnlockDisabled()}><uui-icon name="icon-lock"></uui-icon> Unlock</uui-button>
+        <uui-button .label=${this.localize.term('contentLockDashboard_unlockAction')} look="primary" color="default" @click=${this.#bulkUnlock} ?disabled=${this.#isUnlockDisabled()}>
+          <uui-icon name="icon-lock"></uui-icon>
+        </uui-button>
       </uui-button-group>
       
       <div class="grid">
@@ -267,7 +274,10 @@ export class ContentLockDashboardElement extends UmbElementMixin(LitElement) {
         </div>
         <div class="container entries-col">
           <uui-box class="entries">
-            <span slot="headline"><uui-icon name="icon-combination-lock"></uui-icon> Pages Checked Out</span>
+            <span slot="headline">
+              <uui-icon name="icon-combination-lock"></uui-icon> 
+              <umb-localize key="contentLockDashboard_pagesCheckedOutTitle"></umb-localize>
+            </span>
             <h2>${this._totalLockedPages}</h2>
           </uui-box>
         </div>

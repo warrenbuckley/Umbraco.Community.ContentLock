@@ -8,7 +8,7 @@ export const manifests: Array<UmbExtensionManifest> = [
     weight: 19, // 20 is default Umbraco News/promo dashboard
     js: () => import('./dashboard.element'),
     meta: {
-      label: 'Content Locks',
+      label:  '#contentLockDashboard_label',
       pathname: 'content-locks'
     },
     conditions: [
