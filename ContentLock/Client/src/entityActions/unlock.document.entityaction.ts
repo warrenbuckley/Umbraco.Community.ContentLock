@@ -20,14 +20,12 @@ export class UnlockDocumentEntityAction extends UmbEntityActionBase<never> {
 
         this.consumeContext(CONTENTLOCK_WORKSPACE_CONTEXT, (lockCtx) => {
             this._lockCtx = lockCtx;
-            // TODO: Why can I not get this from the tree?
-            console.log('TODO: can i GET lock ctx from tree?', lockCtx);
         });
     }
 
     async execute() {
         if (!this.args.unique) {
-            throw new Error("The document unique identifier is missing");
+            throw new Error('The document unique identifier is missing');
         }
 
         // Make API call
