@@ -1,17 +1,38 @@
-import { CONTENTLOCK_IS_LOCKED_ALLOWED_CONDITION_ALIAS } from "./ContentLocked.Allowed.Condition";
-import { CONTENTLOCK_IS_LOCKED_NOT_ALLOWED_CONDITION_ALIAS } from "./ContentLocked.NotAllowed.Condition";
+import { CONTENTLOCK_CAN_SHOW_COMMON_ACTIONS_CONDITION_ALIAS } from "./CanShowCommonActions.Condition";
+import { CONTENTLOCK_SHOW_LOCK_CONDITION_ALIAS } from "./ShowLock.Condition";
+import { CONTENTLOCK_SHOW_LOCKED_STATUS_CONDITION_ALIAS } from "./ShowLockedStatus.Condition";
+import { CONTENTLOCK_SHOW_PREVIEW_CONDITION_ALIAS } from "./ShowPreview.Condition";
+import { CONTENTLOCK_SHOW_UNLOCK_CONDITION_ALIAS } from "./ShowUnlock.Condition";
 
 export const manifests: Array<UmbExtensionManifest> = [
     {
         type: 'condition',
-        alias: CONTENTLOCK_IS_LOCKED_NOT_ALLOWED_CONDITION_ALIAS,
-        name: '[Content Lock] Content Is Locked - Not Allowed Condition',
-        js: () => import('./ContentLocked.NotAllowed.Condition'),
+        alias: CONTENTLOCK_SHOW_LOCK_CONDITION_ALIAS,
+        name: '[Content Lock] Show Lock Condition',
+        js: () => import('./ShowLock.Condition'),
     },
     {
         type: 'condition',
-        alias: CONTENTLOCK_IS_LOCKED_ALLOWED_CONDITION_ALIAS,
-        name: '[Content Lock] Content Is Locked - Allowed Condition',
-        js: () => import('./ContentLocked.Allowed.Condition'),
-    }
+        alias: CONTENTLOCK_SHOW_UNLOCK_CONDITION_ALIAS,
+        name: '[Content Lock] Show Unlock Condition',
+        js: () => import('./ShowUnlock.Condition'),
+    },
+    {
+        type: 'condition',
+        alias: CONTENTLOCK_CAN_SHOW_COMMON_ACTIONS_CONDITION_ALIAS,
+        name: '[Content Lock] Can Show Common Actions Condition',
+        js: () => import('./CanShowCommonActions.Condition'),
+    },
+    {
+        type: 'condition',
+        alias: CONTENTLOCK_SHOW_LOCKED_STATUS_CONDITION_ALIAS,
+        name: '[Content Lock] Show Locked Status Condition',
+        js: () => import('./ShowLockedStatus.Condition'),
+    },
+    {
+        type: 'condition',
+        alias: CONTENTLOCK_SHOW_PREVIEW_CONDITION_ALIAS,
+        name: '[Content Lock] Show Preview Condition',
+        js: () => import('./ShowPreview.Condition'),
+    },
 ];

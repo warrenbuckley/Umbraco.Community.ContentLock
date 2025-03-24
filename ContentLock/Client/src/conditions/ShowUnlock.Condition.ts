@@ -1,27 +1,28 @@
 import type { UmbControllerHost } from '@umbraco-cms/backoffice/controller-api';
 import { UmbConditionConfigBase, UmbConditionControllerArguments, UmbExtensionCondition } from "@umbraco-cms/backoffice/extension-api";
 import { UmbConditionBase } from '@umbraco-cms/backoffice/extension-registry';
-import { observeMultiple } from '@umbraco-cms/backoffice/observable-api';
 import { CONTENTLOCK_WORKSPACE_CONTEXT } from '../workspaceContexts/contentlock.workspace.context';
+import { observeMultiple } from '@umbraco-cms/backoffice/observable-api';
  
-export default class ContentIsLockedNotAllowedCondition extends UmbConditionBase<UmbConditionConfigBase> implements UmbExtensionCondition
+export default class ShowUnlockCondition extends UmbConditionBase<UmbConditionConfigBase> implements UmbExtensionCondition
 {
- 
     constructor(host: UmbControllerHost, args: UmbConditionControllerArguments<UmbConditionConfigBase>) {
         super(host, args);
 
         this.consumeContext(CONTENTLOCK_WORKSPACE_CONTEXT , (contentLockWorkspaceCtx) => {
-
-            this.observe(observeMultiple([contentLockWorkspaceCtx.isLocked, contentLockWorkspaceCtx.isLockedBySelf]), ([isLocked, isLockedBySelf]) =>{
-                if(isLocked && !isLockedBySelf){
-                    this.permitted = false;
+            
+            this.observe(observeMultiple([contentLockWorkspaceCtx.isLocked, contentLockWorkspaceCtx.isLockedBySelf,]),([isLocked, isLockedBySelf]) => {
+                if(isLocked && isLockedBySelf){
+                    // Node is locked by self - show the unlock action
+                    this.permitted = true;
                 }
                 else {
-                    this.permitted = true;
+                    // Otherwise we hide/remove it
+                    this.permitted = false;
                 }
             });
         });
     }
 }
 
-export const CONTENTLOCK_IS_LOCKED_NOT_ALLOWED_CONDITION_ALIAS = 'contentlock.condition.isLocked.notallowed';
+export const CONTENTLOCK_SHOW_UNLOCK_CONDITION_ALIAS = 'contentlock.condition.showUnlock';

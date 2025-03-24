@@ -3,7 +3,7 @@ import { UmbConditionConfigBase, UmbConditionControllerArguments, UmbExtensionCo
 import { UmbConditionBase } from '@umbraco-cms/backoffice/extension-registry';
 import { CONTENTLOCK_WORKSPACE_CONTEXT } from '../workspaceContexts/contentlock.workspace.context';
  
-export default class ContentIsLockedAllowedCondition extends UmbConditionBase<UmbConditionConfigBase> implements UmbExtensionCondition
+export default class ShowLockedStatusCondition extends UmbConditionBase<UmbConditionConfigBase> implements UmbExtensionCondition
 {
     constructor(host: UmbControllerHost, args: UmbConditionControllerArguments<UmbConditionConfigBase>) {
         super(host, args);
@@ -11,9 +11,11 @@ export default class ContentIsLockedAllowedCondition extends UmbConditionBase<Um
         this.consumeContext(CONTENTLOCK_WORKSPACE_CONTEXT , (contentLockWorkspaceCtx) => {
             this.observe(contentLockWorkspaceCtx.isLocked, (isLocked) => {
                 if(isLocked){
+                    // Node is locked - show the lock status
                     this.permitted = true;
                 }
                 else {
+                    // Otherwise we hide/remove it
                     this.permitted = false;
                 }
             });
@@ -21,4 +23,4 @@ export default class ContentIsLockedAllowedCondition extends UmbConditionBase<Um
     }
 }
 
-export const CONTENTLOCK_IS_LOCKED_ALLOWED_CONDITION_ALIAS = 'contentlock.condition.isLocked.allowed';
+export const CONTENTLOCK_SHOW_LOCKED_STATUS_CONDITION_ALIAS = 'contentlock.condition.showLockedStatus';

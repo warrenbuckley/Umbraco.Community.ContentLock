@@ -1,6 +1,8 @@
 import { UMB_DOCUMENT_ENTITY_TYPE } from "@umbraco-cms/backoffice/document";
 import { LockDocumentEntityAction } from "./lock.document.entityaction";
 import { UnlockDocumentEntityAction } from "./unlock.document.entityaction";
+import { CONTENTLOCK_SHOW_LOCK_CONDITION_ALIAS } from "../conditions/ShowLock.Condition";
+import { CONTENTLOCK_SHOW_UNLOCK_CONDITION_ALIAS } from "../conditions/ShowUnlock.Condition";
 
 export const manifests: Array<UmbExtensionManifest> = [
   {
@@ -15,7 +17,11 @@ export const manifests: Array<UmbExtensionManifest> = [
       icon: 'icon-combination-lock',
     },
     forEntityTypes: [ UMB_DOCUMENT_ENTITY_TYPE ],
-    // TODO: Conditions
+    conditions: [
+      {
+        alias: CONTENTLOCK_SHOW_LOCK_CONDITION_ALIAS // Node is unlocked
+      }
+    ]
   },
   {
     name: '[Content Lock] Unlock Document Entity Action',
@@ -29,6 +35,10 @@ export const manifests: Array<UmbExtensionManifest> = [
       icon: 'icon-combination-lock-open',
     },
     forEntityTypes: [ UMB_DOCUMENT_ENTITY_TYPE ],
-    // TODO: Conditions
+    conditions: [
+      {
+        alias: CONTENTLOCK_SHOW_UNLOCK_CONDITION_ALIAS // Node is locked AND node is NOT locked by you
+      }
+    ]
   }
 ];

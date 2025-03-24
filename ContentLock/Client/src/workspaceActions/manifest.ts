@@ -1,7 +1,7 @@
 import { UMB_ENTITY_IS_NOT_TRASHED_CONDITION_ALIAS } from '@umbraco-cms/backoffice/recycle-bin';
-import { CONTENTLOCK_IS_LOCKED_ALLOWED_CONDITION_ALIAS } from '../conditions/ContentLocked.Allowed.Condition';
 import { UMB_DOCUMENT_WORKSPACE_ALIAS } from '@umbraco-cms/backoffice/document';
 import { UMB_WORKSPACE_CONDITION_ALIAS } from '@umbraco-cms/backoffice/workspace';
+import { CONTENTLOCK_SHOW_PREVIEW_CONDITION_ALIAS } from '../conditions/ShowPreview.Condition';
 
 export const manifests: Array<UmbExtensionManifest> = [
     {
@@ -26,7 +26,7 @@ export const manifests: Array<UmbExtensionManifest> = [
 				alias: UMB_ENTITY_IS_NOT_TRASHED_CONDITION_ALIAS,
 			},
             {
-                alias: CONTENTLOCK_IS_LOCKED_ALLOWED_CONDITION_ALIAS
+                alias: CONTENTLOCK_SHOW_PREVIEW_CONDITION_ALIAS // Node is locked AND node is NOT locked by you
             }
         ]
     }
