@@ -4,11 +4,13 @@ import { UMB_NOTIFICATION_CONTEXT, UmbNotificationContext } from "@umbraco-cms/b
 import { ContentLockService } from "../api";
 import { CONTENTLOCK_WORKSPACE_CONTEXT, ContentLockWorkspaceContext } from "../workspaceContexts/contentlock.workspace.context";
 import { ProblemDetailResponse } from "../interfaces/ProblemDetailResponse";
+import { UMB_CURRENT_USER_CONTEXT } from "@umbraco-cms/backoffice/current-user";
 
 export class LockDocumentEntityAction extends UmbEntityActionBase<never> {
     
     private _notificationCtx?: UmbNotificationContext;
     private _lockCtx?: ContentLockWorkspaceContext;
+    private _currentUserName?: string;
 
     constructor(host: UmbControllerHost, args: UmbEntityActionArgs<never>) {
         super(host, args);
@@ -20,9 +22,13 @@ export class LockDocumentEntityAction extends UmbEntityActionBase<never> {
 
         this.consumeContext(CONTENTLOCK_WORKSPACE_CONTEXT, (lockCtx) => {
             this._lockCtx = lockCtx;
-            // TODO: Why can I not get this from the tree?
-            console.log('TODO: can i GET lock ctx from tree?', lockCtx);
         });
+
+        this.consumeContext(UMB_CURRENT_USER_CONTEXT, (currentUserCtx) => {
+            this.observe(currentUserCtx.name, (name) => {
+                this._currentUserName = name;
+            });  
+        }):
     }
 
     async execute() {
@@ -52,7 +58,7 @@ export class LockDocumentEntityAction extends UmbEntityActionBase<never> {
         // Update the context observables with the new state of the document
         this._lockCtx?.setIsLocked(true);
         this._lockCtx?.setIsLockedBySelf(true);
-        this._lockCtx?.setLockedByName("TESTING"); // TODO: Get the name of the user who locked the document ??
+        this._lockCtx?.setLockedByName(this._currentUserName ?? 'Unknown User');
 
         // Success notification
         this._notificationCtx?.peek('positive', {
