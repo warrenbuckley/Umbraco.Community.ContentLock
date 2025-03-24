@@ -52,6 +52,8 @@ export class ContentLockWorkspaceContext extends UmbControllerBase {
     }
 
     async checkContentLockState() {
+        if(!this._unique) return;
+
         // Check if the current document is locked and its not locked by self
         await this._getStatus(this._unique!).then(async (status) => {
 
