@@ -28,7 +28,7 @@ export class LockDocumentEntityAction extends UmbEntityActionBase<never> {
             this.observe(currentUserCtx.name, (name) => {
                 this._currentUserName = name;
             });  
-        }):
+        });
     }
 
     async execute() {
