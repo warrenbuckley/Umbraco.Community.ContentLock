@@ -59,35 +59,46 @@ export class ContentLockWorkspaceContext extends UmbControllerBase {
         if(!this.#unique) return;
         if(!this.#currentUserKey) return;
 
-        // TODO: The signalR context should return Observables as it currently only gets it the once
-        const isLocked = this.#signalRContext?.isNodeLocked(this.#unique.toString());
-        const isLockedBySelf = this.#signalRContext?.isNodeLockedByMe(this.#unique.toString(), this.#currentUserKey);
-        const lockInfo = this.#signalRContext?.getLock(this.#unique.toString());
+        if (this.#signalRContext) {
+            
+            // Observe the 3 states from the SignalR context
+            // isLocked: boolean - Is the item locked by anyone
+            // isLockedBySelf: boolean - Is the item locked by the current user
+            // lockInfo: object - Contains the lock info, including who locked it
+            this.observe(observeMultiple([
+                this.#signalRContext.isNodeLocked(this.#unique.toString()),
+                this.#signalRContext.isNodeLockedByMe(this.#unique.toString(), this.#currentUserKey),
+                this.#signalRContext.getLock(this.#unique.toString())
+            ]), ([isLocked, isLockedBySelf, lockInfo]) => {
 
+                console.log('isLocked:', isLocked, 'isLockedBySelf:', isLockedBySelf, 'lockInfo:', lockInfo);
 
-        // Set the workspace observables - by looking up in the Global Context observable array of items
-        // That is sent out by the SignalR server
-        this.setIsLocked(isLocked ?? false);
-        this.setIsLockedBySelf(isLockedBySelf ?? false);
-        this.setLockedByName(lockInfo?.checkedOutBy ?? '');
+                // Set the observables
+                this.setIsLocked(isLocked);
+                this.setIsLockedBySelf(isLockedBySelf);
+                if (lockInfo) {
+                    this.setLockedByName(lockInfo.checkedOutBy);
+                }
 
-        if(isLocked && isLockedBySelf === false){
-            // Page is locked by someone else - set the readonly state
-
-            // Set the read only state of the document for ALL culture & segment variant combinations
-            // Even documents without a variant will have a default variant with the culture and segment set to null
-            this.#variants.forEach(async variant => {
-                await this.#docWorkspaceCtx?.readOnlyState.addState({
-                    unique: `${this.#unique!.toString()}-${variant.culture}`,
-                    variantId: new UmbVariantId(variant.culture, variant.segment),
-                    message: `This page is locked by ${lockInfo?.checkedOutBy}`
-                });
-            });
-        }
-        else {
-            // Page is not locked or its locked by self - remove the readonly state
-            this.#variants.forEach(async variant => {
-                await this.#docWorkspaceCtx?.readOnlyState.removeState(`${this.#unique!.toString()}-${variant.culture}`);
+                if(isLocked && isLockedBySelf === false){
+                    // Page is locked by someone else - set the readonly state
+        
+                    // Set the read only state of the document for ALL culture & segment variant combinations
+                    // Even documents without a variant will have a default variant with the culture and segment set to null
+                    this.#variants.forEach(async variant => {
+                        await this.#docWorkspaceCtx?.readOnlyState.addState({
+                            unique: `${this.#unique!.toString()}-${variant.culture}`,
+                            variantId: new UmbVariantId(variant.culture, variant.segment),
+                            message: `This page is locked by ${lockInfo?.checkedOutBy}`
+                        });
+                    });
+                }
+                else {
+                    // Page is not locked or its locked by self - remove the readonly state
+                    this.#variants.forEach(async variant => {
+                        await this.#docWorkspaceCtx?.readOnlyState.removeState(`${this.#unique!.toString()}-${variant.culture}`);
+                    });
+                }
             });
         }
     }
