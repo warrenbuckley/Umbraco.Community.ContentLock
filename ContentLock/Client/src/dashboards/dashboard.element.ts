@@ -8,6 +8,8 @@ import { ContentLockService } from "../api";
 
 import '../components/table/table.pagelink.element';
 import { ProblemDetailResponse } from "../interfaces/ProblemDetailResponse";
+import { CONTENTLOCK_SIGNALR_CONTEXT } from "../globalContexts/contentlock.signalr.context";
+import { observeMultiple } from "@umbraco-cms/backoffice/observable-api";
 
 @customElement('contentlock-dashboard')
 export class ContentLockDashboardElement extends UmbElementMixin(LitElement) {
@@ -24,8 +26,33 @@ export class ContentLockDashboardElement extends UmbElementMixin(LitElement) {
       this._notificationCtx = notificationCtx;
     });
 
-    // Get items from API
-    this._getItems();
+    this.consumeContext(CONTENTLOCK_SIGNALR_CONTEXT, (lockCtx) => {
+      // Observe when the values change from the Global Context that is communicating with SignalR
+      this.observe(observeMultiple([lockCtx.contentLocks, lockCtx.totalContentLocks]), ([contentLocks, totalContentLocks]) => {
+        console.log('Got the locks from signalr context', contentLocks);
+        console.log('Got the total locks from signalr context', totalContentLocks);
+
+        const locks = contentLocks;
+
+        // Assign the items from SignalR response to the table items
+        this._tableItems = locks.map(lockItem => ({
+          icon: 'icon-lock',
+          id: lockItem.key,
+          data: [
+            { columnAlias: 'key', value: lockItem.key },
+            { columnAlias: 'pageName', value: lockItem.nodeName },
+            { columnAlias: 'contentType', value: lockItem.contentType },
+            { columnAlias: 'checkedOutBy', value: lockItem.checkedOutBy },
+            { columnAlias: 'checkedOutAt', value: new Date(lockItem.lockedAtDate).toLocaleString() },
+            { columnAlias: 'lastEdited', value: new Date(lockItem.lastEdited).toLocaleString() }
+          ]
+        }));
+
+        this._totalLockedPages = totalContentLocks;
+
+        this._isLoading = false;
+      });
+    });
   }
 
   @state()
@@ -123,49 +150,7 @@ export class ContentLockDashboardElement extends UmbElementMixin(LitElement) {
   }
 
   @state()
-  private _tableItems: Array<UmbTableItem> = [];
-
-  private async _getItems() {
-
-    this._isLoading = true;
-
-
-    const { data, error } = await ContentLockService.lockOverview();
-    if (error) {
-      const errorResponse = error as ProblemDetailResponse;
-      this._notificationCtx?.peek('danger', {
-        data: {
-          headline: errorResponse.title,
-          message: errorResponse.detail
-        }
-      });
-
-      this._isLoading = false;
-      return;
-    }
-
-    if (data) {
-      const response = data;
-      this._isLoading = false;
-
-      // Assign total number of results to the entries box
-      this._totalLockedPages = response?.totalResults || 0;
-
-      // Assign the items to the table
-      this._tableItems = response!.items.map(item => ({
-        icon: 'icon-lock',
-        id: item.key,
-        data: [
-          { columnAlias: 'key', value: item.key },
-          { columnAlias: 'pageName', value: item.nodeName },
-          { columnAlias: 'contentType', value: item.contentType },
-          { columnAlias: 'checkedOutBy', value: item.checkedOutBy },
-          { columnAlias: 'checkedOutAt', value: new Date(item.lockedAtDate).toLocaleString() },
-          { columnAlias: 'lastEdited', value: new Date(item.lastEdited).toLocaleString() }
-        ]
-      }));
-    }
-  }
+  private _tableItems : Array<UmbTableItem> = [];
 
   async #bulkUnlock() {
     // Get the selection currently set
@@ -191,8 +176,8 @@ export class ContentLockDashboardElement extends UmbElementMixin(LitElement) {
       }
     });
 
-    // Reload the items from the server to update the table
-    this._getItems();
+    // The table will reload - due to SignalR letting us know when a lock is removed
+    // No need to explicitly call anything
   }
 
   #onSelected(event: UmbTableSelectedEvent) {

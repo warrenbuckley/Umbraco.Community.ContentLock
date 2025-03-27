@@ -1,14 +1,22 @@
 using System.Globalization;
 
 using Asp.Versioning;
+
 using ContentLock.Extensions;
 using ContentLock.Interfaces;
 using ContentLock.Models.Backoffice;
+using ContentLock.SignalR;
+
+using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
+
 using Umbraco.Cms.Api.Common.Builders;
 using Umbraco.Cms.Core.Security;
 using Umbraco.Cms.Core.Services;
+
+using static Umbraco.Cms.Core.Collections.TopoGraph;
 
 namespace ContentLock.Controllers
 {
@@ -19,12 +27,18 @@ namespace ContentLock.Controllers
         private readonly IBackOfficeSecurityAccessor _backOfficeSecurityAccessor;
         private readonly IContentLockService _contentLockService;
         private readonly ILocalizedTextService _localizedTextService;
+        private readonly IHubContext<ContentLockHub, IContentLockHubEvents> _contentLockHubContext;
 
-        public ContentLockApiController(IBackOfficeSecurityAccessor backOfficeSecurityAccessor, IContentLockService contentLockService, ILocalizedTextService localizedTextService)
+        public ContentLockApiController(
+            IBackOfficeSecurityAccessor backOfficeSecurityAccessor,
+            IContentLockService contentLockService,
+            ILocalizedTextService localizedTextService,
+            IHubContext<ContentLockHub, IContentLockHubEvents> contentLockHubContext)
         {
             _backOfficeSecurityAccessor = backOfficeSecurityAccessor;
             _contentLockService = contentLockService;
             _localizedTextService = localizedTextService;
+            _contentLockHubContext = contentLockHubContext;
         }
 
         [HttpGet("Status/{key:guid}")]
@@ -56,7 +70,11 @@ namespace ContentLock.Controllers
                     .Build());
             }
 
-            await _contentLockService.LockContentAsync(key, userKey.Value);
+            // Use SignalR to send out to ALL clients that node has been locked
+            // Then the underlying observable object with the count & array can be updated
+            var lockedContentInfo = await _contentLockService.LockContentAsync(key, userKey.Value);
+            await _contentLockHubContext.Clients.All.AddLockToClients(lockedContentInfo);
+
             return Ok($"Locked content with key {key}");
         }
 
@@ -65,8 +83,10 @@ namespace ContentLock.Controllers
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> UnlockContentAsync(Guid key)
         {
-            var userKey = _backOfficeSecurityAccessor.BackOfficeSecurity?.CurrentUser?.Key;
-            var userLang = _backOfficeSecurityAccessor.BackOfficeSecurity?.CurrentUser?.Language ?? "en";
+            var currentUser = _backOfficeSecurityAccessor.BackOfficeSecurity?.CurrentUser;
+            var userKey = currentUser?.Key;
+            var userLang = currentUser?.Language ?? "en";
+            var userName = currentUser?.Name ?? "Unknown person";
             var cultureInfo = new CultureInfo(userLang);
 
             // Get current info for lock
@@ -85,6 +105,12 @@ namespace ContentLock.Controllers
             }
 
             await _contentLockService.UnlockContentAsync(key, userKey.Value);
+
+            // Use SignalR to send out to ALL clients that node has been locked
+            // Then the underlying observable object with the count & array can be updated
+            var lockedContentInfo = await _contentLockService.LockContentAsync(key, userKey.Value);
+            await _contentLockHubContext.Clients.All.RemoveLockToClients(key);
+
             return Ok($"Unlocked content with key {key}");
         }
 
@@ -122,6 +148,10 @@ namespace ContentLock.Controllers
                 // Call unlock on service
                 await _contentLockService.UnlockContentAsync(contentKey, userKey.Value);
             }
+
+            // Use SignalR to send out to ALL clients that node has been locked
+            // Then the underlying observable object with the count & array can be updated
+            await _contentLockHubContext.Clients.All.RemoveLocksToClients(keys);
 
             return Ok();
         }

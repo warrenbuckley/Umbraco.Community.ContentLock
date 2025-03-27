@@ -9,7 +9,7 @@ namespace ContentLock.Interfaces
         /// </summary>
         /// <param name="key">The content node key to lock</param>
         /// <param name="userKey">The user key, requesting to lock the node</param>
-        Task LockContentAsync(Guid contentKey, Guid userKey);
+        Task<ContentLockOverviewItem> LockContentAsync(Guid contentKey, Guid userKey);
 
         /// <summary>
         /// Unlock a content node

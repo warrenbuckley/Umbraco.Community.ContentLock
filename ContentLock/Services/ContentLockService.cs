@@ -1,11 +1,15 @@
 ﻿using ContentLock.Interfaces;
 using ContentLock.Models.Backoffice;
 using ContentLock.Models.Database;
+
 using Microsoft.Extensions.Logging;
+
 using Umbraco.Cms.Core;
 using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Services;
 using Umbraco.Cms.Infrastructure.Scoping;
+
+using static Umbraco.Cms.Core.Constants.HttpContext;
 
 namespace ContentLock.Services
 {
@@ -118,10 +122,11 @@ namespace ContentLock.Services
             }
         }
 
-        public async Task LockContentAsync(Guid contentKey, Guid userKey)
+        public async Task<ContentLockOverviewItem> LockContentAsync(Guid contentKey, Guid userKey)
         {
             _logger.LogInformation("Locking content {contentKey} for user {userKey}", contentKey, userKey);
 
+            var now = DateTime.Now;
             try
             {
                 using (var scope = _scopeProvider.CreateScope(autoComplete: true))
@@ -129,7 +134,7 @@ namespace ContentLock.Services
                     await scope.Database.SaveAsync(new ContentLocks { 
                         ContentKey = contentKey,
                         UserKey = userKey,
-                        LockedAtDate = DateTime.Now
+                        LockedAtDate = now
                     });
                 }
 
@@ -143,6 +148,31 @@ namespace ContentLock.Services
                 _logger.LogError(ex, "Error locking content {contentKey} for user {userKey}", contentKey, userKey);
                 throw;
             }
+
+            // Get the info about the locked item
+            // This will be sent out via SignalR to all connected clients
+
+            var contentNode = _publishedContentQuery.Content(contentKey);
+            if (contentNode == null)
+            {
+                _logger.LogWarning("Content node not found for key {contentKey}", contentKey);
+            }
+
+            var user = await _userService.GetAsync(userKey);
+            var userName = user?.Name ?? "Unknown";
+
+            var lockInfo = new ContentLockOverviewItem
+            {
+                Key = contentKey,
+                NodeName = contentNode.Name,
+                ContentType = contentNode.ContentType.Alias,
+                CheckedOutBy = userName,
+                CheckedOutByKey = userKey,
+                LastEdited = contentNode.UpdateDate,
+                LockedAtDate = now
+            };
+
+            return lockInfo;
         }
 
         public async Task UnlockContentAsync(Guid contentKey, Guid userKey)
