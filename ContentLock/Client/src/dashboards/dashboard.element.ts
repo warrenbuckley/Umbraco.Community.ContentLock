@@ -29,12 +29,10 @@ export class ContentLockDashboardElement extends UmbElementMixin(LitElement) {
     this.consumeContext(CONTENTLOCK_SIGNALR_CONTEXT, (lockCtx) => {
       // Observe when the values change from the Global Context that is communicating with SignalR
       this.observe(observeMultiple([lockCtx.contentLocks, lockCtx.totalContentLocks]), ([contentLocks, totalContentLocks]) => {
-        console.log('Got the locks from signalr context', contentLocks);
-        console.log('Got the total locks from signalr context', totalContentLocks);
-
+        // Our observable locks
         const locks = contentLocks;
 
-        // Assign the items from SignalR response to the table items
+        // Assign the observable locks from SignalR response to the table items
         this._tableItems = locks.map(lockItem => ({
           icon: 'icon-lock',
           id: lockItem.key,
