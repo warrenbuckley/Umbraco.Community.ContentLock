@@ -70,9 +70,11 @@ namespace ContentLock.Controllers
                     .Build());
             }
 
+            // Perform lock
+            var lockedContentInfo = await _contentLockService.LockContentAsync(key, userKey.Value);
+
             // Use SignalR to send out to ALL clients that node has been locked
             // Then the underlying observable object with the count & array can be updated
-            var lockedContentInfo = await _contentLockService.LockContentAsync(key, userKey.Value);
             await _contentLockHubContext.Clients.All.AddLockToClients(lockedContentInfo);
 
             return Ok($"Locked content with key {key}");
@@ -106,9 +108,8 @@ namespace ContentLock.Controllers
 
             await _contentLockService.UnlockContentAsync(key, userKey.Value);
 
-            // Use SignalR to send out to ALL clients that node has been locked
+            // Use SignalR to send out to ALL clients that a single node has been unlocked
             // Then the underlying observable object with the count & array can be updated
-            var lockedContentInfo = await _contentLockService.LockContentAsync(key, userKey.Value);
             await _contentLockHubContext.Clients.All.RemoveLockToClients(key);
 
             return Ok($"Unlocked content with key {key}");
@@ -149,7 +150,7 @@ namespace ContentLock.Controllers
                 await _contentLockService.UnlockContentAsync(contentKey, userKey.Value);
             }
 
-            // Use SignalR to send out to ALL clients that node has been locked
+            // Use SignalR to send out to ALL clients that many node/s has been unlocked
             // Then the underlying observable object with the count & array can be updated
             await _contentLockHubContext.Clients.All.RemoveLocksToClients(keys);
 
