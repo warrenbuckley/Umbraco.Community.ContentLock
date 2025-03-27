@@ -34,7 +34,7 @@ export default class ContentLockSignalrContext extends UmbContextBase<ContentLoc
             // Create a new SignalR connection in this context that we will expose
             // Then otherplaces can get this new'd up hub to send or receive messages
             this.signalrConnection = new signalR.HubConnectionBuilder()
-            .withUrl("/umbraco/ContentLockHub", { // TODO: Move this URL to a const ?
+            .withUrl('/umbraco/ContentLockHub', { // TODO: Move this URL to a const ?
                 accessTokenFactory: authCtx.getOpenApiConfiguration().token
             })
             .withAutomaticReconnect()
@@ -75,39 +75,57 @@ export default class ContentLockSignalrContext extends UmbContextBase<ContentLoc
         }
     }
 
-    public getLock(key: string): ContentLockOverviewItem | undefined {
-        const lock = this.#contentLocks.getValue().find((lock) => lock.key === key);
-        return lock;
+    /**
+     * Get a lock from the observable array of locks
+     * @param key - The key of the lock to get
+     * @returns An observable of a lock object or undefined if not found
+     */
+    public getLock(key: string) {
+        return this.#contentLocks.asObservablePart((locks) => {
+            const lock = locks.find((lock) => lock.key === key);
+            return lock;
+        });
     };
 
-    // Places around the UI can consume this context and see if a node is locked or not
-    public isNodeLocked(nodeKey: string) : boolean {
-        const lock = this.#contentLocks.getValue().find((lock) => lock.key === nodeKey);
-
-        // Found the lock in our array observable
-        if(lock){
-            return true;
-        }
-        else {
-            return false;
-        }
+    /**
+     * Check to see if a node is locked or not
+     * @param nodeKey - The key of the node to check if its locked
+     * @returns An observable bool
+     */
+    public isNodeLocked(nodeKey:string){
+        return this.#contentLocks.asObservablePart((locks) => {
+            const lock = locks.find((lock) => lock.key === nodeKey);
+            if(lock){
+                return true;
+            }
+            else {
+                return false;
+            }
+        });
     }
 
-    // Places around the UI can consume this context and see if a node is locked or not
-    public isNodeLockedByMe(nodeKey: string, currentUserKey: string): boolean {
-        const lock = this.#contentLocks.getValue().find(lock => lock.key === nodeKey);
-        if(!lock){
-            // No lock found - so its not even locked
-            return false;
-        }
-        else if(lock.checkedOutByKey === currentUserKey) {
-            // Lock found and its locked by the current user
-            return true;
-        }
-        else {
-            // Lock found but not by the current user
-            return false;
-        }
+    /**
+     * Check to see if a node is locked by the current user or not
+     * @param nodeKey - The key of the node to check if its locked by the current user
+     * @param currentUserKey - The key of the current user to check if they have the lock
+     * @returns An observable bool
+     */
+    public isNodeLockedByMe(nodeKey: string, currentUserKey: string) {
+        return this.#contentLocks.asObservablePart((locks) => {
+            const lock = locks.find(lock => lock.key === nodeKey);
+            if(!lock){
+                // No lock found - so its not even locked
+                return false;
+            }
+            else if(lock.checkedOutByKey === currentUserKey) {
+                // Lock found and its locked by the current user
+                return true;
+            }
+            else {
+                // Lock found but not by the current user
+                return false;
+            }
+        });
     }
 
 
