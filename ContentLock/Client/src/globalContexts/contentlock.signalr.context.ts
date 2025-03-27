@@ -50,7 +50,6 @@ export default class ContentLockSignalrContext extends UmbContextBase<ContentLoc
         if(this.signalrConnection) {
             // Start the connection straight away
             await this.signalrConnection.start();
-            console.log('SignalR connection started');
 
             // Listen to the server sending us events/data
             this.signalrConnection.on('ReceiveLatestContentLocks', (locks:ContentLockOverview) => {
@@ -70,11 +69,16 @@ export default class ContentLockSignalrContext extends UmbContextBase<ContentLoc
 
             // SignalR server will send out a 'RemoveLocksToClients' when one or more locks are removed in bulk
             // This happens from the dashboard overview
-            this.signalrConnection.on('RemoveLockToClients', (contentKeys:Array<String>) => {
+            this.signalrConnection.on('RemoveLocksToClients', (contentKeys:Array<String>) => {
                 this.#contentLocks.remove(contentKeys);
             });
         }
     }
+
+    public getLock(key: string): ContentLockOverviewItem | undefined {
+        const lock = this.#contentLocks.getValue().find((lock) => lock.key === key);
+        return lock;
+    };
 
     // Places around the UI can consume this context and see if a node is locked or not
     public isNodeLocked(nodeKey: string) : boolean {
@@ -96,7 +100,7 @@ export default class ContentLockSignalrContext extends UmbContextBase<ContentLoc
             // No lock found - so its not even locked
             return false;
         }
-        else if(lock.checkedOutBy === currentUserKey) {
+        else if(lock.checkedOutByKey === currentUserKey) {
             // Lock found and its locked by the current user
             return true;
         }
@@ -108,7 +112,7 @@ export default class ContentLockSignalrContext extends UmbContextBase<ContentLoc
 
 
     override async destroy(): Promise<void> {
-        console.log("SignalR DOM destory");
+        console.log('SignalR DOM destory - Kill the SignalR connection');
 
         if (this.signalrConnection) {
             await this.signalrConnection.stop();

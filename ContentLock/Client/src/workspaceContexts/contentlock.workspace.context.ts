@@ -3,15 +3,16 @@ import { UmbContextToken } from '@umbraco-cms/backoffice/context-api';
 import { type UmbControllerHost } from '@umbraco-cms/backoffice/controller-api';
 import { UMB_DOCUMENT_WORKSPACE_CONTEXT, UmbDocumentVariantModel, UmbDocumentWorkspaceContext } from '@umbraco-cms/backoffice/document';
 import { observeMultiple, UmbBooleanState, UmbStringState } from '@umbraco-cms/backoffice/observable-api';
-import { ContentLockService, ContentLockStatus } from '../api';
 import { UmbEntityUnique } from '@umbraco-cms/backoffice/entity';
 import { UmbVariantId } from '@umbraco-cms/backoffice/variant';
+import ContentLockSignalrContext, { CONTENTLOCK_SIGNALR_CONTEXT } from '../globalContexts/contentlock.signalr.context';
+import { UMB_CURRENT_USER_CONTEXT } from '@umbraco-cms/backoffice/current-user';
 
 export class ContentLockWorkspaceContext extends UmbControllerBase {
 
-    private _docWorkspaceCtx?: UmbDocumentWorkspaceContext;
-    private _unique: UmbEntityUnique | undefined;
-    private _variants: UmbDocumentVariantModel[] = [];
+    #docWorkspaceCtx?: UmbDocumentWorkspaceContext;
+    #unique: UmbEntityUnique | undefined;
+    #variants: UmbDocumentVariantModel[] = [];
   
     #isLocked = new UmbBooleanState(false);
     isLocked = this.#isLocked.asObservable();
@@ -22,17 +23,31 @@ export class ContentLockWorkspaceContext extends UmbControllerBase {
     #lockedByName = new UmbStringState('');
     lockedByName = this.#lockedByName.asObservable();
 
+    #signalRContext?: ContentLockSignalrContext;
+
+    #currentUserKey?: string;
+
 
 	constructor(host: UmbControllerHost) {
 		super(host, CONTENTLOCK_WORKSPACE_CONTEXT.toString());
 		this.provideContext(CONTENTLOCK_WORKSPACE_CONTEXT, this);
 
-        this.consumeContext(UMB_DOCUMENT_WORKSPACE_CONTEXT, (docWorkspaceCtx) => {
-            this._docWorkspaceCtx = docWorkspaceCtx;
+        this.consumeContext(CONTENTLOCK_SIGNALR_CONTEXT, (signalRContext) => {
+           this.#signalRContext = signalRContext;
+        });
 
-            this._docWorkspaceCtx.observe(observeMultiple([this._docWorkspaceCtx?.unique, this._docWorkspaceCtx?.variants]), ([unique, variants]) => {
-                this._unique = unique;
-                this._variants = variants;
+        this.consumeContext(UMB_CURRENT_USER_CONTEXT, (currentUserCtx) => {
+            this.observe(currentUserCtx.unique, (currentUserKey) => {
+                this.#currentUserKey = currentUserKey;
+            });
+        });
+
+        this.consumeContext(UMB_DOCUMENT_WORKSPACE_CONTEXT, (docWorkspaceCtx) => {
+            this.#docWorkspaceCtx = docWorkspaceCtx;
+
+            this.#docWorkspaceCtx.observe(observeMultiple([this.#docWorkspaceCtx?.unique, this.#docWorkspaceCtx?.variants]), ([unique, variants]) => {
+                this.#unique = unique;
+                this.#variants = variants;
 
                 // Call API now we have assigned the unique
                 this.checkContentLockState();
@@ -40,72 +55,64 @@ export class ContentLockWorkspaceContext extends UmbControllerBase {
         });
 	}
 
-    private async _getStatus(key: string) : Promise<ContentLockStatus | undefined> {
+    public async checkContentLockState() {
+        if(!this.#unique) return;
+        if(!this.#currentUserKey) return;
 
-        const { data, error } = await ContentLockService.status({path:{key:key}});
-        if (error){
-            console.error(error);
-            return undefined;
+        // TODO: The signalR context should return Observables as it currently only gets it the once
+        const isLocked = this.#signalRContext?.isNodeLocked(this.#unique.toString());
+        const isLockedBySelf = this.#signalRContext?.isNodeLockedByMe(this.#unique.toString(), this.#currentUserKey);
+        const lockInfo = this.#signalRContext?.getLock(this.#unique.toString());
+
+
+        // Set the workspace observables - by looking up in the Global Context observable array of items
+        // That is sent out by the SignalR server
+        this.setIsLocked(isLocked ?? false);
+        this.setIsLockedBySelf(isLockedBySelf ?? false);
+        this.setLockedByName(lockInfo?.checkedOutBy ?? '');
+
+        if(isLocked && isLockedBySelf === false){
+            // Page is locked by someone else - set the readonly state
+
+            // Set the read only state of the document for ALL culture & segment variant combinations
+            // Even documents without a variant will have a default variant with the culture and segment set to null
+            this.#variants.forEach(async variant => {
+                await this.#docWorkspaceCtx?.readOnlyState.addState({
+                    unique: `${this.#unique!.toString()}-${variant.culture}`,
+                    variantId: new UmbVariantId(variant.culture, variant.segment),
+                    message: `This page is locked by ${lockInfo?.checkedOutBy}`
+                });
+            });
         }
-        
-        return data;
-    }
-
-    async checkContentLockState() {
-        if(!this._unique) return;
-
-        // Check if the current document is locked and its not locked by self
-        await this._getStatus(this._unique!).then(async (status) => {
-
-            // Set the observable bools
-            // So conditions can react and the Workspace Footer App 
-            this.setIsLocked(status?.isLocked ?? false);
-            this.setIsLockedBySelf(status?.lockedBySelf ?? false);
-            this.setLockedByName(status?.lockedByName ?? '');
-
-            if(status?.isLocked && status.lockedBySelf === false){
-                // Page is locked by someone else - set the readonly state
-
-                // Set the read only state of the document for ALL culture & segment variant combinations
-                // Even documents without a variant will have a default variant with the culture and segment set to null
-                this._variants.forEach(async variant => {
-                    await this._docWorkspaceCtx?.readOnlyState.addState({
-                        unique: `${this._unique!.toString()}-${variant.culture}`,
-                        variantId: new UmbVariantId(variant.culture, variant.segment),
-                        message: `This page is locked by ${status?.lockedByName}`
-                    });
-                });
-            }
-            else {
-                // Page is not locked or its locked by self - remove the readonly state
-                this._variants.forEach(async variant => {
-                    await this._docWorkspaceCtx?.readOnlyState.removeState(`${this._unique!.toString()}-${variant.culture}`);
-                });
-            }
-        });
+        else {
+            // Page is not locked or its locked by self - remove the readonly state
+            this.#variants.forEach(async variant => {
+                await this.#docWorkspaceCtx?.readOnlyState.removeState(`${this.#unique!.toString()}-${variant.culture}`);
+            });
+        }
     }
     
-	getIsLocked() {
+	public getIsLocked() {
 		return this.#isLocked.getValue();
 	}
 	
-	setIsLocked(isLocked: boolean) {
+	public setIsLocked(isLocked: boolean) {
 		this.#isLocked.setValue(isLocked);
 	}
 
-    getIsLockedBySelf() {
+    public getIsLockedBySelf() {
 		return this.#isLockedBySelf.getValue();
 	}
 	
-	setIsLockedBySelf(isLockedBySelf: boolean) {
+	public setIsLockedBySelf(isLockedBySelf: boolean) {
 		this.#isLockedBySelf.setValue(isLockedBySelf);
 	}
 
-    getLockedByName() {
+    public getLockedByName() {
 		return this.#lockedByName.getValue();
 	}
 	
-	setLockedByName(lockedBy: string) {
+	public setLockedByName(lockedBy: string) {
 		this.#lockedByName.setValue(lockedBy);
 	}
 }

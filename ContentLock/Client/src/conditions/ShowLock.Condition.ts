@@ -8,6 +8,10 @@ export default class ShowLockCondition extends UmbConditionBase<UmbConditionConf
     constructor(host: UmbControllerHost, args: UmbConditionControllerArguments<UmbConditionConfigBase>) {
         super(host, args);
 
+        // TODO: How can a condition know of the context/node key its being used on?
+        // As want to consume our SignalR context and check if the node is locked or not in the array observable
+
+
         this.consumeContext(CONTENTLOCK_WORKSPACE_CONTEXT , (contentLockWorkspaceCtx) => {
             this.observe(contentLockWorkspaceCtx.isLocked, (isLocked) => {
                 if(!isLocked){

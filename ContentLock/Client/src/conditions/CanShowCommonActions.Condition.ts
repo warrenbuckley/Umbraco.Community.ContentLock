@@ -11,18 +11,8 @@ export default class CanShowCommonActionsCondition extends UmbConditionBase<UmbC
 
         this.consumeContext(CONTENTLOCK_WORKSPACE_CONTEXT , (contentLockWorkspaceCtx) => {
             
-            if(!contentLockWorkspaceCtx) {
-                console.error('Content Lock Workspace Context is not available');
-                alert('Content Lock Workspace Context is not available');
-            }
-
-            console.log('Can I get CTX for locks in condition', contentLockWorkspaceCtx);
-            
             this.observe(observeMultiple([contentLockWorkspaceCtx.isLocked, contentLockWorkspaceCtx.isLockedBySelf]), ([isLocked, isLockedBySelf]) => {
                 
-                console.log('hmm isLocked & isLockedBySelf', isLocked, isLockedBySelf);
-                console.log('host thing', args.host);
-
                 if (!isLocked) {
                     // Node is unlocked - show the actions
                     this.permitted = true;
