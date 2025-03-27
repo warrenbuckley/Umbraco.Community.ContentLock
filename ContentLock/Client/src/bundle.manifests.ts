@@ -2,6 +2,7 @@ import { manifests as entrypoints } from './entrypoints/manifest';
 import { manifests as conditions } from './conditions/manifest';
 import { manifests as dashboards } from './dashboards/manifest';
 import { manifests as entityActions } from './entityActions/manifest';
+import { manifests as globalContexts } from './globalContexts/manifest';
 import { manifests as localizations } from './localizations/manifest';
 import { manifests as userPermissions } from './userpermissions/manifest';
 import { manifests as workspaceActions } from './workspaceActions/manifest';
@@ -15,6 +16,7 @@ export const manifests: Array<UmbExtensionManifest> = [
   ...conditions,
   ...dashboards,
   ...entityActions,
+  ...globalContexts,
   ...localizations,
   ...userPermissions,
   ...workspaceActions,

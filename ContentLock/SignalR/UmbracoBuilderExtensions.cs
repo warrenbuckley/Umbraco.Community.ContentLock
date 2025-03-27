@@ -44,7 +44,7 @@ public static class UmbracoBuilderExtensions
         {
             // Append new paths to the existing ReservedPaths
             // Would be nice to use ContentLockHubRoutes.GetContentLockHubRoute() 
-            settings.ReservedPaths += ",~/umbraco/ContentLockHub/";
+            settings.ReservedPaths += "~/umbraco/ContentLockHub/,";
         });
         
         return builder;
