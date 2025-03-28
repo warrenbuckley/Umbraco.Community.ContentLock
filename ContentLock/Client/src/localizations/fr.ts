@@ -22,8 +22,8 @@ export default {
         bulkUnlockMessage: 'Le contenu sélectionné a été déverrouillé avec succès'
     },
     contentLockPermission: {
-        group: 'Verrouillage de Contenu', // TODO: Currently not used in Umbraco but added for future use
-        label: 'Débloqueur',
+        group: 'Content Lock', // TODO: Currently not used in Umbraco but added for future use
+        label: 'Unlocker',
         description: 'Permet au groupe d’utilisateurs de déverrouiller un document verrouillé par un autre utilisateur.',
     },
 };
