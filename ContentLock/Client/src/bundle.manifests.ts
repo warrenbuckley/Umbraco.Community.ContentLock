@@ -5,6 +5,7 @@ import { manifests as entityActions } from './entityActions/manifest';
 import { manifests as globalContexts } from './globalContexts/manifest';
 import { manifests as headerApps } from './headerApps/manifest';
 import { manifests as localizations } from './localizations/manifest';
+import { manifests as modals } from './modals/manifest';
 import { manifests as userPermissions } from './userpermissions/manifest';
 import { manifests as workspaceActions } from './workspaceActions/manifest';
 import { manifests as workspaceContexts } from './workspaceContexts/manifest';
@@ -20,6 +21,7 @@ export const manifests: Array<UmbExtensionManifest> = [
   ...globalContexts,
   ...headerApps,
   ...localizations,
+  ...modals,
   ...userPermissions,
   ...workspaceActions,
   ...workspaceContexts,
