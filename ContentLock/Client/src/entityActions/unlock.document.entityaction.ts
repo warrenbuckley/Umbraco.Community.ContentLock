@@ -4,23 +4,28 @@ import { UMB_NOTIFICATION_CONTEXT, UmbNotificationContext } from "@umbraco-cms/b
 import { ContentLockService } from "../api";
 import { CONTENTLOCK_WORKSPACE_CONTEXT, ContentLockWorkspaceContext } from "../workspaceContexts/contentlock.workspace.context";
 import { ProblemDetailResponse } from "../interfaces/ProblemDetailResponse";
+import { UmbLocalizationController } from "@umbraco-cms/backoffice/localization-api";
 
 export class UnlockDocumentEntityAction extends UmbEntityActionBase<never> {
     
-    private _notificationCtx?: UmbNotificationContext;
-    private _lockCtx?: ContentLockWorkspaceContext;
+    #notificationCtx?: UmbNotificationContext;
+    #lockCtx?: ContentLockWorkspaceContext;
+
+    // Create a new instance of the controller and attach it to the element
+    #localize = new UmbLocalizationController(this);
 
     constructor(host: UmbControllerHost, args: UmbEntityActionArgs<never>) {
         super(host, args);
 
         // Fetch/consume the contexts & assign to the private fields
         this.consumeContext(UMB_NOTIFICATION_CONTEXT, (notificationCtx) => {
-            this._notificationCtx = notificationCtx;
+            this.#notificationCtx = notificationCtx;
         });
 
         this.consumeContext(CONTENTLOCK_WORKSPACE_CONTEXT, (lockCtx) => {
-            this._lockCtx = lockCtx;
+            this.#lockCtx = lockCtx;
         });
+        
     }
 
     async execute() {
@@ -28,7 +33,7 @@ export class UnlockDocumentEntityAction extends UmbEntityActionBase<never> {
             throw new Error('The document unique identifier is missing');
         }
 
-        // Make API call
+        // Make HTTP API call
         const { error } = await ContentLockService.unlockContent({
             path: {
                 key: this.args.unique
@@ -37,7 +42,7 @@ export class UnlockDocumentEntityAction extends UmbEntityActionBase<never> {
 
         if(error) {
             const errorResponse = error as ProblemDetailResponse;
-            this._notificationCtx?.peek('danger', {
+            this.#notificationCtx?.peek('danger', {
                 data: {
                     headline: errorResponse.title,
                     message: errorResponse.detail
@@ -48,15 +53,16 @@ export class UnlockDocumentEntityAction extends UmbEntityActionBase<never> {
         }
 
         // Update the context observables with the new state of the document
-        this._lockCtx?.setIsLocked(false);
-        this._lockCtx?.setIsLockedBySelf(false);
-        this._lockCtx?.setLockedByName("");
+        // TODO: Do we need to do this anymore if SignalR pushes it back out?!
+        this.#lockCtx?.setIsLocked(false);
+        this.#lockCtx?.setIsLockedBySelf(false);
+        this.#lockCtx?.setLockedByName("");
 
 
-        this._notificationCtx?.peek('positive', {
+        this.#notificationCtx?.peek('positive', {
             data: {
-                headline: 'Document Unlocked',
-                message: 'The document has been unlocked, to allow other users to edit.'
+                headline: this.#localize.term('contentLockNotification_unlockedHeader'),
+                message: this.#localize.term('contentLockNotification_unlockedMessage')
             }
         });
     }

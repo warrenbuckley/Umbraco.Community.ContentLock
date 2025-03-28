@@ -5,35 +5,39 @@ import { ContentLockService } from "../api";
 import { CONTENTLOCK_WORKSPACE_CONTEXT, ContentLockWorkspaceContext } from "../workspaceContexts/contentlock.workspace.context";
 import { ProblemDetailResponse } from "../interfaces/ProblemDetailResponse";
 import { UMB_CURRENT_USER_CONTEXT } from "@umbraco-cms/backoffice/current-user";
+import { UmbLocalizationController } from "@umbraco-cms/backoffice/localization-api";
 
 export class LockDocumentEntityAction extends UmbEntityActionBase<never> {
     
-    private _notificationCtx?: UmbNotificationContext;
-    private _lockCtx?: ContentLockWorkspaceContext;
-    private _currentUserName?: string;
+    #notificationCtx?: UmbNotificationContext;
+    #lockCtx?: ContentLockWorkspaceContext;
+    #currentUserName?: string;
+
+    // Create a new instance of the controller and attach it to the element
+    #localize = new UmbLocalizationController(this);
 
     constructor(host: UmbControllerHost, args: UmbEntityActionArgs<never>) {
         super(host, args);
 
         // Fetch/consume the contexts & assign to the private fields
         this.consumeContext(UMB_NOTIFICATION_CONTEXT, (notificationCtx) => {
-            this._notificationCtx = notificationCtx;
+            this.#notificationCtx = notificationCtx;
         });
 
         this.consumeContext(CONTENTLOCK_WORKSPACE_CONTEXT, (lockCtx) => {
-            this._lockCtx = lockCtx;
+            this.#lockCtx = lockCtx;
         });
 
         this.consumeContext(UMB_CURRENT_USER_CONTEXT, (currentUserCtx) => {
             this.observe(currentUserCtx.name, (name) => {
-                this._currentUserName = name;
+                this.#currentUserName = name;
             });  
         });
     }
 
     async execute() {
         if (!this.args.unique) {
-            throw new Error("The document unique identifier is missing");
+            throw new Error('The document unique identifier is missing');
         }
 
         // Make API call
@@ -45,7 +49,7 @@ export class LockDocumentEntityAction extends UmbEntityActionBase<never> {
 
         if(error) {
             const errorResponse = error as ProblemDetailResponse;
-            this._notificationCtx?.peek('danger', {
+            this.#notificationCtx?.peek('danger', {
                 data: {
                     headline: errorResponse.title,
                     message: errorResponse.detail
@@ -56,15 +60,16 @@ export class LockDocumentEntityAction extends UmbEntityActionBase<never> {
         }
 
         // Update the context observables with the new state of the document
-        this._lockCtx?.setIsLocked(true);
-        this._lockCtx?.setIsLockedBySelf(true);
-        this._lockCtx?.setLockedByName(this._currentUserName ?? 'Unknown User');
+        // TODO: Do we need to do this anymore if SignalR pushes it back out?!
+        this.#lockCtx?.setIsLocked(true);
+        this.#lockCtx?.setIsLockedBySelf(true);
+        this.#lockCtx?.setLockedByName(this.#currentUserName ?? 'Unknown User');
 
         // Success notification
-        this._notificationCtx?.peek('positive', {
+        this.#notificationCtx?.peek('positive', {
             data: {
-                headline: 'Document Locked',
-                message: 'The document has been locked for you to edit.'
+                headline: this.#localize.term('contentLockNotification_lockedHeader'),
+                message: this.#localize.term('contentLockNotification_lockedMessage')
             }
         });
     }

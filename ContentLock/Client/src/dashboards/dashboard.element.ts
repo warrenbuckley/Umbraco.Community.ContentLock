@@ -14,7 +14,13 @@ import { observeMultiple } from "@umbraco-cms/backoffice/observable-api";
 @customElement('contentlock-dashboard')
 export class ContentLockDashboardElement extends UmbElementMixin(LitElement) {
 
-  private _notificationCtx?: UmbNotificationContext;
+  #notificationCtx?: UmbNotificationContext;
+
+  @state()
+  private _totalLockedPages: number = 0;
+
+  @state()
+  private _isLoading: boolean;
 
   constructor() {
     super();
@@ -23,7 +29,7 @@ export class ContentLockDashboardElement extends UmbElementMixin(LitElement) {
     this._isLoading = true;
 
     this.consumeContext(UMB_NOTIFICATION_CONTEXT, (notificationCtx) => {
-      this._notificationCtx = notificationCtx;
+      this.#notificationCtx = notificationCtx;
     });
 
     this.consumeContext(CONTENTLOCK_SIGNALR_CONTEXT, (lockCtx) => {
@@ -52,12 +58,6 @@ export class ContentLockDashboardElement extends UmbElementMixin(LitElement) {
       });
     });
   }
-
-  @state()
-  private _totalLockedPages: number = 0;
-
-  @state()
-  private _isLoading: boolean;
 
   @state()
   private _tableConfig: UmbTableConfig = {
@@ -155,7 +155,7 @@ export class ContentLockDashboardElement extends UmbElementMixin(LitElement) {
     const { error } = await ContentLockService.bulkUnlock({ body: this._selectedItems });
     if (error) {
       const errorResponse = error as ProblemDetailResponse;
-      this._notificationCtx?.peek('danger', {
+      this.#notificationCtx?.peek('danger', {
         data: {
           headline: errorResponse.title,
           message: errorResponse.detail
@@ -167,10 +167,10 @@ export class ContentLockDashboardElement extends UmbElementMixin(LitElement) {
     }
 
     // Display notification
-    this._notificationCtx?.peek('positive', {
+    this.#notificationCtx?.peek('positive', {
       data: {
-        headline: 'Content unlocked',
-        message: 'The selected content has been unlocked successfully'
+        headline: this.localize.term('contentLockNotification_bulkUnlockHeader'),
+        message: this.localize.term('contentLockNotification_bulkUnlockMessage')
       }
     });
 
@@ -212,8 +212,9 @@ export class ContentLockDashboardElement extends UmbElementMixin(LitElement) {
     if (this._isLoading) {
       return html`
         <uui-button-group>
-          <uui-button .label=${this.localize.term('contentLockDashboard_unlockAction')} look="primary" color="default" disabled>
+          <uui-button label=${this.localize.term('contentLockDashboard_unlockAction')} look="primary" color="default" disabled>
             <uui-icon name="icon-lock"></uui-icon>
+            ${this.localize.term('contentLockDashboard_unlockAction')}
           </uui-button>
         </uui-button-group>
         
@@ -240,6 +241,7 @@ export class ContentLockDashboardElement extends UmbElementMixin(LitElement) {
       <uui-button-group>
         <uui-button .label=${this.localize.term('contentLockDashboard_unlockAction')} look="primary" color="default" @click=${this.#bulkUnlock} ?disabled=${this.#isUnlockDisabled()}>
           <uui-icon name="icon-lock"></uui-icon>
+          ${this.localize.term('contentLockDashboard_unlockAction')}
         </uui-button>
       </uui-button-group>
       

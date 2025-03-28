@@ -9,9 +9,9 @@ export const manifests: Array<UmbExtensionManifest> = [
     weight: -1000,
     meta: {
         verbs: ['ContentLock.Unlocker'], // This is key persissted back to server & what we look up in a manifest condition or on the user itself
-        group: 'Content Lock',
-        label: 'Unlocker',
-        description: 'Allows the group of users to unlock a document that is locked by another user.'
+        group: 'Content Lock', // When umbraco supports this in the future we can use '#contentLockPermission_group'
+        label: '#contentLockPermission_label',
+        description: '#contentLockPermission_description'
     }
   }
 ];

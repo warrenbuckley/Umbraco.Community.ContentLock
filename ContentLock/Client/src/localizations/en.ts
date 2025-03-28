@@ -1,20 +1,29 @@
 export default {
-    contentLock: {
-        sampleNumberOfItems: (count: any) => {
-            count = parseInt(count, 10);
-            if (count === 0) return 'Showing nothing';
-            if (count === 1) return 'Showing only one item';
-            return `Showing ${count} items`;
-        },
-    },
     contentLockDashboard: {
         label: 'Content Lock',
-        pageNameHeader: 'Page Name U',
-        contentTypeHeader: 'Content Type 🎁',
-        checkedOutByHeader: 'Checked Out By WARREN',
-        checkedOutAtHeader: 'Checked Out At WA',
-        lastEditedHeader: 'Last Edited ❤️',
-        unlockAction: 'Unlock MEEEE',
-        pagesCheckedOutTitle: 'Pages Checked Out 🤮',
-    }
+        pageNameHeader: 'Page Name',
+        contentTypeHeader: 'Content Type',
+        checkedOutByHeader: 'Checked Out By',
+        checkedOutAtHeader: 'Checked Out At',
+        lastEditedHeader: 'Last Edited',
+        unlockAction: 'Unlock',
+        pagesCheckedOutTitle: 'Pages Checked Out',
+    },
+    contentLockFooterApp: {
+        lockedByYou: 'This page is locked by you',
+        lockedByAnother: 'This page is locked by {0}',
+    },
+    contentLockNotification: {
+        lockedHeader: 'Content Locked',
+        lockedMessage: 'The document has been locked for you to edit.',
+        unlockedHeader: 'Content Unlocked',
+        unlockedMessage: 'The document has been unlocked, to allow other users to edit.',
+        bulkUnlockHeader: 'Content Unlocked',
+        bulkUnlockMessage: 'The selected content has been unlocked successfully'
+    },
+    contentLockPermission: {
+        group: 'Content Lock', // TODO: Currently not used in Umbraco but added for future use
+        label: 'Unlocker',
+        description: 'Allows the group of users to unlock a document that is locked by another user.',
+    },
 };

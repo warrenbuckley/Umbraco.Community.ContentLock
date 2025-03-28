@@ -71,8 +71,6 @@ export class ContentLockWorkspaceContext extends UmbControllerBase {
                 this.#signalRContext.getLock(this.#unique.toString())
             ]), ([isLocked, isLockedBySelf, lockInfo]) => {
 
-                console.log('isLocked:', isLocked, 'isLockedBySelf:', isLockedBySelf, 'lockInfo:', lockInfo);
-
                 // Set the observables
                 this.setIsLocked(isLocked);
                 this.setIsLockedBySelf(isLockedBySelf);

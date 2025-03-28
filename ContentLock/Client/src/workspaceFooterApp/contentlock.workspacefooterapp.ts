@@ -6,7 +6,7 @@ import { observeMultiple } from "@umbraco-cms/backoffice/observable-api";
 import PageState from "../enums/PageStateEnum";
 
 @customElement('contentlock-workspacefooterapp')
-export class ContentLockWorkspaceVFooterAppElement extends UmbElementMixin(LitElement) {
+export class ContentLockWorkspaceFooterAppElement extends UmbElementMixin(LitElement) {
 
     @state()
 	private pageState: PageState;
@@ -62,7 +62,7 @@ export class ContentLockWorkspaceVFooterAppElement extends UmbElementMixin(LitEl
             case PageState.LockedByYou:
                 return html `
                     <div id="message">
-                        This page is locked by you
+                        ${this.localize.term('contentLockFooterApp_lockedByYou')}
                         <uui-badge color="warning" look="primary" attention>
                             <uui-icon name="icon-lock"></uui-icon>
                         </uui-badge>
@@ -72,7 +72,7 @@ export class ContentLockWorkspaceVFooterAppElement extends UmbElementMixin(LitEl
             case PageState.LockedByAnother:
                 return html `
                     <div id="message">
-                        This Page is locked by ${this._lockedByName}
+                        ${this.localize.term('contentLockFooterApp_lockedByAnother', this._lockedByName)}
                         <uui-badge color="danger" look="primary" attention>
                             <uui-icon name="icon-lock"></uui-icon>
                         </uui-badge>
@@ -107,10 +107,10 @@ export class ContentLockWorkspaceVFooterAppElement extends UmbElementMixin(LitEl
     ];
 }
 
-export default ContentLockWorkspaceVFooterAppElement;
+export default ContentLockWorkspaceFooterAppElement;
 
 declare global {
     interface HTMLElementTagNameMap {
-        'contentlock-workspacefooterapp': ContentLockWorkspaceVFooterAppElement;
+        'contentlock-workspacefooterapp': ContentLockWorkspaceFooterAppElement;
     }
 }

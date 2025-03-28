@@ -1,7 +1,7 @@
 export const manifests: Array<UmbExtensionManifest> = [
     {
         alias: 'contentlock.localization.en',
-        name: '[Content Lock] English',
+        name: 'English',
         type: 'localization',
         js: () => import('./en'),
         meta: {
@@ -10,11 +10,38 @@ export const manifests: Array<UmbExtensionManifest> = [
     },
     {
         alias: 'contentlock.localization.fr',
-        name: '[Content Lock] French',
+        name: 'français',
         type: 'localization',
         js: () => import('./fr'),
         meta: {
-            culture: 'fr',
+            culture: 'fr-FR',
+        }
+    },
+    {
+        alias: 'contentlock.localization.dk',
+        name: 'Dansk (Danmark)',
+        type: 'localization',
+        js: () => import('./dk'),
+        meta: {
+            culture: 'da-DK',
+        }
+    },
+    {
+        alias: 'contentlock.localization.nl',
+        name: 'Nederlands',
+        type: 'localization',
+        js: () => import('./nl'),
+        meta: {
+            culture: 'nl-NL',
+        }
+    },
+    {
+        alias: 'contentlock.localization.it',
+        name: 'italiano',
+        type: 'localization',
+        js: () => import('./it'),
+        meta: {
+            culture: 'it-IT',
         }
     },
 ]
