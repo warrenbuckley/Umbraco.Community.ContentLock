@@ -10,12 +10,12 @@ export default {
         pagesCheckedOutTitle: 'Pages verrouillées',
     },
     contentLockFooterApp: {
-        lockedByYou: 'Cette page est verrouillée par vous',
+        lockedByYou: 'Vous avez verrouillé cette page',
         lockedByAnother: 'Cette page est verrouillée par {0}',
     },
     contentLockNotification: {
         lockedHeader: 'Contenu verrouillé',
-        lockedMessage: 'Le document a été verrouillé pour que vous puissiez le modifier.',
+        lockedMessage: 'Le document a été verrouillé afin que vous puissiez le modifier.',
         unlockedHeader: 'Contenu déverrouillé',
         unlockedMessage: 'Le document a été déverrouillé pour permettre à d’autres utilisateurs de le modifier.',
         bulkUnlockHeader: 'Contenu déverrouillé',
