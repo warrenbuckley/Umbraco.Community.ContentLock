@@ -1,22 +1,15 @@
 using System.Globalization;
-
 using Asp.Versioning;
-
 using ContentLock.Extensions;
 using ContentLock.Interfaces;
-using ContentLock.Models.Backoffice;
 using ContentLock.SignalR;
-
-using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
-
 using Umbraco.Cms.Api.Common.Builders;
 using Umbraco.Cms.Core.Security;
 using Umbraco.Cms.Core.Services;
 
-using static Umbraco.Cms.Core.Collections.TopoGraph;
 
 namespace ContentLock.Controllers
 {
@@ -39,15 +32,6 @@ namespace ContentLock.Controllers
             _contentLockService = contentLockService;
             _localizedTextService = localizedTextService;
             _contentLockHubContext = contentLockHubContext;
-        }
-
-        [HttpGet("Status/{key:guid}")]
-        [ProducesResponseType<ContentLockStatus>(StatusCodes.Status200OK)]
-        public async Task<ContentLockStatus> StatusAsync(Guid key)
-        {
-            var userKey = _backOfficeSecurityAccessor.BackOfficeSecurity?.CurrentUser?.Key;
-            var result = await _contentLockService.GetLockInfoAsync(key, userKey.Value);
-            return result;
         }
 
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -114,14 +98,6 @@ namespace ContentLock.Controllers
 
             return Ok($"Unlocked content with key {key}");
         }
-
-        [HttpGet("LockOverview")]
-        [ProducesResponseType<ContentLockOverview>(StatusCodes.Status200OK)]
-        public async Task<ContentLockOverview> LockOverviewAsync()
-        {
-            return await _contentLockService.GetLockOverviewAsync();
-        }
-
 
         [HttpPost("BulkUnlock")]
         [ProducesResponseType(StatusCodes.Status200OK)]

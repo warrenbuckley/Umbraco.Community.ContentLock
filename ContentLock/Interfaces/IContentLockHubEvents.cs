@@ -1,7 +1,5 @@
 using ContentLock.Models.Backoffice;
 
-using Microsoft.AspNetCore.DataProtection.KeyManagement;
-
 namespace ContentLock.Interfaces;
 
 public interface IContentLockHubEvents
@@ -24,6 +22,10 @@ public interface IContentLockHubEvents
     /// <param name="contentKey">Identifies the content item from which the lock will be removed.</param>
     public Task RemoveLockToClients(Guid contentKey);
 
+    /// <summary>
+    /// Removes one or more locks that comes from the bulk unlock dashboard
+    /// </summary>
+    /// <param name="contentKeys">Identifies the content items from which the locks will be removed.</param>
     public Task RemoveLocksToClients(IEnumerable<Guid> contentKeys);
 
     //Task ReceiveConnectedUsers(List<ConnectedUser> connectedUsers);
