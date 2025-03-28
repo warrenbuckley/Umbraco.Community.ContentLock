@@ -43,8 +43,6 @@ export default class CanShowCommonActionsCondition extends UmbConditionBase<UmbC
             }
 
             this.observe(observeMultiple([signalrCtx.isNodeLocked(this.#unique), signalrCtx.isNodeLockedByMe(this.#unique, this.#currentUserUnique)]), ([isNodeLocked, isNodeLockedByMe]) => {
-                console.log('[CONDITION] Is Node Locked:', isNodeLocked, 'Is Node Locked By Me:', isNodeLockedByMe, 'Unique:', this.#unique, 'Current User Unique:', this.#currentUserUnique);
-
                 if (!isNodeLocked) {
                     // Node is unlocked - show the actions
                     this.permitted = true;
