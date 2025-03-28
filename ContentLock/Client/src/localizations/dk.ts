@@ -15,7 +15,7 @@ export default {
     },
     contentLockNotification: {
         lockedHeader: 'Indhold låst',
-        lockedMessage: 'Dokumentet er blevet låst, så du kan redigere det.',
+        lockedMessage: 'Dokumentet er blevet låst, derfor kan du ikke redigere.',
         unlockedHeader: 'Indhold låst op',
         unlockedMessage: 'Dokumentet er blevet låst op, så andre brugere kan redigere det.',
         bulkUnlockHeader: 'Indhold låst op',
