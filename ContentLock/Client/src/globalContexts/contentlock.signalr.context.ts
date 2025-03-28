@@ -15,6 +15,9 @@ export default class ContentLockSignalrContext extends UmbContextBase<ContentLoc
     // Used to store the overview of locks
     #contentLocks = new UmbArrayState<ContentLockOverviewItem>([], (item) => item.key);
     
+    // SignalR Hub URL endpoint
+    #CONTENT_LOCK_HUB_URL = '/umbraco/ContentLockHub';
+
     public contentLocks = this.#contentLocks.asObservable();
     public totalContentLocks = this.#contentLocks.asObservablePart(data => data.length);
 
@@ -33,12 +36,14 @@ export default class ContentLockSignalrContext extends UmbContextBase<ContentLoc
 
             // Create a new SignalR connection in this context that we will expose
             // Then otherplaces can get this new'd up hub to send or receive messages
+            
+
             this.signalrConnection = new signalR.HubConnectionBuilder()
-            .withUrl('/umbraco/ContentLockHub', { // TODO: Move this URL to a const ?
+            .withUrl(this.#CONTENT_LOCK_HUB_URL, { 
                 accessTokenFactory: authCtx.getOpenApiConfiguration().token
             })
             .withAutomaticReconnect()
-            .configureLogging(signalR.LogLevel.Trace) // TODO: Eventually turn this down to lower/normal level
+            .configureLogging(signalR.LogLevel.Information) // TODO: Eventually turn this down to lower/normal level
             .build();
 
             this.#startHub();
