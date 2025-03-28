@@ -45,13 +45,6 @@ export class UnlockDocumentEntityAction extends UmbEntityActionBase<never> {
             return;
         }
 
-        // Update the context observables with the new state of the document
-        // TODO: Do we need to do this anymore if SignalR pushes it back out?!
-        // this.#lockCtx?.setIsLocked(false);
-        // this.#lockCtx?.setIsLockedBySelf(false);
-        // this.#lockCtx?.setLockedByName("");
-
-
         this.#notificationCtx?.peek('positive', {
             data: {
                 headline: this.#localize.term('contentLockNotification_unlockedHeader'),
