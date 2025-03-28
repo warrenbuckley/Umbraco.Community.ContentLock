@@ -2,6 +2,7 @@ using System.Globalization;
 using Asp.Versioning;
 using ContentLock.Extensions;
 using ContentLock.Interfaces;
+using ContentLock.Models.Backoffice;
 using ContentLock.SignalR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -34,7 +35,7 @@ namespace ContentLock.Controllers
             _contentLockHubContext = contentLockHubContext;
         }
 
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ContentLockOverviewItem),StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         [HttpGet("Lock/{key:guid}")]
         public async Task<IActionResult> LockContentAsync(Guid key)
@@ -61,7 +62,7 @@ namespace ContentLock.Controllers
             // Then the underlying observable object with the count & array can be updated
             await _contentLockHubContext.Clients.All.AddLockToClients(lockedContentInfo);
 
-            return Ok($"Locked content with key {key}");
+            return Ok(lockedContentInfo);
         }
 
         [HttpGet("Unlock/{key:guid}")]

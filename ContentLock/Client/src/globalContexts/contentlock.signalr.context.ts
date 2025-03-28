@@ -3,7 +3,7 @@ import * as signalR from "@microsoft/signalr";
 import { UmbContextToken } from "@umbraco-cms/backoffice/context-api";
 import { UmbControllerHost } from "@umbraco-cms/backoffice/controller-api";
 import { UMB_AUTH_CONTEXT } from "@umbraco-cms/backoffice/auth";
-import { ContentLockOverview, ContentLockOverviewItem } from "../api";
+import { ContentLockOverviewItem } from "../api";
 import { UmbArrayState } from "@umbraco-cms/backoffice/observable-api";
 
 export default class ContentLockSignalrContext extends UmbContextBase<ContentLockSignalrContext>
@@ -52,9 +52,9 @@ export default class ContentLockSignalrContext extends UmbContextBase<ContentLoc
             await this.signalrConnection.start();
 
             // Listen to the server sending us events/data
-            this.signalrConnection.on('ReceiveLatestContentLocks', (locks:ContentLockOverview) => {
+            this.signalrConnection.on('ReceiveLatestContentLocks', (locks:Array<ContentLockOverviewItem>) => {
                 // Update the observable with our data from the server
-                this.#contentLocks.setValue(locks.items);
+                this.#contentLocks.setValue(locks);
             });
 
             // SignalR server will send out a 'AddLockToClients' when someone locks an item

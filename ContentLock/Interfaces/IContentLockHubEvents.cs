@@ -8,7 +8,7 @@ public interface IContentLockHubEvents
     /// When a user first connects to SignalR we send them out all the current locks
     /// Further updates are done when another user performs a lock or unlock whilst connected
     /// </summary>
-    public Task ReceiveLatestContentLocks(ContentLockOverview currentLocks);
+    public Task ReceiveLatestContentLocks(List<ContentLockOverviewItem> currentLocks);
 
     /// <summary>
     /// Fires when the server receives a lock request from a HTTP API call

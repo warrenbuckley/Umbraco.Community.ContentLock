@@ -33,7 +33,7 @@ public class ContentLockHub : Hub<IContentLockHubEvents>
 
         // Send the current locks to the caller
         // Did not use .All as other connected clients should have a stored state of locks in a repo/store
-        await Clients.Caller.ReceiveLatestContentLocks(currentLocks);
+        await Clients.Caller.ReceiveLatestContentLocks(currentLocks.Items);
 
         return base.OnConnectedAsync();
     }
