@@ -78,9 +78,14 @@ export class ContentLockWorkspaceContext extends UmbControllerBase {
                     this.setLockedByName(lockInfo.checkedOutBy);
                 }
 
+                // Clear out any existing readonly states first
+                // Added: As was seeing issues that it was reporting the state with the same unique was already added
+                this.#docWorkspaceCtx?.readOnlyState.clear();
+
                 if(isLocked && isLockedBySelf === false){
                     // Page is locked by someone else - set the readonly state
         
+
                     // Set the read only state of the document for ALL culture & segment variant combinations
                     // Even documents without a variant will have a default variant with the culture and segment set to null
                     this.#variants.forEach(async variant => {
