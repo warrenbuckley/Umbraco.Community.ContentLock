@@ -1,8 +1,7 @@
+using System.Collections.Concurrent;
 using ContentLock.Interfaces;
-
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
-
 using Umbraco.Cms.Web.Common.Authorization;
 using Umbraco.Extensions;
 
@@ -12,6 +11,7 @@ namespace ContentLock.SignalR;
 public class ContentLockHub : Hub<IContentLockHubEvents>
 {
     private readonly IContentLockService _contentLockService;
+    private static readonly ConcurrentDictionary<Guid, string> ConnectedUsers = new();
 
     public ContentLockHub(IContentLockService contentLockService)
     {
@@ -20,18 +20,21 @@ public class ContentLockHub : Hub<IContentLockHubEvents>
 
     public override async Task<Task> OnConnectedAsync()
     {
-        // TODO: Keep track of connected users & count etc
-        var currentUser = this.Context.User;
-        var currentUmbUser = this.Context.User?.GetUmbracoIdentity();
-        var who = currentUmbUser?.GetRealName(); //currentUmbUser.GetUserKey()
-
-        // TODO: Send out to ALL clients the current list of connected users
-
+        // Adds the new connection (user) to the list of connected users
+        AddNewUserToListOfConnectedUsers();
 
         // Gets the current list of locks from the DB and sends them out to the newly connected SignalR client
         await GetLatestLockInfoForNewConnection();
 
         return base.OnConnectedAsync();
+    }
+
+    public override Task OnDisconnectedAsync(Exception? exception)
+    {
+        // Removes the user who is disconnecting
+        RemoveUserFromListOfConnectedUsersAsync();
+
+        return base.OnDisconnectedAsync(exception);
     }
 
     private async Task GetLatestLockInfoForNewConnection()
@@ -44,10 +47,40 @@ public class ContentLockHub : Hub<IContentLockHubEvents>
         await Clients.Caller.ReceiveLatestContentLocks(currentLocks.Items);
     }
 
-    public override Task OnDisconnectedAsync(Exception? exception)
+    private async Task AddNewUserToListOfConnectedUsers()
     {
-        // TODO: Remove the user from the connected users list
+        var currentUser = this.Context.User;
+        var currentUmbUser = this.Context.User?.GetUmbracoIdentity();
+        var currentUserName = currentUmbUser?.GetRealName() ?? "Unknown User";
+        var currentUserKey = currentUmbUser?.GetUserKey();
 
-        return base.OnDisconnectedAsync(exception);
+        // Add new user to the list of connected users
+        // Only if the user is not already in the list - check by using the currentUserKey
+        if (currentUserKey.HasValue && !ConnectedUsers.ContainsKey(currentUserKey.Value))
+        {
+            ConnectedUsers.TryAdd(currentUserKey.Value, currentUserName);
+
+            // Notify a client has connected
+            // Calls everyone else who is already connected to update them that someone new joined
+            await Clients.Others.UserConnected(currentUserKey.Value, currentUserName);
+
+            // Sends the newly connected client
+            // The current list of connected users
+            await Clients.Caller.ReceiveListOfConnectedUsers(ConnectedUsers);
+        }
+    }
+
+    private async Task RemoveUserFromListOfConnectedUsersAsync()
+    {
+        var currentUmbUser = this.Context.User?.GetUmbracoIdentity();
+        var currentUserKey = currentUmbUser?.GetUserKey();
+
+        if (currentUserKey.HasValue)
+        {
+            ConnectedUsers.TryRemove(currentUserKey.Value, out _);
+
+            // Notify everyone that someone has disconnected
+            await Clients.All.UserDisconnected(currentUserKey.Value);
+        }
     }
 }
