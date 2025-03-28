@@ -28,20 +28,25 @@ public class ContentLockHub : Hub<IContentLockHubEvents>
         // TODO: Send out to ALL clients the current list of connected users
 
 
+        // Gets the current list of locks from the DB and sends them out to the newly connected SignalR client
+        await GetLatestLockInfoForNewConnection();
+
+        return base.OnConnectedAsync();
+    }
+
+    private async Task GetLatestLockInfoForNewConnection()
+    {
         // When a client connects do the initial lookup HERE
         var currentLocks = await _contentLockService.GetLockOverviewAsync();
 
         // Send the current locks to the caller
         // Did not use .All as other connected clients should have a stored state of locks in a repo/store
         await Clients.Caller.ReceiveLatestContentLocks(currentLocks.Items);
-
-        return base.OnConnectedAsync();
     }
 
     public override Task OnDisconnectedAsync(Exception? exception)
     {
         // TODO: Remove the user from the connected users list
-        //
 
         return base.OnDisconnectedAsync(exception);
     }
