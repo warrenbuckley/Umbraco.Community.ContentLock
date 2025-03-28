@@ -20,8 +20,7 @@ export default class CanShowCommonActionsCondition extends UmbConditionBase<UmbC
         // Tried using a higher UMB_ENTIY_CONTEXT rather than the CONTENTLOCK_WORKSPACE_CONTEXT in case the sidebar could not consume it
         // So used the UMB_ENTITY_CONTEXT instead to pass the uniques into the SignalR Context, but this is not working either
         this.consumeContext(UMB_ENTITY_CONTEXT, (entityCtx) => {
-            this.observe(observeMultiple([entityCtx.entityType, entityCtx.unique]), ([entityType, unique]) => {
-                console.log('[ENTITY CTX] Entity Type:', entityType, 'Unique:', unique);
+            this.observe(entityCtx.unique, (unique) => {
                 this.#unique = unique;
             });
         });
@@ -45,7 +44,6 @@ export default class CanShowCommonActionsCondition extends UmbConditionBase<UmbC
 
             this.observe(observeMultiple([signalrCtx.isNodeLocked(this.#unique), signalrCtx.isNodeLockedByMe(this.#unique, this.#currentUserUnique)]), ([isNodeLocked, isNodeLockedByMe]) => {
                 console.log('[CONDITION] Is Node Locked:', isNodeLocked, 'Is Node Locked By Me:', isNodeLockedByMe, 'Unique:', this.#unique, 'Current User Unique:', this.#currentUserUnique);
-
 
                 if (!isNodeLocked) {
                     // Node is unlocked - show the actions

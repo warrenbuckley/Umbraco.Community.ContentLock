@@ -120,14 +120,17 @@ export default class ContentLockSignalrContext extends UmbContextBase<ContentLoc
             const lock = locks.find(lock => lock.key === nodeKey);
             if(!lock){
                 // No lock found - so its not even locked
+                console.log('[IsNodeLockedByMe] No lock found for node:', nodeKey);
                 return false;
             }
             else if(lock.checkedOutByKey === currentUserKey) {
                 // Lock found and its locked by the current user
+                console.log('[IsNodeLockedByMe] Lock found for node and its locked by SELF', nodeKey);
                 return true;
             }
             else {
                 // Lock found but not by the current user
+                console.log('[IsNodeLockedByMe] Lock found but its locked BY SOMEONE else', nodeKey);
                 return false;
             }
         });

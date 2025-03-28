@@ -1,4 +1,4 @@
-import { UmbControllerBase } from '@umbraco-cms/backoffice/class-api';
+import { UmbContextBase } from '@umbraco-cms/backoffice/class-api';
 import { UmbContextToken } from '@umbraco-cms/backoffice/context-api';
 import { type UmbControllerHost } from '@umbraco-cms/backoffice/controller-api';
 import { UMB_DOCUMENT_WORKSPACE_CONTEXT, UmbDocumentVariantModel, UmbDocumentWorkspaceContext } from '@umbraco-cms/backoffice/document';
@@ -8,7 +8,7 @@ import { UmbVariantId } from '@umbraco-cms/backoffice/variant';
 import ContentLockSignalrContext, { CONTENTLOCK_SIGNALR_CONTEXT } from '../globalContexts/contentlock.signalr.context';
 import { UMB_CURRENT_USER_CONTEXT } from '@umbraco-cms/backoffice/current-user';
 
-export class ContentLockWorkspaceContext extends UmbControllerBase {
+export class ContentLockWorkspaceContext extends UmbContextBase<ContentLockWorkspaceContext> {
 
     #docWorkspaceCtx?: UmbDocumentWorkspaceContext;
     #unique: UmbEntityUnique | undefined;
@@ -30,7 +30,6 @@ export class ContentLockWorkspaceContext extends UmbControllerBase {
 
 	constructor(host: UmbControllerHost) {
 		super(host, CONTENTLOCK_WORKSPACE_CONTEXT.toString());
-		this.provideContext(CONTENTLOCK_WORKSPACE_CONTEXT, this);
 
         this.consumeContext(CONTENTLOCK_SIGNALR_CONTEXT, (signalRContext) => {
            this.#signalRContext = signalRContext;

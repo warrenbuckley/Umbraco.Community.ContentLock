@@ -25,17 +25,17 @@ export const onInit: UmbEntryPointOnInit = (_host, _extensionRegistry) => {
     // NOTE: Umbraco does not expose these strings like other CONST/TOKENS hence alot of strings
 
     const extenionsToAddCondition = [
-      'Umb.WorkspaceAction.Document.SaveAndPublish',  // Save & Publish - Button in footer
-      'Umb.WorkspaceAction.Document.Save',            // Save - Button in footer
-      'Umb.WorkspaceAction.Document.SaveAndPreview',  // Save & Preview - Button in footer
+      // 'Umb.WorkspaceAction.Document.SaveAndPublish',  // Save & Publish - Button in footer
+      // 'Umb.WorkspaceAction.Document.Save',            // Save - Button in footer
+      // 'Umb.WorkspaceAction.Document.SaveAndPreview',  // Save & Preview - Button in footer
 
       'Umb.EntityAction.Document.Publish',            // Publish - Action from tree or actions top right
-      'Umb.EntityAction.Document.Unpublish',          // Unpublish - Action from tree or actions top right
-      'Umb.EntityAction.Document.RecycleBin.Trash',   // Trash - Action from tree or actions top right
-      'Umb.EntityAction.Document.Rollback',           // Rollback - Action from tree or actions top right
-      'Umb.EntityAction.Document.MoveTo',             // Move To - Action from tree or actions top right
-      'Umb.EntityAction.Document.Delete',             // Delete - Action from tree or actions top right
-      'Umb.EntityAction.Document.DuplicateTo',        // Duplicate To - Action from tree or actions top right
+      // 'Umb.EntityAction.Document.Unpublish',          // Unpublish - Action from tree or actions top right
+      // 'Umb.EntityAction.Document.RecycleBin.Trash',   // Trash - Action from tree or actions top right
+      // 'Umb.EntityAction.Document.Rollback',           // Rollback - Action from tree or actions top right
+      // 'Umb.EntityAction.Document.MoveTo',             // Move To - Action from tree or actions top right
+      // 'Umb.EntityAction.Document.Delete',             // Delete - Action from tree or actions top right
+      // 'Umb.EntityAction.Document.DuplicateTo',        // Duplicate To - Action from tree or actions top right
     ]
 
     // Add our Content Locked condition to the list of extensions
