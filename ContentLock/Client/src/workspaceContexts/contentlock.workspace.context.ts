@@ -39,6 +39,8 @@ export class ContentLockWorkspaceContext extends UmbControllerBase {
         this.consumeContext(UMB_CURRENT_USER_CONTEXT, (currentUserCtx) => {
             this.observe(currentUserCtx.unique, (currentUserKey) => {
                 this.#currentUserKey = currentUserKey;
+
+                this.checkContentLockState();
             });
         });
 
@@ -49,7 +51,6 @@ export class ContentLockWorkspaceContext extends UmbControllerBase {
                 this.#unique = unique;
                 this.#variants = variants;
 
-                // Call API now we have assigned the unique
                 this.checkContentLockState();
             });
         });
