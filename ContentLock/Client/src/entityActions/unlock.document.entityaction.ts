@@ -2,14 +2,12 @@ import { UmbControllerHost } from "@umbraco-cms/backoffice/controller-api";
 import { UmbEntityActionArgs, UmbEntityActionBase } from "@umbraco-cms/backoffice/entity-action";
 import { UMB_NOTIFICATION_CONTEXT, UmbNotificationContext } from "@umbraco-cms/backoffice/notification";
 import { ContentLockService } from "../api";
-import { CONTENTLOCK_WORKSPACE_CONTEXT, ContentLockWorkspaceContext } from "../workspaceContexts/contentlock.workspace.context";
 import { ProblemDetailResponse } from "../interfaces/ProblemDetailResponse";
 import { UmbLocalizationController } from "@umbraco-cms/backoffice/localization-api";
 
 export class UnlockDocumentEntityAction extends UmbEntityActionBase<never> {
     
     #notificationCtx?: UmbNotificationContext;
-    #lockCtx?: ContentLockWorkspaceContext;
 
     // Create a new instance of the controller and attach it to the element
     #localize = new UmbLocalizationController(this);
@@ -21,11 +19,6 @@ export class UnlockDocumentEntityAction extends UmbEntityActionBase<never> {
         this.consumeContext(UMB_NOTIFICATION_CONTEXT, (notificationCtx) => {
             this.#notificationCtx = notificationCtx;
         });
-
-        this.consumeContext(CONTENTLOCK_WORKSPACE_CONTEXT, (lockCtx) => {
-            this.#lockCtx = lockCtx;
-        });
-        
     }
 
     async execute() {
@@ -54,9 +47,9 @@ export class UnlockDocumentEntityAction extends UmbEntityActionBase<never> {
 
         // Update the context observables with the new state of the document
         // TODO: Do we need to do this anymore if SignalR pushes it back out?!
-        this.#lockCtx?.setIsLocked(false);
-        this.#lockCtx?.setIsLockedBySelf(false);
-        this.#lockCtx?.setLockedByName("");
+        // this.#lockCtx?.setIsLocked(false);
+        // this.#lockCtx?.setIsLockedBySelf(false);
+        // this.#lockCtx?.setLockedByName("");
 
 
         this.#notificationCtx?.peek('positive', {
