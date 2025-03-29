@@ -49,7 +49,7 @@ export class ContentLockNoUsersOnlineHeaderApp extends UmbHeaderAppButtonElement
 		return html`
             <uui-button compact label=${this.localize.term('general_help')} look="primary" @click=${this.#openUserListModal}>
 				<uui-icon name="icon-users"></uui-icon>
-                <uui-badge color="positive">${badgeValue}</uui-badge>
+                <uui-badge color="default" look="secondary">${badgeValue}</uui-badge>
 			</uui-button>
         `;
 	}
