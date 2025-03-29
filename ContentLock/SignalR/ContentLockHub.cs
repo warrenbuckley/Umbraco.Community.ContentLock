@@ -21,7 +21,7 @@ public class ContentLockHub : Hub<IContentLockHubEvents>
     public override async Task<Task> OnConnectedAsync()
     {
         // Adds the new connection (user) to the list of connected users
-        AddNewUserToListOfConnectedUsers();
+        await AddNewUserToListOfConnectedUsers();
 
         // Gets the current list of locks from the DB and sends them out to the newly connected SignalR client
         await GetLatestLockInfoForNewConnection();
