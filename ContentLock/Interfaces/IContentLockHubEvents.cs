@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using ContentLock.Models.Backoffice;
 
 namespace ContentLock.Interfaces;
@@ -28,5 +29,9 @@ public interface IContentLockHubEvents
     /// <param name="contentKeys">Identifies the content items from which the locks will be removed.</param>
     public Task RemoveLocksToClients(IEnumerable<Guid> contentKeys);
 
-    //Task ReceiveConnectedUsers(List<ConnectedUser> connectedUsers);
+    public Task UserConnected(Guid? connectedUserKey, string connectedUserName);
+
+    public Task UserDisconnected(Guid? connectedUserKey);
+
+    public Task ReceiveListOfConnectedUsers(ConcurrentDictionary<Guid, string> connectedUsers);
 }

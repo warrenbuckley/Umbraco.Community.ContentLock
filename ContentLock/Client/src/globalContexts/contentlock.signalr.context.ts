@@ -5,6 +5,7 @@ import { UmbControllerHost } from "@umbraco-cms/backoffice/controller-api";
 import { UMB_AUTH_CONTEXT } from "@umbraco-cms/backoffice/auth";
 import { ContentLockOverviewItem } from "../api";
 import { UmbArrayState } from "@umbraco-cms/backoffice/observable-api";
+import { ConnectedBackofficeUsers } from "../interfaces/ConnectedBackofficeUsers";
 
 export default class ContentLockSignalrContext extends UmbContextBase<ContentLockSignalrContext>
 {
@@ -15,11 +16,25 @@ export default class ContentLockSignalrContext extends UmbContextBase<ContentLoc
     // Used to store the overview of locks
     #contentLocks = new UmbArrayState<ContentLockOverviewItem>([], (item) => item.key);
     
+    // Used to store the overview of locks
+    #connectedBackofficeUsers = new UmbArrayState<ConnectedBackofficeUsers>([], (item) => item.userKey);
+
     // SignalR Hub URL endpoint
     #CONTENT_LOCK_HUB_URL = '/umbraco/ContentLockHub';
 
     public contentLocks = this.#contentLocks.asObservable();
     public totalContentLocks = this.#contentLocks.asObservablePart(data => data.length);
+
+    public connectedUsers = this.#connectedBackofficeUsers.asObservable();
+    public totalConnectedUsers = this.#connectedBackofficeUsers.asObservablePart(users => users.length);
+    
+    public totalConnectedOtherUsers(currentUserKey:string){
+        return this.#connectedBackofficeUsers.asObservablePart((users) => {
+            const otherUsers = users.filter(user => user.userKey !== currentUserKey);
+            return otherUsers.length;
+        });
+    }
+
 
     constructor(host: UmbControllerHost) {
         super(host, CONTENTLOCK_SIGNALR_CONTEXT);
@@ -36,14 +51,12 @@ export default class ContentLockSignalrContext extends UmbContextBase<ContentLoc
 
             // Create a new SignalR connection in this context that we will expose
             // Then otherplaces can get this new'd up hub to send or receive messages
-            
-
             this.signalrConnection = new signalR.HubConnectionBuilder()
             .withUrl(this.#CONTENT_LOCK_HUB_URL, { 
                 accessTokenFactory: authCtx.getOpenApiConfiguration().token
             })
             .withAutomaticReconnect()
-            .configureLogging(signalR.LogLevel.Information) // TODO: Eventually turn this down to lower/normal level
+            .configureLogging(signalR.LogLevel.Information)
             .build();
 
             this.#startHub();
@@ -77,6 +90,35 @@ export default class ContentLockSignalrContext extends UmbContextBase<ContentLoc
             this.signalrConnection.on('RemoveLocksToClients', (contentKeys:Array<String>) => {
                 this.#contentLocks.remove(contentKeys);
             });
+
+            this.signalrConnection.on('UserConnected', (connectedUserKey:string, connectedUserName:string) => {
+                this.#connectedBackofficeUsers.appendOne({ userKey: connectedUserKey, userName: connectedUserName });
+
+                // TODO: Play a sound when a new user connects
+                // Need to find a nice sound thats license free/open source and needs to be local
+                let logonNotify = new Audio('https://cdn.freesound.org/previews/352/352651_4019029-lq.mp3');
+                logonNotify.play();
+            });
+
+            this.signalrConnection.on('UserDisconnected', (connectedUserKey:string) => {
+                this.#connectedBackofficeUsers.removeOne(connectedUserKey);
+
+                // TODO: Play a sound when a new user disconnects
+                // Need to find a nice sound thats license free/open source and needs to be local
+                let logoffNotify = new Audio('https://cdn.freesound.org/previews/420/420521_8377667-lq.mp3');
+                logoffNotify.play();
+            });
+
+            this.signalrConnection.on('ReceiveListOfConnectedUsers', (connectedUsers:{ [key: string]: string }) => {
+                // Convert the object into an array of { userKey, userName }
+                const usersArray = Object.entries(connectedUsers).map(([userKey, userName]) => ({
+                    userKey,
+                    userName,
+                }));
+
+                // Update the observable state with the new list of users
+                this.#connectedBackofficeUsers.setValue(usersArray);
+            })
         }
     }
 
