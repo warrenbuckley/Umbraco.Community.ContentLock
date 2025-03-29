@@ -26,9 +26,9 @@ export default class ContentLockSignalrContext extends UmbContextBase<ContentLoc
     public totalContentLocks = this.#contentLocks.asObservablePart(data => data.length);
 
     public connectedUsers = this.#connectedBackofficeUsers.asObservable();
-    public totalConnnectedUsers = this.#connectedBackofficeUsers.asObservablePart(users => users.length);
+    public totalConnectedUsers = this.#connectedBackofficeUsers.asObservablePart(users => users.length);
     
-    public totalConnnectedOtherUsers(currentUserKey:string){
+    public totalConnectedOtherUsers(currentUserKey:string){
         return this.#connectedBackofficeUsers.asObservablePart((users) => {
             const otherUsers = users.filter(user => user.userKey !== currentUserKey);
             return otherUsers.length;
