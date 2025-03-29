@@ -22,7 +22,7 @@ export class ContentLockNoUsersOnlineHeaderApp extends UmbHeaderAppButtonElement
 		super();
 
         this.consumeContext(CONTENTLOCK_SIGNALR_CONTEXT, (signalrContext) => {
-            this.observe(observeMultiple([signalrContext.totalConnnectedUsers, signalrContext.connectedUsers]), ([totalConnectedUsers, connectedUsers]) => {
+            this.observe(observeMultiple([signalrContext.totalConnectedUsers, signalrContext.connectedUsers]), ([totalConnectedUsers, connectedUsers]) => {
                 this._totalConnectedUsers = totalConnectedUsers;
                 this._connectedUsers = connectedUsers;
             });
