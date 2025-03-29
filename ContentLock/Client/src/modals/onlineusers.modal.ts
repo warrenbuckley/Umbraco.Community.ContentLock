@@ -8,27 +8,22 @@ export class OnlineUsersModalElement extends UmbModalBaseElement<OnlineUsersModa
     constructor() {
         super();
     }
-
-    connectedCallback() {
-        super.connectedCallback();
-    }
     
     #handleClose() {
         this.modalContext?.reject({ type: "close" } as UmbModalRejectReason);
     }
     
-    
     render() {
         return html`
             <umb-body-layout headline="Who is online?">
-                
                 <uui-box headline="Online Users">
-                    <div>
-                        <uui-avatar name="Warren Buckley"></uui-avatar> Warren Buckley
-                    </div>
-                    <div>
-                        <uui-avatar name="Warren"></uui-avatar> Emma
-                    </div>
+                    ${this.data?.users.map((user) => {
+                        return html`
+                            <div>
+                                <uui-avatar name="${user.userName}"></uui-avatar> ${user.userName}
+                            </div>
+                        `;
+                    })}
                 </uui-box>
                 
                 <div slot="actions">
@@ -46,6 +41,10 @@ export class OnlineUsersModalElement extends UmbModalBaseElement<OnlineUsersModa
         umb-property-layout {
             padding-top:0;
             padding-bottom:0;
+        }
+
+        div {
+            margin: var(--uui-size-5) 0;
         }
     `;
 }
