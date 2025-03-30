@@ -26,4 +26,8 @@ export default {
         label: 'Unlocker',
         description: 'Allows the group of users to unlock a document that is locked by another user.',
     },
+    contentLockUsersModal: {
+        modalHeader: 'Who\'s online?',
+        listOfUsers: 'Online Users'
+    }
 };

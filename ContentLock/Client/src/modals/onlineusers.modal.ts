@@ -15,8 +15,8 @@ export class OnlineUsersModalElement extends UmbModalBaseElement<OnlineUsersModa
     
     render() {
         return html`
-            <umb-body-layout headline="Who is online?">
-                <uui-box headline="Online Users">
+            <umb-body-layout headline=${this.localize.term('contentLockUsersModal_modalHeader')}>
+                <uui-box headline=${this.localize.term('contentLockUsersModal_listOfUsers')}>
                     ${this.data?.users.map((user) => {
                         return html`
                             <div>
@@ -27,7 +27,7 @@ export class OnlineUsersModalElement extends UmbModalBaseElement<OnlineUsersModa
                 </uui-box>
                 
                 <div slot="actions">
-                    <uui-button id="close" label="Close" @click=${this.#handleClose}>Close</uui-button>
+                    <uui-button id="close" label="Close" @click=${this.#handleClose}>${this.localize.term('general_close')}</uui-button>
                 </div>
             </umb-body-layout>
         `;
