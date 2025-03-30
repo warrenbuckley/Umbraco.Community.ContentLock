@@ -1,0 +1,45 @@
+{
+    "$schema": "https://marketplace.umbraco.com/umbraco-marketplace-schema.json",
+    "Title": "Content Lock",
+    "Description": "Enhance your content editing experience with Content Lock! This real-time tool allows you to lock and unlock content in Umbraco, preventing accidental edits and ensuring smooth collaboration across your team.",
+    "Tags": [
+        "content lock",
+        "content guard",
+        "check in",
+        "check out",
+        "lock",
+        "unlock",
+        "realtime"
+    ],
+    "Category": "Editor Tools",
+    "LicenseTypes": [
+        "Free"
+    ],
+    "PackageType": "Package",
+    "IssueTrackerUrl": "https://github.com/warrenbuckley/Umbraco.Community.ContentLock/issues",
+    "AuthorDetails": {
+        "Name": "Warren Buckley",
+        "Url": "https://hackmakedo.com",
+        "Description": "Warren is a freelance Umbraco developer who loves to tinker and hack and is available for hire. He has been working with Umbraco since the days of the yahoo mailing list (aka way too long).",
+        "ImageUrl": "https://hackmakedo.com/images/warren_square.jpg",
+        "SyncContributorsFromRepository": true
+    },
+    "Screenshots": [
+        {
+            "Caption": "Manage locked content easily with the Content Lock Dashboard. Users with the 'Unlocker' permission can unlock content locked by others.",
+            "ImageUrl": "https://raw.githubusercontent.com/warrenbuckley/Umbraco.Community.ContentLock/refs/heads/main/.github/screenshots/content-lock-dashboard.png"
+        },
+        {
+            "Caption": "See who has locked content at a glance. Locked content by another user is read-only and displays their name in the footer.",
+            "ImageUrl": "https://raw.githubusercontent.com/warrenbuckley/Umbraco.Community.ContentLock/refs/heads/main/.github/screenshots/content-lock-locked-by-someone-else.png"
+        },
+        {
+            "Caption": "Stay informed when you lock content. A footer message reminds you that the content is locked to other users.",
+            "ImageUrl": "https://raw.githubusercontent.com/warrenbuckley/Umbraco.Community.ContentLock/refs/heads/main/.github/screenshots/content-lock-locked-by-you.png"
+        },
+        {
+            "Caption": "Track user activity in real-time. The header app shows the number of online users, and clicking it reveals a list of currently logged-in users.",
+            "ImageUrl": "https://raw.githubusercontent.com/warrenbuckley/Umbraco.Community.ContentLock/refs/heads/main/.github/screenshots/content-lock-whos-online.png"
+        }
+    ]
+}
