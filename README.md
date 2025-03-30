@@ -1,7 +1,7 @@
 # Umbraco Community ContentLock
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![NuGet version](https://img.shields.io/nuget/v/UmbracoCommunity.ContentLock.svg)](https://www.nuget.org/packages/UmbracoCommunity.ContentLock)
+[![NuGet version](https://img.shields.io/nuget/v/Umbraco.Community.ContentLock.svg)](https://www.nuget.org/packages/UmbracoCommunity.ContentLock)
 
 **Umbraco Community ContentLock** is an open-source package for [Umbraco CMS](https://umbraco.com/) that prevents content conflicts by enabling content editors to lock nodes while editing. This ensures that changes are made by a single user at a time, reducing the risk of overwriting each other’s work.
 
@@ -37,6 +37,6 @@ This package is a community-driven fork of the original [CogWorks ContentGuard](
 
 ---
 
-_Lovingly crafted for you by [Warren Buckley](https://github.com/sponsors/warrenbuckley)❤️_
+_Lovingly crafted for you by [Warren Buckley](https://github.com/sponsors/warrenbuckley) ❤️_
 
 _[Available for hire](https://hackmakedo.com/)_
