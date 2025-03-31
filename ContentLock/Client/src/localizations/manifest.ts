@@ -44,4 +44,13 @@ export const manifests: Array<UmbExtensionManifest> = [
             culture: 'it-IT',
         }
     },
+    {
+        alias: 'contentlock.localization.cy',
+        name: 'Cymraeg',
+        type: 'localization',
+        js: () => import('./cy'),
+        meta: {
+            culture: 'cy-GB',
+        }
+    }
 ]
