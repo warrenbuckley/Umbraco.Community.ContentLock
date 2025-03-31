@@ -22,8 +22,8 @@
         bulkUnlockMessage: 'Mae\'r cynnwys a ddewiswyd wedi\'i ddatgloi\'n llwyddiannus',
     },
     contentLockPermission: {
-        group: 'Clo Cynnwys', // TODO: Currently not used in Umbraco but added for future use
-        label: 'Datglöwr',
+        group: 'Content Lock', // TODO: Currently not used in Umbraco but added for future use
+        label: 'Unlocker',
         description: 'Yn caniatáu i\'r grŵp o ddefnyddwyr ddatgloi dogfen sydd wedi\'i chloi gan ddefnyddiwr arall.',
     },
     contentLockUsersModal: {
