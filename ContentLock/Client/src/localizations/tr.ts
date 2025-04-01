@@ -1,29 +1,29 @@
 export default {
     "contentLockDashboard": {
-        "label": "?çerik Kilidi",
-        "pageNameHeader": "Sayfa Ad?",
-        "contentTypeHeader": "?çerik Türü",
-        "checkedOutByHeader": "Taraf?ndan Kilitlendi",
-        "checkedOutAtHeader": "Kilitlendi?i Zaman",
+        "label": "Ýçerik Kilidi",
+        "pageNameHeader": "Sayfa Adý",
+        "contentTypeHeader": "Ýçerik Türü",
+        "checkedOutByHeader": "Tarafýndan Kilitlendi",
+        "checkedOutAtHeader": "Kilitlendiði Zaman",
         "lastEditedHeader": "Son Düzenleme",
         "unlockAction": "Kilidi Aç",
         "pagesCheckedOutTitle": "Kontrol Edilen Sayfalar"
     },
     "contentLockFooterApp": {
-        "lockedByYou": "Bu sayfa sizin taraf?n?zdan kilitlendi",
-        "lockedByAnother": "Bu sayfa {0} taraf?ndan kilitlendi"
+        "lockedByYou": "Bu sayfa sizin tarafýnýzdan kilitlendi",
+        "lockedByAnother": "Bu sayfa {0} tarafýndan kilitlendi"
     },
     "contentLockNotification": {
-        "lockedHeader": "?çerik Kilitlendi",
+        "lockedHeader": "Ýçerik Kilitlendi",
         "lockedMessage": "Belge düzenlemeniz için kilitlendi.",
-        "unlockedHeader": "?çerik Kilidi Aç?ld?",
-        "unlockedMessage": "Belgenin kilidi aç?ld?, di?er kullan?c?lar?n düzenlemesine izin verildi.",
-        "bulkUnlockHeader": "?çerik Kilidi Aç?ld?",
-        "bulkUnlockMessage": "Seçilen içeri?in kilidi ba?ar?yla aç?ld?"
+        "unlockedHeader": "Ýçerik Kilidi Açýldý",
+        "unlockedMessage": "Belgenin kilidi açýldý, diðer kullanýcýlarýn düzenlemesine izin verildi.",
+        "bulkUnlockHeader": "Ýçerik Kilidi Açýldý",
+        "bulkUnlockMessage": "Seçilen içeriðin kilidi baþarýyla açýldý"
     },
     "contentLockPermission": {
         "group": "Content Lock",
         "label": "Unlocker",
-        "description": "Kullan?c? grubunun ba?ka bir kullan?c? taraf?ndan kilitlenen bir belgenin kilidini açmas?na izin verir."
+        "description": "Kullanýcý grubunun baþka bir kullanýcý tarafýndan kilitlenen bir belgenin kilidini açmasýna izin verir."
     }
 };
