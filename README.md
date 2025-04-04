@@ -30,6 +30,17 @@
 - **Action Restrictions:**  
   - Prevents actions like publish, unpublish, and save for nodes that are currently locked.
 
+
+---
+
+### Attributions
+* Log on sound: Piano Notification 3 by FoolBoyMedia
+  * https://freesound.org/s/352651/
+  * License: Attribution NonCommercial 4.0
+* Log off sound: Dist Kalimba.wav by JFRecords
+  * https://freesound.org/s/420521/
+  * License: Attribution 3.0
+
 ---
 
 ### Fork Notice
