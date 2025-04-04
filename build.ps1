@@ -2,7 +2,7 @@
 $projectFile = "./ContentLock/ContentLock.csproj"
 $configuration = "Release"
 $outputDirectory = "./build.out"
-$version = "1.0.0"
+$version = "1.0.1"
 
 
 ## Perhaps need to do a build of the client after updating the version in the source file
