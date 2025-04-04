@@ -94,18 +94,18 @@ export default class ContentLockSignalrContext extends UmbContextBase<ContentLoc
             this.signalrConnection.on('UserConnected', (connectedUserKey:string, connectedUserName:string) => {
                 this.#connectedBackofficeUsers.appendOne({ userKey: connectedUserKey, userName: connectedUserName });
 
-                // TODO: Play a sound when a new user connects
-                // Need to find a nice sound thats license free/open source and needs to be local
-                let logonNotify = new Audio('https://cdn.freesound.org/previews/352/352651_4019029-lq.mp3');
+                // Play a sound when a new user connects
+                // https://freesound.org/s/352651/
+                let logonNotify = new Audio('/App_Plugins/ContentLock/sounds/log-on.mp3');
                 logonNotify.play();
             });
 
             this.signalrConnection.on('UserDisconnected', (connectedUserKey:string) => {
                 this.#connectedBackofficeUsers.removeOne(connectedUserKey);
 
-                // TODO: Play a sound when a new user disconnects
-                // Need to find a nice sound thats license free/open source and needs to be local
-                let logoffNotify = new Audio('https://cdn.freesound.org/previews/420/420521_8377667-lq.mp3');
+                // Play a sound when a new user disconnects
+                // https://freesound.org/s/420521/
+                let logoffNotify = new Audio('/App_Plugins/ContentLock/sounds/log-off.mp3');
                 logoffNotify.play();
             });
 
