@@ -15,26 +15,26 @@ export default class ContentLockSignalrContext extends UmbContextBase<ContentLoc
 
     // Used to store the overview of locks
     #contentLocks = new UmbArrayState<ContentLockOverviewItem>([], (item) => item.key);
-    
-    // Used to store the overview of locks
+
+    // Used to store the connected users of backoffice
     #connectedBackofficeUsers = new UmbArrayState<ConnectedBackofficeUsers>([], (item) => item.userKey);
+
+    // Add a new state to track the number of other users viewing the same page
+    #activePageUsers = new UmbArrayState<{ pageKey: string; viewerCount: number }>([], (item) => item.pageKey);
 
     // SignalR Hub URL endpoint
     #CONTENT_LOCK_HUB_URL = '/umbraco/ContentLockHub';
 
+    // Locks
     public contentLocks = this.#contentLocks.asObservable();
     public totalContentLocks = this.#contentLocks.asObservablePart(data => data.length);
 
+    // All Users
     public connectedUsers = this.#connectedBackofficeUsers.asObservable();
     public totalConnectedUsers = this.#connectedBackofficeUsers.asObservablePart(users => users.length);
-    
-    public totalConnectedOtherUsers(currentUserKey:string){
-        return this.#connectedBackofficeUsers.asObservablePart((users) => {
-            const otherUsers = users.filter(user => user.userKey !== currentUserKey);
-            return otherUsers.length;
-        });
-    }
 
+    // Users on the current page
+    public activePageUsers = this.#activePageUsers.asObservable();
 
     constructor(host: UmbControllerHost) {
         super(host, CONTENTLOCK_SIGNALR_CONTEXT);
@@ -118,9 +118,30 @@ export default class ContentLockSignalrContext extends UmbContextBase<ContentLoc
 
                 // Update the observable state with the new list of users
                 this.#connectedBackofficeUsers.setValue(usersArray);
-            })
+            });
+
+            this.signalrConnection.on('ReceivePageViewCounts', (pageViewCounts: { [key: string]: number }) => {
+                
+                console.log('RECEIVED PAGE VIEW COUNTS', pageViewCounts);
+                
+                // Convert the object into an array of { pageKey, viewerCount }
+                // const pageViewersArray = Object.entries(pageViewCounts).map(([pageKey, viewerCount]) => ({
+                //     pageKey,
+                //     viewerCount,
+                // }));
+            
+                // Update the observable state with the initial list of page viewers
+                //this.#activePageUsers.setValue(pageViewersArray);
+            });
+
+            // Listen for updates to the number of viewers for a page
+            this.signalrConnection.on("UpdatePageViewers", (pageKey: string, viewerCount: number) => {
+                console.log('UPDATE PAGE VIEWERS', pageKey, viewerCount);
+                //this.#activePageUsers.appendOne({ pageKey, viewerCount });
+            });
+
         }
-    }
+    };
 
     /**
      * Get a lock from the observable array of locks
@@ -173,8 +194,49 @@ export default class ContentLockSignalrContext extends UmbContextBase<ContentLoc
                 return false;
             }
         });
-    }
+    };
 
+    /**
+     * 
+     * @param currentUserKey 
+     * @returns 
+     */
+    public totalConnectedOtherUsers(currentUserKey:string){
+        return this.#connectedBackofficeUsers.asObservablePart((users) => {
+            const otherUsers = users.filter(user => user.userKey !== currentUserKey);
+            return otherUsers.length;
+        });
+    };
+
+    /**
+     * Get the number of other people viewing the same page as the current user
+     * @param pageKey - The key of the page to get the viewer count for
+     * @returns An observable of the viewer count for the page
+     */
+    public getPageViewerCount(pageKey:string) {
+        return this.#activePageUsers.asObservablePart((pages) => {
+            const page = pages.find((p) => p.pageKey === pageKey);
+            if (page) {
+                // Subtract 1 to exclude the current user (self) from the total count
+                return page.viewerCount > 0 ? page.viewerCount - 1 : 0;
+            }
+            return 0;
+        });
+    };
+
+    public async joinContentPage(pagekey: string) {
+        if (this.signalrConnection) {
+            // Send a message back to SignalR server that a user has joined a content node
+            await this.signalrConnection.invoke('JoinPage', pagekey);
+        }
+    };
+
+    public async leaveContentPage(pagekey: string) {
+        if (this.signalrConnection) {
+            // Send a message back to SignalR server that a user has left a content node
+            await this.signalrConnection.invoke('LeavePage', pagekey);
+        }
+    }
 
     override async destroy(): Promise<void> {
         console.log('SignalR DOM destory - Kill the SignalR connection');
