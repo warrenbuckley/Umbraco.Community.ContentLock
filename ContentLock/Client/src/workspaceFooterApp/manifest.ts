@@ -23,5 +23,22 @@ export const manifests: Array<UmbExtensionManifest> = [
         alias: CONTENTLOCK_SHOW_LOCKED_STATUS_CONDITION_ALIAS // Node is locked (even if it's locked by you)
       }
     ]
+  },
+  {
+    alias: 'contentlock.numusers.workspacefooterapp',
+    name: '[Content Lock] Number of Users Footer App',
+    type: 'workspaceFooterApp',
+    js: () => import('./numusers.workspacefooterapp'),
+    weight: 198,
+    conditions: [
+      {
+        alias: 'Umb.Condition.SectionAlias',
+        match: UMB_CONTENT_SECTION_ALIAS
+      },
+      {
+        alias: UMB_WORKSPACE_CONDITION_ALIAS,
+        match: UMB_DOCUMENT_WORKSPACE_ALIAS
+      }
+    ]
   }
 ];
