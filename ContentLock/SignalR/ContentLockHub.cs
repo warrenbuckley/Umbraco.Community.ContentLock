@@ -1,7 +1,11 @@
 using System.Collections.Concurrent;
 using ContentLock.Interfaces;
+using ContentLock.Options;
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Options;
+
 using Umbraco.Cms.Web.Common.Authorization;
 using Umbraco.Extensions;
 
@@ -11,11 +15,20 @@ namespace ContentLock.SignalR;
 public class ContentLockHub : Hub<IContentLockHubEvents>
 {
     private readonly IContentLockService _contentLockService;
+    private readonly IOptionsMonitor<ContentLockOptions> _options;
     private static readonly ConcurrentDictionary<Guid, string> ConnectedUsers = new();
 
-    public ContentLockHub(IContentLockService contentLockService)
+    public ContentLockHub(IContentLockService contentLockService, IOptionsMonitor<ContentLockOptions> options)
     {
         _contentLockService = contentLockService;
+        _options = options;
+        _options.OnChange(OnOptionsChanged);
+    }
+
+    private void OnOptionsChanged(ContentLockOptions options, string? arg2)
+    {
+        // Notify all connected clients of the new options values
+        //this.Clients.All.
     }
 
     public override async Task<Task> OnConnectedAsync()
