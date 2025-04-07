@@ -21,6 +21,7 @@
         <PackageTags>umbraco; umbraco-marketplace;</PackageTags>
         <IncludeSymbols>True</IncludeSymbols>
         <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
     </PropertyGroup>
 
     <ItemGroup>
@@ -42,7 +43,7 @@
         <!-- However make the Umbraco-package.json included for dotnet pack or nuget package and visible to the solution -->
         <None Include="Client\public\umbraco-package.json" Pack="false"/>
 
-        <!-- Readme, icon for nuget -->
+        <!-- Readme & icon for nuget -->
         <None Include="..\README.md" Pack="true" PackagePath="\"/>
         <None Include="..\.github\content-lock-icon.png" Pack="true" PackagePath="\"/>
 
