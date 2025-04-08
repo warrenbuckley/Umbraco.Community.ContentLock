@@ -121,23 +121,29 @@ export default class ContentLockSignalrContext extends UmbContextBase<ContentLoc
             this.signalrConnection.on('UserConnected', (connectedUserKey:string, connectedUserName:string) => {
                 this.#connectedBackofficeUsers.appendOne({ userKey: connectedUserKey, userName: connectedUserName });
 
-                if(this.EnableSounds){
-                    // Play a sound when a new user connects
+                this.observe(this.EnableSounds, (enableSounds) => {
+                    console.log('observe enableSounds setting for logon', enableSounds);
+                    if(enableSounds){
+                        // Play a sound when a new user connects
                     // https://freesound.org/s/352651/
                     let logonNotify = new Audio('/App_Plugins/ContentLock/sounds/log-on.mp3');
                     logonNotify.play();
-                }
+                    }
+                });
             });
 
             this.signalrConnection.on('UserDisconnected', (connectedUserKey:string) => {
                 this.#connectedBackofficeUsers.removeOne(connectedUserKey);
 
-                if(this.EnableSounds){
-                    // Play a sound when a new user disconnects
-                    // https://freesound.org/s/420521/
-                    let logoffNotify = new Audio('/App_Plugins/ContentLock/sounds/log-off.mp3');
-                    logoffNotify.play();
-                }
+                this.observe(this.EnableSounds, (enableSounds) => {
+                    console.log('observe enableSounds setting for logoff', enableSounds);
+                    if(enableSounds){
+                        // Play a sound when a new user disconnects
+                        // https://freesound.org/s/420521/
+                        let logoffNotify = new Audio('/App_Plugins/ContentLock/sounds/log-off.mp3');
+                        logoffNotify.play();
+                    }
+                });
             });
 
             this.signalrConnection.on('ReceiveListOfConnectedUsers', (connectedUsers:{ [key: string]: string }) => {
@@ -152,7 +158,7 @@ export default class ContentLockSignalrContext extends UmbContextBase<ContentLoc
             });
 
             this.signalrConnection.on('ReceiveLatestOptions', (options:ContentLockOptions) =>{
-                console.log('Got settings from when user connected to the hub and anytime they change', options);
+                console.log('Settings changed', options);
                 this.#contentLockOptions.setValue(options);
             });
         }
@@ -221,4 +227,4 @@ export default class ContentLockSignalrContext extends UmbContextBase<ContentLoc
     }
 }
 
-export const CONTENTLOCK_SIGNALR_CONTEXT = new UmbContextToken<ContentLockSignalrContext>("ContentLockSignalRContext");
+export const CONTENTLOCK_SIGNALR_CONTEXT = new UmbContextToken<ContentLockSignalrContext>('ContentLockSignalRContex');
