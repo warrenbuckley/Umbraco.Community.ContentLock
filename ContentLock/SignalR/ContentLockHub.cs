@@ -25,10 +25,11 @@ public class ContentLockHub : Hub<IContentLockHubEvents>
         _options.OnChange(OnOptionsChanged);
     }
 
-    private void OnOptionsChanged(ContentLockOptions options, string? arg2)
+    private void OnOptionsChanged(ContentLockOptions options)
     {
         // Notify all connected clients of the new options values
-        //this.Clients.All.
+        // As the value has been changed
+        this.Clients.All.ReceiveLatestOptions(options);
     }
 
     public override async Task<Task> OnConnectedAsync()
@@ -39,13 +40,15 @@ public class ContentLockHub : Hub<IContentLockHubEvents>
         // Gets the current list of locks from the DB and sends them out to the newly connected SignalR client
         await GetLatestLockInfoForNewConnection();
 
+        await GetCurrentOptions();
+
         return base.OnConnectedAsync();
     }
 
-    public override Task OnDisconnectedAsync(Exception? exception)
+    public override async Task<Task> OnDisconnectedAsync(Exception? exception)
     {
         // Removes the user who is disconnecting
-        RemoveUserFromListOfConnectedUsersAsync();
+        await RemoveUserFromListOfConnectedUsersAsync();
 
         return base.OnDisconnectedAsync(exception);
     }
@@ -56,7 +59,7 @@ public class ContentLockHub : Hub<IContentLockHubEvents>
         var currentLocks = await _contentLockService.GetLockOverviewAsync();
 
         // Send the current locks to the caller
-        // Did not use .All as other connected clients should have a stored state of locks in a repo/store
+        // Did not use .All as other connected clients should have a stored state of locks in an observable
         await Clients.Caller.ReceiveLatestContentLocks(currentLocks.Items);
     }
 
@@ -95,5 +98,15 @@ public class ContentLockHub : Hub<IContentLockHubEvents>
             // Notify everyone that someone has disconnected
             await Clients.All.UserDisconnected(currentUserKey.Value);
         }
+    }
+
+    private async Task GetCurrentOptions()
+    {
+        // When a client connects do the initial lookup of options
+        var currentOptions = _options.CurrentValue;
+
+        // Send the current locks to the caller
+        // Did not use .All as other connected clients should have a stored state of options in an observable
+        await Clients.Caller.ReceiveLatestOptions(currentOptions);
     }
 }

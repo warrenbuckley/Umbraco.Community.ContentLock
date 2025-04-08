@@ -4,11 +4,15 @@ import { UmbContextToken } from "@umbraco-cms/backoffice/context-api";
 import { UmbControllerHost } from "@umbraco-cms/backoffice/controller-api";
 import { UMB_AUTH_CONTEXT } from "@umbraco-cms/backoffice/auth";
 import { ContentLockOverviewItem } from "../api";
-import { UmbArrayState } from "@umbraco-cms/backoffice/observable-api";
+import { UmbArrayState, UmbObjectState } from "@umbraco-cms/backoffice/observable-api";
 import { ConnectedBackofficeUsers } from "../interfaces/ConnectedBackofficeUsers";
+import { ContentLockOptions } from "../interfaces/ContentLockOptions";
 
 export default class ContentLockSignalrContext extends UmbContextBase<ContentLockSignalrContext>
 {
+    // SignalR Hub URL endpoint
+    #CONTENT_LOCK_HUB_URL = '/umbraco/ContentLockHub';
+
     // Currently made this public so that any place consuming the context
     // Could stop the signalR connection or listen to any .On() events etc
     public signalrConnection? : signalR.HubConnection;
@@ -19,21 +23,44 @@ export default class ContentLockSignalrContext extends UmbContextBase<ContentLoc
     // Used to store the overview of locks
     #connectedBackofficeUsers = new UmbArrayState<ConnectedBackofficeUsers>([], (item) => item.userKey);
 
-    // SignalR Hub URL endpoint
-    #CONTENT_LOCK_HUB_URL = '/umbraco/ContentLockHub';
+    // Used to store the options for the content lock package
+    // Sets the default values for the options
+    #contentLockOptions = new UmbObjectState<ContentLockOptions>(
+        {
+            enableOnlineUsers: true,
+            enableSounds: true
+        });
 
+    // All of the content locks as an observable array of ContentLockOverviewItem objects
     public contentLocks = this.#contentLocks.asObservable();
+
+    // The total number of content locks as an observable number
     public totalContentLocks = this.#contentLocks.asObservablePart(data => data.length);
 
+    // All of the connected users to the backoffice as an observable array of ConnectedBackofficeUsers objects
     public connectedUsers = this.#connectedBackofficeUsers.asObservable();
+
+    // The total number of connected users to the backoffice as an observable number
     public totalConnectedUsers = this.#connectedBackofficeUsers.asObservablePart(users => users.length);
-    
+
+    /**
+     * The total number of connected users to the backoffice as an observable number
+     * This is the total number of connected users excluding the current user
+     * @param currentUserKey - The key of the current user to exclude from the count
+     */
     public totalConnectedOtherUsers(currentUserKey:string){
         return this.#connectedBackofficeUsers.asObservablePart((users) => {
             const otherUsers = users.filter(user => user.userKey !== currentUserKey);
             return otherUsers.length;
         });
-    }
+    };
+
+    // The entire options object as an observable
+    public contentLockOptions = this.#contentLockOptions.asObservable();
+
+    // The individual options as observables
+    public EnableOnlineUsers = this.#contentLockOptions.asObservablePart(options => options.enableOnlineUsers);
+    public EnableSounds = this.#contentLockOptions.asObservablePart(options => options.enableSounds);
 
 
     constructor(host: UmbControllerHost) {
@@ -94,19 +121,23 @@ export default class ContentLockSignalrContext extends UmbContextBase<ContentLoc
             this.signalrConnection.on('UserConnected', (connectedUserKey:string, connectedUserName:string) => {
                 this.#connectedBackofficeUsers.appendOne({ userKey: connectedUserKey, userName: connectedUserName });
 
-                // Play a sound when a new user connects
-                // https://freesound.org/s/352651/
-                let logonNotify = new Audio('/App_Plugins/ContentLock/sounds/log-on.mp3');
-                logonNotify.play();
+                if(this.EnableSounds){
+                    // Play a sound when a new user connects
+                    // https://freesound.org/s/352651/
+                    let logonNotify = new Audio('/App_Plugins/ContentLock/sounds/log-on.mp3');
+                    logonNotify.play();
+                }
             });
 
             this.signalrConnection.on('UserDisconnected', (connectedUserKey:string) => {
                 this.#connectedBackofficeUsers.removeOne(connectedUserKey);
 
-                // Play a sound when a new user disconnects
-                // https://freesound.org/s/420521/
-                let logoffNotify = new Audio('/App_Plugins/ContentLock/sounds/log-off.mp3');
-                logoffNotify.play();
+                if(this.EnableSounds){
+                    // Play a sound when a new user disconnects
+                    // https://freesound.org/s/420521/
+                    let logoffNotify = new Audio('/App_Plugins/ContentLock/sounds/log-off.mp3');
+                    logoffNotify.play();
+                }
             });
 
             this.signalrConnection.on('ReceiveListOfConnectedUsers', (connectedUsers:{ [key: string]: string }) => {
@@ -118,7 +149,12 @@ export default class ContentLockSignalrContext extends UmbContextBase<ContentLoc
 
                 // Update the observable state with the new list of users
                 this.#connectedBackofficeUsers.setValue(usersArray);
-            })
+            });
+
+            this.signalrConnection.on('ReceiveLatestOptions', (options:ContentLockOptions) =>{
+                console.log('Got settings from when user connected to the hub and anytime they change', options);
+                this.#contentLockOptions.setValue(options);
+            });
         }
     }
 
