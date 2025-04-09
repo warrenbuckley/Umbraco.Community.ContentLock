@@ -227,4 +227,4 @@ export default class ContentLockSignalrContext extends UmbContextBase<ContentLoc
     }
 }
 
-export const CONTENTLOCK_SIGNALR_CONTEXT = new UmbContextToken<ContentLockSignalrContext>('ContentLockSignalRContex');
+export const CONTENTLOCK_SIGNALR_CONTEXT = new UmbContextToken<ContentLockSignalrContext>('ContentLockSignalRContext');
