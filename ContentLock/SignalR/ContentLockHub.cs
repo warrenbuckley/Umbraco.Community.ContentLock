@@ -105,7 +105,7 @@ public class ContentLockHub : Hub<IContentLockHubEvents>
         // When a client connects do the initial lookup of options
         var currentOptions = _options.CurrentValue;
 
-        // Send the current locks to the caller
+        // Send the current options to the caller
         // Did not use .All as other connected clients should have a stored state of options in an observable
         await Clients.Caller.ReceiveLatestOptions(currentOptions);
     }

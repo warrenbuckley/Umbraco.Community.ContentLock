@@ -13,7 +13,7 @@ public class ContentLockOptions
     public bool EnableOnlineUsers { get; set; } = true;
     
     /// <summary>
-    /// Enable ot disable the audio notifications for a
+    /// Enable or disable the audio notifications for a
     /// user logging in or off of the backoffice
     /// By default this is enabled
     /// </summary>
