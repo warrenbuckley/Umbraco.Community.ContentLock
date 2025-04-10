@@ -1,7 +1,11 @@
 using System.Collections.Concurrent;
 using ContentLock.Interfaces;
+using ContentLock.Options;
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Options;
+
 using Umbraco.Cms.Web.Common.Authorization;
 using Umbraco.Extensions;
 
@@ -11,11 +15,21 @@ namespace ContentLock.SignalR;
 public class ContentLockHub : Hub<IContentLockHubEvents>
 {
     private readonly IContentLockService _contentLockService;
+    private readonly IOptionsMonitor<ContentLockOptions> _options;
     private static readonly ConcurrentDictionary<Guid, string> ConnectedUsers = new();
 
-    public ContentLockHub(IContentLockService contentLockService)
+    public ContentLockHub(IContentLockService contentLockService, IOptionsMonitor<ContentLockOptions> options)
     {
         _contentLockService = contentLockService;
+        _options = options;
+        _options.OnChange(OnOptionsChanged);
+    }
+
+    private void OnOptionsChanged(ContentLockOptions options)
+    {
+        // Notify all connected clients of the new options values
+        // As the value has been changed
+        this.Clients.All.ReceiveLatestOptions(options);
     }
 
     public override async Task<Task> OnConnectedAsync()
@@ -26,13 +40,15 @@ public class ContentLockHub : Hub<IContentLockHubEvents>
         // Gets the current list of locks from the DB and sends them out to the newly connected SignalR client
         await GetLatestLockInfoForNewConnection();
 
+        await GetCurrentOptions();
+
         return base.OnConnectedAsync();
     }
 
-    public override Task OnDisconnectedAsync(Exception? exception)
+    public override async Task<Task> OnDisconnectedAsync(Exception? exception)
     {
         // Removes the user who is disconnecting
-        RemoveUserFromListOfConnectedUsersAsync();
+        await RemoveUserFromListOfConnectedUsersAsync();
 
         return base.OnDisconnectedAsync(exception);
     }
@@ -43,7 +59,7 @@ public class ContentLockHub : Hub<IContentLockHubEvents>
         var currentLocks = await _contentLockService.GetLockOverviewAsync();
 
         // Send the current locks to the caller
-        // Did not use .All as other connected clients should have a stored state of locks in a repo/store
+        // Did not use .All as other connected clients should have a stored state of locks in an observable
         await Clients.Caller.ReceiveLatestContentLocks(currentLocks.Items);
     }
 
@@ -82,5 +98,15 @@ public class ContentLockHub : Hub<IContentLockHubEvents>
             // Notify everyone that someone has disconnected
             await Clients.All.UserDisconnected(currentUserKey.Value);
         }
+    }
+
+    private async Task GetCurrentOptions()
+    {
+        // When a client connects do the initial lookup of options
+        var currentOptions = _options.CurrentValue;
+
+        // Send the current options to the caller
+        // Did not use .All as other connected clients should have a stored state of options in an observable
+        await Clients.Caller.ReceiveLatestOptions(currentOptions);
     }
 }

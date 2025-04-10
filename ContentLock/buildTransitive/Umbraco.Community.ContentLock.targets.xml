@@ -1,0 +1,5 @@
+<Project>
+  <ItemGroup>
+    <UmbracoJsonSchemaFiles Include="$(MSBuildThisFileDirectory)..\appsettings-schema.umbraco.community.contentlock.json" Weight="-40" />
+  </ItemGroup>
+</Project>

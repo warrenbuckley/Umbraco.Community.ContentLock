@@ -1,47 +1,54 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
-  <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <StaticWebAssetBasePath>/</StaticWebAssetBasePath>
-    <AssemblyName>Umbraco.Community.ContentLock</AssemblyName>
-    <Authors>Warren Buckley &amp; Umbraco Community</Authors>
-    <PackageProjectUrl>https://github.com/warrenbuckley/Umbraco.Community.ContentLock</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/warrenbuckley/Umbraco.Community.ContentLock</RepositoryUrl>
-    <Company>Warren Buckley - Hack Make Do</Company>
-    <PackageIcon>content-lock-icon.png</PackageIcon>
-  </PropertyGroup>
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <StaticWebAssetBasePath>/</StaticWebAssetBasePath>
+        <AssemblyName>Umbraco.Community.ContentLock</AssemblyName>
+        <Authors>Warren Buckley &amp; Umbraco Community</Authors>
+        <PackageProjectUrl>https://github.com/warrenbuckley/Umbraco.Community.ContentLock</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/warrenbuckley/Umbraco.Community.ContentLock</RepositoryUrl>
+        <Company>Warren Buckley - Hack Make Do</Company>
+        <PackageIcon>content-lock-icon.png</PackageIcon>
+    </PropertyGroup>
 
-  <PropertyGroup>
-    <PackageId>Umbraco.Community.ContentLock</PackageId>
-    <Product>Umbraco.Community.ContentLock</Product>
-    <Title>Content Lock</Title>
-    <Description>Umbraco Community ContentLock is an open-source package for Umbraco CMS that prevents content conflicts by enabling content editors to lock nodes while editing.</Description>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageTags>umbraco; umbraco-marketplace;</PackageTags>
-    <IncludeSymbols>True</IncludeSymbols>
-    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-  </PropertyGroup>
+    <PropertyGroup>
+        <PackageId>Umbraco.Community.ContentLock</PackageId>
+        <Product>Umbraco.Community.ContentLock</Product>
+        <Title>Content Lock</Title>
+        <Description>Umbraco Community ContentLock is an open-source package for Umbraco CMS that prevents content conflicts by enabling content editors to lock nodes while editing.</Description>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <PackageTags>umbraco; umbraco-marketplace;</PackageTags>
+        <IncludeSymbols>True</IncludeSymbols>
+        <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    </PropertyGroup>
 
+    <ItemGroup>
+        <Content Include="buildTransitive\**" PackagePath="buildTransitive"/>
+    </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Umbraco.Cms.Core" Version="15.3.0" />
-    <PackageReference Include="Umbraco.Cms.Web.Website" Version="15.3.0" />
-    <PackageReference Include="Umbraco.Cms.Web.Common" Version="15.3.0" />
-    <PackageReference Include="Umbraco.Cms.Api.Common" Version="15.3.0" />
-    <PackageReference Include="Umbraco.Cms.Api.Management" Version="15.3.0" />
-  </ItemGroup>
-  
-  <ItemGroup>
-    <!-- Dont include the client folder as part of packaging nuget build -->
-    <Content Remove="Client\**" />
-      
-    <!-- However make the Umbraco-package.json included for dotnet pack or nuget package and visible to the solution -->
-    <None Include="Client\public\umbraco-package.json" Pack="false" />
+    <ItemGroup>
+        <PackageReference Include="Umbraco.Cms.Core" Version="15.3.0"/>
+        <PackageReference Include="Umbraco.Cms.Web.Website" Version="15.3.0"/>
+        <PackageReference Include="Umbraco.Cms.Web.Common" Version="15.3.0"/>
+        <PackageReference Include="Umbraco.Cms.Api.Common" Version="15.3.0"/>
+        <PackageReference Include="Umbraco.Cms.Api.Management" Version="15.3.0"/>
+    </ItemGroup>
 
-    <!-- Readme & icon for nuget -->
-    <None Include="..\README.md" Pack="true" PackagePath="\" />
-    <None Include="..\.github\content-lock-icon.png" Pack="true" PackagePath="\" />
-  </ItemGroup>
-  
+    <ItemGroup>
+        <!-- Dont include the client folder as part of packaging nuget build -->
+        <Content Remove="Client\**"/>
+
+        <!-- However make the Umbraco-package.json included for dotnet pack or nuget package and visible to the solution -->
+        <None Include="Client\public\umbraco-package.json" Pack="false"/>
+
+        <!-- Readme & icon for nuget -->
+        <None Include="..\README.md" Pack="true" PackagePath="\"/>
+        <None Include="..\.github\content-lock-icon.png" Pack="true" PackagePath="\"/>
+
+        <!-- AppSettings JSON Schema -->
+        <None Include="..\appsettings-schema.umbraco.community.contentlock.json" Pack="true" PackagePath="\"/>
+    </ItemGroup>
+
 </Project>
