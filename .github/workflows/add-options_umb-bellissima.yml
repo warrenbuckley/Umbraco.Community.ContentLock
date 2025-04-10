@@ -18,6 +18,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v4.3.0
+        with:
+          # Version Spec of the version to use. Examples: 12.x, 10.15.1, >=10.15.0.
+          node-version:  22.x
+          # Used to specify a package manager for caching in the default directory. Supported values: npm, yarn, pnpm.
+          cache: 'npm' # optional
+
+      - name: Install NPM dependencies
+        run: npm install
+        working-directory: ContentLock/Client
+          
+      - name: Run NPM Build
+        run: npm run build
+        working-directory: ContentLock/Client
+
       - name: Set up .NET Core
         uses: actions/setup-dotnet@v4
         with:
