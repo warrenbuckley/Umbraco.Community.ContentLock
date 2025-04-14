@@ -4,7 +4,7 @@ import { UmbContextToken } from "@umbraco-cms/backoffice/context-api";
 import { UmbControllerHost } from "@umbraco-cms/backoffice/controller-api";
 import { UMB_AUTH_CONTEXT } from "@umbraco-cms/backoffice/auth";
 import { ContentLockOverviewItem } from "../api";
-import { UmbArrayState, UmbObjectState } from "@umbraco-cms/backoffice/observable-api";
+import { observeMultiple, UmbArrayState, UmbObjectState } from "@umbraco-cms/backoffice/observable-api";
 import { ConnectedBackofficeUsers } from "../interfaces/ConnectedBackofficeUsers";
 import { ContentLockOptions } from "../interfaces/ContentLockOptions";
 
@@ -27,8 +27,14 @@ export default class ContentLockSignalrContext extends UmbContextBase<ContentLoc
     // Sets the default values for the options
     #contentLockOptions = new UmbObjectState<ContentLockOptions>(
         {
-            enableOnlineUsers: true,
-            enableSounds: true
+            onlineUsers: {
+                enable: true,
+                sounds: {
+                    enable: true,
+                    loginSound: '/App_Plugins/ContentLock/sounds/login.mp3',
+                    logoutSound: '/App_Plugins/ContentLock/sounds/logout.mp3',
+                }
+            }
         });
 
     // All of the content locks as an observable array of ContentLockOverviewItem objects
@@ -59,9 +65,10 @@ export default class ContentLockSignalrContext extends UmbContextBase<ContentLoc
     public contentLockOptions = this.#contentLockOptions.asObservable();
 
     // The individual options as observables
-    public EnableOnlineUsers = this.#contentLockOptions.asObservablePart(options => options.enableOnlineUsers);
-    public EnableSounds = this.#contentLockOptions.asObservablePart(options => options.enableSounds);
-
+    public EnableOnlineUsers = this.#contentLockOptions.asObservablePart(options => options.onlineUsers.enable);
+    public EnableSounds = this.#contentLockOptions.asObservablePart(options => options.onlineUsers.sounds.enable);
+    public LoginSound = this.#contentLockOptions.asObservablePart(options => options.onlineUsers.sounds.loginSound);
+    public LogoutSound = this.#contentLockOptions.asObservablePart(options => options.onlineUsers.sounds.logoutSound);
 
     constructor(host: UmbControllerHost) {
         super(host, CONTENTLOCK_SIGNALR_CONTEXT);
@@ -121,13 +128,14 @@ export default class ContentLockSignalrContext extends UmbContextBase<ContentLoc
             this.signalrConnection.on('UserConnected', (connectedUserKey:string, connectedUserName:string) => {
                 this.#connectedBackofficeUsers.appendOne({ userKey: connectedUserKey, userName: connectedUserName });
 
-                this.observe(this.EnableSounds, (enableSounds) => {
-                    console.log('observe enableSounds setting for logon', enableSounds);
+                this.observe(observeMultiple([this.EnableSounds, this.LoginSound]), ([enableSounds, loginSound]) => {
+                    console.log('observe enableSounds setting for logon AND Login sound path', enableSounds);
                     if(enableSounds){
-                        // Play a sound when a new user connects
-                    // https://freesound.org/s/352651/
-                    let logonNotify = new Audio('/App_Plugins/ContentLock/sounds/log-on.mp3');
-                    logonNotify.play();
+                        // Play a sound when a new user connects (Value is from AppSettings)
+                        // Defaults to this sound
+                        // https://freesound.org/s/352651/
+                        let logonNotify = new Audio(loginSound);
+                        logonNotify.play();
                     }
                 });
             });
@@ -135,13 +143,14 @@ export default class ContentLockSignalrContext extends UmbContextBase<ContentLoc
             this.signalrConnection.on('UserDisconnected', (connectedUserKey:string) => {
                 this.#connectedBackofficeUsers.removeOne(connectedUserKey);
 
-                this.observe(this.EnableSounds, (enableSounds) => {
-                    console.log('observe enableSounds setting for logoff', enableSounds);
+                this.observe(observeMultiple([this.EnableSounds, this.LogoutSound]), ([enableSounds, logoutSound]) => {
+                    console.log('observe enableSounds setting for logon AND Login sound path', enableSounds);
                     if(enableSounds){
-                        // Play a sound when a new user disconnects
-                        // https://freesound.org/s/420521/
-                        let logoffNotify = new Audio('/App_Plugins/ContentLock/sounds/log-off.mp3');
-                        logoffNotify.play();
+                        // Play a sound when a user disconnects
+                        // Defaults to this sound
+                        // https://freesound.org/s/352651/
+                        let logonNotify = new Audio(logoutSound);
+                        logonNotify.play();
                     }
                 });
             });
@@ -158,7 +167,7 @@ export default class ContentLockSignalrContext extends UmbContextBase<ContentLoc
             });
 
             this.signalrConnection.on('ReceiveLatestOptions', (options:ContentLockOptions) =>{
-                console.log('Settings changed', options);
+                console.log('[yoooooooo] Settings changed', options);
                 this.#contentLockOptions.setValue(options);
             });
         }
