@@ -1,6 +1,6 @@
 import { customElement, html, nothing, state } from '@umbraco-cms/backoffice/external/lit';
 import { UmbHeaderAppButtonElement } from '@umbraco-cms/backoffice/components';
-import { CONTENTLOCK_SIGNALR_CONTEXT } from '../globalContexts/contentlock.signalr.context';
+import ContentLockSignalrContext, { CONTENTLOCK_SIGNALR_CONTEXT } from '../globalContexts/contentlock.signalr.context';
 import { UMB_MODAL_MANAGER_CONTEXT, UmbModalManagerContext } from '@umbraco-cms/backoffice/modal';
 import { CONTENTLOCK_ONLINEUSERS_MODAL } from '../modals/onlineusers.modal.token';
 import { observeMultiple } from '@umbraco-cms/backoffice/observable-api';
@@ -24,7 +24,7 @@ export class ContentLockNoUsersOnlineHeaderApp extends UmbHeaderAppButtonElement
 	constructor() {
 		super();
 
-        this.consumeContext(CONTENTLOCK_SIGNALR_CONTEXT, (signalrContext) => {
+        this.consumeContext(CONTENTLOCK_SIGNALR_CONTEXT, (signalrContext: ContentLockSignalrContext) => {
             this.observe(observeMultiple([signalrContext.totalConnectedUsers, signalrContext.connectedUsers, signalrContext.EnableOnlineUsers]), ([totalConnectedUsers, connectedUsers, enableOnlineUsers]) => {
                 this._totalConnectedUsers = totalConnectedUsers;
                 this._connectedUsers = connectedUsers;

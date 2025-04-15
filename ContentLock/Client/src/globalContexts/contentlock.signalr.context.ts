@@ -129,7 +129,6 @@ export default class ContentLockSignalrContext extends UmbContextBase<ContentLoc
                 this.#connectedBackofficeUsers.appendOne({ userKey: connectedUserKey, userName: connectedUserName });
 
                 this.observe(observeMultiple([this.EnableSounds, this.LoginSound]), ([enableSounds, loginSound]) => {
-                    console.log('observe enableSounds setting for logon AND Login sound path', enableSounds);
                     if(enableSounds){
                         // Play a sound when a new user connects (Value is from AppSettings)
                         // Defaults to this sound
@@ -144,7 +143,6 @@ export default class ContentLockSignalrContext extends UmbContextBase<ContentLoc
                 this.#connectedBackofficeUsers.removeOne(connectedUserKey);
 
                 this.observe(observeMultiple([this.EnableSounds, this.LogoutSound]), ([enableSounds, logoutSound]) => {
-                    console.log('observe enableSounds setting for logon AND Login sound path', enableSounds);
                     if(enableSounds){
                         // Play a sound when a user disconnects
                         // Defaults to this sound
@@ -167,7 +165,6 @@ export default class ContentLockSignalrContext extends UmbContextBase<ContentLoc
             });
 
             this.signalrConnection.on('ReceiveLatestOptions', (options:ContentLockOptions) =>{
-                console.log('[yoooooooo] Settings changed', options);
                 this.#contentLockOptions.setValue(options);
             });
         }
@@ -228,8 +225,6 @@ export default class ContentLockSignalrContext extends UmbContextBase<ContentLoc
 
 
     override async destroy(): Promise<void> {
-        console.log('SignalR DOM destory - Kill the SignalR connection');
-
         if (this.signalrConnection) {
             await this.signalrConnection.stop();
         }
