@@ -1,13 +1,16 @@
+using ContentLock.SignalR;
+
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.DependencyInjection;
+
 using Umbraco.Cms.Core.Configuration.Models;
 using Umbraco.Cms.Core.DependencyInjection;
 using Umbraco.Cms.Web.Common.ApplicationBuilder;
-using Umbraco.Extensions;
 
-namespace ContentLock.SignalR;
-
+// Using the same namespace as Umbraco
+// to help with the extension method discovery
+namespace Umbraco.Extensions;
 public static class UmbracoBuilderExtensions
 {
     public static IUmbracoBuilder AddContentLockSignalRHub(this IUmbracoBuilder builder)

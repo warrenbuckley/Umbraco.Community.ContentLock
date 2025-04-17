@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using ContentLock.Models.Backoffice;
+using ContentLock.Options;
 
 namespace ContentLock.Interfaces;
 
@@ -34,4 +35,6 @@ public interface IContentLockHubEvents
     public Task UserDisconnected(Guid? connectedUserKey);
 
     public Task ReceiveListOfConnectedUsers(ConcurrentDictionary<Guid, string> connectedUsers);
+
+    public Task ReceiveLatestOptions(ContentLockOptions currentOptions);
 }
