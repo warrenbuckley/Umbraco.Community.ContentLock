@@ -125,8 +125,8 @@ export default class ContentLockSignalrContext extends UmbContextBase<ContentLoc
                 this.#contentLocks.remove(contentKeys);
             });
 
-            this.signalrConnection.on('UserConnected', (connectedUserKey:string, connectedUserName:string) => {
-                this.#connectedBackofficeUsers.appendOne({ userKey: connectedUserKey, userName: connectedUserName });
+            this.signalrConnection.on('UserConnected', (connectedUserKey:string) => {
+                this.#connectedBackofficeUsers.appendOne({ userKey: connectedUserKey });
 
                 this.observe(observeMultiple([this.EnableSounds, this.LoginSound]), ([enableSounds, loginSound]) => {
                     if(enableSounds){
@@ -155,6 +155,7 @@ export default class ContentLockSignalrContext extends UmbContextBase<ContentLoc
 
             this.signalrConnection.on('ReceiveListOfConnectedUsers', (connectedUsers:{ [key: string]: string }) => {
                 // Convert the object into an array of { userKey, userName }
+                // TODO only receive array of guids
                 const usersArray = Object.entries(connectedUsers).map(([userKey, userName]) => ({
                     userKey,
                     userName,

@@ -34,7 +34,7 @@ public interface IContentLockHubEvents
 
     public Task UserDisconnected(Guid? connectedUserKey);
 
-    public Task ReceiveListOfConnectedUsers(ConcurrentDictionary<Guid, string> connectedUsers);
+    public Task ReceiveListOfConnectedUsers(Guid[] connectedUsersKeys);
 
     public Task ReceiveLatestOptions(ContentLockOptions currentOptions);
 }

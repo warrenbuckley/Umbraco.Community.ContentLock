@@ -1,12 +1,25 @@
 import { css, customElement, html } from "@umbraco-cms/backoffice/external/lit";
 import { UmbModalBaseElement, UmbModalRejectReason } from "@umbraco-cms/backoffice/modal";
 import { OnlineUsersModalData, OnlineUsersModalValue } from "./onlineusers.modal.token";
+import { UMB_USER_ITEM_STORE_CONTEXT, UmbUserItemModel } from "@umbraco-cms/backoffice/user";
 
 @customElement("contentlock-onlineusers-modal")
 export class OnlineUsersModalElement extends UmbModalBaseElement<OnlineUsersModalData, OnlineUsersModalValue>
 {
+    #users?: UmbUserItemModel[] = [];
+
     constructor() {
         super();
+        
+        // From the modal data passed in
+        // Convert to an array of string GUIDs for the user keys
+        const userKeys = this.data?.users.map((user) => user.userKey) ?? [];
+
+        this.consumeContext(UMB_USER_ITEM_STORE_CONTEXT, (userStore) => {
+            this.observe(userStore.items(userKeys), (users) => {
+                this.#users = users;
+            });
+        });
     }
     
     #handleClose() {
@@ -17,10 +30,10 @@ export class OnlineUsersModalElement extends UmbModalBaseElement<OnlineUsersModa
         return html`
             <umb-body-layout headline=${this.localize.term('contentLockUsersModal_modalHeader')}>
                 <uui-box headline=${this.localize.term('contentLockUsersModal_listOfUsers')}>
-                    ${this.data?.users.map((user) => {
+                    ${this.#users?.map((user) => {
                         return html`
                             <div>
-                                <uui-avatar name="${user.userName}"></uui-avatar> ${user.userName}
+                                <uui-avatar name="${user.name}" img-src="${user.avatarUrls[0]}"></uui-avatar> ${user.name}
                             </div>
                         `;
                     })}
