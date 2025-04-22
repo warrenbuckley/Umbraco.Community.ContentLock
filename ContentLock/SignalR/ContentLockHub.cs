@@ -69,7 +69,6 @@ public class ContentLockHub : Hub<IContentLockHubEvents>
     private async Task AddNewUserToListOfConnectedUsers()
     {
         var currentUmbUser = this.Context.User?.GetUmbracoIdentity();
-        var currentUserName = currentUmbUser?.GetRealName() ?? "Unknown User";
         var currentUserKey = currentUmbUser?.GetUserKey();
         
         // Need to keep track of the connections, as a user may have one or more connections (tabs)
@@ -90,7 +89,7 @@ public class ContentLockHub : Hub<IContentLockHubEvents>
             {
                 // Notify a client has connected
                 // Calls everyone else who is already connected to update them that someone new joined
-                await Clients.Others.UserConnected(currentUserKey.Value, currentUserName);
+                await Clients.Others.UserConnected(currentUserKey.Value);
             }
     
             // Sends the newly connected client
