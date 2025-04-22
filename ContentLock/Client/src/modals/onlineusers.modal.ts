@@ -1,23 +1,44 @@
-import { css, customElement, html } from "@umbraco-cms/backoffice/external/lit";
+import { css, customElement, html, state } from "@umbraco-cms/backoffice/external/lit";
 import { UmbModalBaseElement, UmbModalRejectReason } from "@umbraco-cms/backoffice/modal";
 import { OnlineUsersModalData, OnlineUsersModalValue } from "./onlineusers.modal.token";
-import { UMB_USER_ITEM_STORE_CONTEXT, UmbUserItemModel } from "@umbraco-cms/backoffice/user";
+import { UMB_USER_DETAIL_STORE_CONTEXT, UmbUserItemModel } from "@umbraco-cms/backoffice/user";
+import ContentLockSignalrContext, { CONTENTLOCK_SIGNALR_CONTEXT } from "../globalContexts/contentlock.signalr.context";
 
 @customElement("contentlock-onlineusers-modal")
 export class OnlineUsersModalElement extends UmbModalBaseElement<OnlineUsersModalData, OnlineUsersModalValue>
 {
-    #users?: UmbUserItemModel[] = [];
+    @state()
+    _allUsersModels?: UmbUserItemModel[] = [];
+
+    @state()
+    _connectedUsersModels?: UmbUserItemModel[] = [];
+
+    @state()
+    _connectedUserKeys: string[] = [];
 
     constructor() {
         super();
-        
-        // From the modal data passed in
-        // Convert to an array of string GUIDs for the user keys
-        const userKeys = this.data?.users.map((user) => user.userKey) ?? [];
 
-        this.consumeContext(UMB_USER_ITEM_STORE_CONTEXT, (userStore) => {
-            this.observe(userStore.items(userKeys), (users) => {
-                this.#users = users;
+        this.consumeContext(UMB_USER_DETAIL_STORE_CONTEXT, (userDetailStore) => {
+            this.observe(userDetailStore.all(), (allUsers) => {
+                console.log('OBSERVED allUsers', allUsers);
+                this._allUsersModels = allUsers;
+            });
+        });
+
+        this.consumeContext(CONTENTLOCK_SIGNALR_CONTEXT, (signalrContext: ContentLockSignalrContext) => {
+            this.observe(signalrContext.connectedUserKeys, (connectedUserKeys) => {
+                console.log('KEYS from Global CTX in MODAL', connectedUserKeys);
+                this._connectedUserKeys = connectedUserKeys;
+
+                if(!this._allUsersModels) {
+                    console.error('No allUsersModels found, cannot filter connected users');
+                    return;
+                }
+
+                // Add filtering to only get the connected users
+                this._connectedUsersModels = this._allUsersModels?.filter((user) => this._connectedUserKeys.includes(user.unique));
+                console.log('OBSERVED filtered users', this._connectedUsersModels);
             });
         });
     }
@@ -30,7 +51,8 @@ export class OnlineUsersModalElement extends UmbModalBaseElement<OnlineUsersModa
         return html`
             <umb-body-layout headline=${this.localize.term('contentLockUsersModal_modalHeader')}>
                 <uui-box headline=${this.localize.term('contentLockUsersModal_listOfUsers')}>
-                    ${this.#users?.map((user) => {
+                    ${this._connectedUsersModels?.map((user) => {
+                        console.log('User to output to HTML', user);
                         return html`
                             <div>
                                 <uui-avatar name="${user.name}" img-src="${user.avatarUrls[0]}"></uui-avatar> ${user.name}

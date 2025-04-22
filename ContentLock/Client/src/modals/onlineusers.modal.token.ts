@@ -1,8 +1,6 @@
 import { UmbModalToken } from "@umbraco-cms/backoffice/modal";
-import { ConnectedBackofficeUsers } from "../interfaces/ConnectedBackofficeUsers";
 
 export interface OnlineUsersModalData {
-    users: ConnectedBackofficeUsers[];
 }
 
 export interface OnlineUsersModalValue {

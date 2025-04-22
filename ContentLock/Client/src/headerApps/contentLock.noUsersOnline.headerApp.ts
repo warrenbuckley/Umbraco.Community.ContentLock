@@ -4,7 +4,6 @@ import ContentLockSignalrContext, { CONTENTLOCK_SIGNALR_CONTEXT } from '../globa
 import { UMB_MODAL_MANAGER_CONTEXT, UmbModalManagerContext } from '@umbraco-cms/backoffice/modal';
 import { CONTENTLOCK_ONLINEUSERS_MODAL } from '../modals/onlineusers.modal.token';
 import { observeMultiple } from '@umbraco-cms/backoffice/observable-api';
-import { ConnectedBackofficeUsers } from '../interfaces/ConnectedBackofficeUsers';
 
 @customElement('contentlock-nousers-online-headerapp')
 export class ContentLockNoUsersOnlineHeaderApp extends UmbHeaderAppButtonElement {
@@ -13,7 +12,7 @@ export class ContentLockNoUsersOnlineHeaderApp extends UmbHeaderAppButtonElement
     private _totalConnectedUsers: number | undefined;
 
     @state()
-    private _connectedUsers?: ConnectedBackofficeUsers[];
+    private _connectedUserKeys?: string[];
 
     @state()
     private _enableOnlineUsers: boolean = true;
@@ -25,9 +24,11 @@ export class ContentLockNoUsersOnlineHeaderApp extends UmbHeaderAppButtonElement
 		super();
 
         this.consumeContext(CONTENTLOCK_SIGNALR_CONTEXT, (signalrContext: ContentLockSignalrContext) => {
-            this.observe(observeMultiple([signalrContext.totalConnectedUsers, signalrContext.connectedUsers, signalrContext.EnableOnlineUsers]), ([totalConnectedUsers, connectedUsers, enableOnlineUsers]) => {
+            this.observe(observeMultiple([signalrContext.totalConnectedUsers, signalrContext.connectedUserKeys, signalrContext.EnableOnlineUsers]), ([totalConnectedUsers, connectedUserKeys, enableOnlineUsers]) => {
                 this._totalConnectedUsers = totalConnectedUsers;
-                this._connectedUsers = connectedUsers;
+
+                console.log('connected user keys observed in SignalR global CTX', connectedUserKeys);
+                this._connectedUserKeys = connectedUserKeys;
 
                 // This is an observable from SignalR watching the AppSettings/Options
                 // TODO: Perhaps can retire this and use the condition approach when HeaderApps supports it
@@ -42,11 +43,8 @@ export class ContentLockNoUsersOnlineHeaderApp extends UmbHeaderAppButtonElement
 	}
 
     async #openUserListModal() {
-        await this.#modalManagerCtx?.open(this, CONTENTLOCK_ONLINEUSERS_MODAL, { 
-            data: {
-                users: this._connectedUsers ?? []
-            }
-        });
+        console.log('What is value of connected users when opening modal', this._connectedUserKeys);
+        await this.#modalManagerCtx?.open(this, CONTENTLOCK_ONLINEUSERS_MODAL);
     };
 
 	override render() {
