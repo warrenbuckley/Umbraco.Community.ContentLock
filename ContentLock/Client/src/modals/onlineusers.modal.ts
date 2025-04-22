@@ -1,44 +1,31 @@
 import { css, customElement, html, state } from "@umbraco-cms/backoffice/external/lit";
 import { UmbModalBaseElement, UmbModalRejectReason } from "@umbraco-cms/backoffice/modal";
 import { OnlineUsersModalData, OnlineUsersModalValue } from "./onlineusers.modal.token";
-import { UMB_USER_DETAIL_STORE_CONTEXT, UmbUserItemModel } from "@umbraco-cms/backoffice/user";
+import { UMB_USER_DETAIL_STORE_CONTEXT, UmbUserDetailRepository, UmbUserItemModel, UmbUserItemRepository } from "@umbraco-cms/backoffice/user";
 import ContentLockSignalrContext, { CONTENTLOCK_SIGNALR_CONTEXT } from "../globalContexts/contentlock.signalr.context";
 
 @customElement("contentlock-onlineusers-modal")
 export class OnlineUsersModalElement extends UmbModalBaseElement<OnlineUsersModalData, OnlineUsersModalValue>
 {
     @state()
-    _allUsersModels?: UmbUserItemModel[] = [];
-
-    @state()
     _connectedUsersModels?: UmbUserItemModel[] = [];
 
     @state()
     _connectedUserKeys: string[] = [];
 
+    #userItemRepository = new UmbUserItemRepository(this);
+
     constructor() {
         super();
-
-        this.consumeContext(UMB_USER_DETAIL_STORE_CONTEXT, (userDetailStore) => {
-            this.observe(userDetailStore.all(), (allUsers) => {
-                console.log('OBSERVED allUsers', allUsers);
-                this._allUsersModels = allUsers;
-            });
-        });
 
         this.consumeContext(CONTENTLOCK_SIGNALR_CONTEXT, (signalrContext: ContentLockSignalrContext) => {
             this.observe(signalrContext.connectedUserKeys, (connectedUserKeys) => {
                 console.log('KEYS from Global CTX in MODAL', connectedUserKeys);
                 this._connectedUserKeys = connectedUserKeys;
 
-                if(!this._allUsersModels) {
-                    console.error('No allUsersModels found, cannot filter connected users');
-                    return;
-                }
-
-                // Add filtering to only get the connected users
-                this._connectedUsersModels = this._allUsersModels?.filter((user) => this._connectedUserKeys.includes(user.unique));
-                console.log('OBSERVED filtered users', this._connectedUsersModels);
+                // TODO use repository (Whats the difference between items and requestItems ?)
+                // this.#userItemRepository.items()
+                // this.#userItemRepository.requestItems('');
             });
         });
     }
