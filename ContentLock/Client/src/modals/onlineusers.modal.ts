@@ -22,9 +22,6 @@ export class OnlineUsersModalElement extends UmbModalBaseElement<OnlineUsersModa
     constructor() {
         super();
 
-        // TODO: Make this a routable modal
-        // Can a modal have a condition so if setting is not enabled then we can route to
-
         this.consumeContext(UMB_CURRENT_USER_CONTEXT, (currentUserCtx) => {
             this.observe(currentUserCtx.unique, (unique) => {
                 this._currentUserKey = unique;
@@ -58,14 +55,9 @@ export class OnlineUsersModalElement extends UmbModalBaseElement<OnlineUsersModa
             <umb-body-layout headline=${this.localize.term('contentLockUsersModal_modalHeader')}>
                 <uui-box headline=${this.localize.term('contentLockUsersModal_listOfUsers')}>
                     ${this._connectedUsersModels?.map((user) => {
-                        // Get the last item in the array of avatar URLs as this is the biggest or fallback to nothing
-                        const avatarUrl = user.avatarUrls?.[user.avatarUrls.length - 1] ?? '';
                         return html`
                             <div class="user-detail">
-                                <uui-avatar name="${user.name}" img-src="${avatarUrl}">
-                                    <!-- TODO: This is to display how many SignalR connections the user has (aka tabs open etc) -->
-                                    <uui-badge color="default" look="primary">2</uui-badge>
-                                </uui-avatar>
+                                <umb-user-avatar name="${user.name}" .imgUrls=${user.avatarUrls ?? []}></umb-user-avatar>
                                 <span>${user.name}</span>
                                 
                                 <!-- Show a tag if the user is the current user -->

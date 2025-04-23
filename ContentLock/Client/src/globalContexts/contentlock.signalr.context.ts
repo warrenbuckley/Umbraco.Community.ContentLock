@@ -78,7 +78,7 @@ export default class ContentLockSignalrContext extends UmbContextBase<ContentLoc
         // Need auth context to use the token to pass to SignalR hub
         this.consumeContext(UMB_AUTH_CONTEXT, async (authCtx) => {
             if (!authCtx) {
-                console.error('Auth context is not available for SignalR connection');
+                console.warn('Auth context is not available for SignalR connection');
                 return;
             }
 
@@ -153,9 +153,6 @@ export default class ContentLockSignalrContext extends UmbContextBase<ContentLoc
             });
 
             this.signalrConnection.on('ReceiveListOfConnectedUsers', (connectedUsers:string[]) => {
-
-                console.log('RECEIVED ListOfConnectedUsers', connectedUsers);
-
                 // Update the observable state with the new list of users
                 this.#connectedBackofficeUserKeys.setValue(connectedUsers);
             });
