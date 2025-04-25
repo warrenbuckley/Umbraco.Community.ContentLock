@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Options;
 
+using Umbraco.Cms.Core.Collections;
 using Umbraco.Cms.Web.Common.Authorization;
 using Umbraco.Extensions;
 
@@ -16,7 +17,9 @@ public class ContentLockHub : Hub<IContentLockHubEvents>
 {
     private readonly IContentLockService _contentLockService;
     private readonly IOptionsMonitor<ContentLockOptions> _options;
-    private static readonly ConcurrentDictionary<Guid, string> ConnectedUsers = new();
+    
+    // Change to track 1 or more connection IDs per User Key
+    private static readonly ConcurrentDictionary<Guid, ConcurrentHashSet<string>> ConnectedUsers = new();
 
     public ContentLockHub(IContentLockService contentLockService, IOptionsMonitor<ContentLockOptions> options)
     {
@@ -65,24 +68,33 @@ public class ContentLockHub : Hub<IContentLockHubEvents>
 
     private async Task AddNewUserToListOfConnectedUsers()
     {
-        var currentUser = this.Context.User;
         var currentUmbUser = this.Context.User?.GetUmbracoIdentity();
-        var currentUserName = currentUmbUser?.GetRealName() ?? "Unknown User";
         var currentUserKey = currentUmbUser?.GetUserKey();
-
+        
+        // Need to keep track of the connections, as a user may have one or more connections (tabs)
+        var connectionId = this.Context.ConnectionId;
+        
         // Add new user to the list of connected users
-        // Only if the user is not already in the list - check by using the currentUserKey
-        if (currentUserKey.HasValue && !ConnectedUsers.ContainsKey(currentUserKey.Value))
+        if (currentUserKey.HasValue)
         {
-            ConnectedUsers.TryAdd(currentUserKey.Value, currentUserName);
-
-            // Notify a client has connected
-            // Calls everyone else who is already connected to update them that someone new joined
-            await Clients.Others.UserConnected(currentUserKey.Value, currentUserName);
-
+            // Get or create user's connection dictionary
+            var userConnections = ConnectedUsers.GetOrAdd(currentUserKey.Value, _ => new ConcurrentHashSet<string>());
+            
+            // Add the Connection ID associated to the Users GUID
+            userConnections.TryAdd(connectionId);
+            
+            // Only notify others if this is the user's first connection
+            // As they could be using different tabs or perhaps browser
+            if (userConnections.Count == 1)
+            {
+                // Notify a client has connected
+                // Calls everyone else who is already connected to update them that someone new joined
+                await Clients.Others.UserConnected(currentUserKey.Value);
+            }
+    
             // Sends the newly connected client
-            // The current list of connected users
-            await Clients.Caller.ReceiveListOfConnectedUsers(ConnectedUsers);
+            // The current list of connected users GUID/Keys
+            await Clients.Caller.ReceiveListOfConnectedUsers(ConnectedUsers.Keys.ToArray());
         }
     }
 
@@ -90,13 +102,21 @@ public class ContentLockHub : Hub<IContentLockHubEvents>
     {
         var currentUmbUser = this.Context.User?.GetUmbracoIdentity();
         var currentUserKey = currentUmbUser?.GetUserKey();
+        var connectionId = this.Context.ConnectionId;
 
-        if (currentUserKey.HasValue)
+        if (currentUserKey.HasValue && ConnectedUsers.TryGetValue(currentUserKey.Value, out var userConnections))
         {
-            ConnectedUsers.TryRemove(currentUserKey.Value, out _);
+            // Remove this specific connection from Hashset associated to the User Key
+            userConnections.Remove(connectionId);
 
-            // Notify everyone that someone has disconnected
-            await Clients.All.UserDisconnected(currentUserKey.Value);
+            // If user has no more connections, remove them entirely from dictionary
+            if (userConnections.Count == 0)
+            {
+                ConnectedUsers.TryRemove(currentUserKey.Value, out _);
+                
+                // Notify everyone that someone has disconnected
+                await Clients.All.UserDisconnected(currentUserKey.Value);
+            }
         }
     }
 

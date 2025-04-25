@@ -30,11 +30,11 @@ public interface IContentLockHubEvents
     /// <param name="contentKeys">Identifies the content items from which the locks will be removed.</param>
     public Task RemoveLocksToClients(IEnumerable<Guid> contentKeys);
 
-    public Task UserConnected(Guid? connectedUserKey, string connectedUserName);
+    public Task UserConnected(Guid? connectedUserKey);
 
     public Task UserDisconnected(Guid? connectedUserKey);
 
-    public Task ReceiveListOfConnectedUsers(ConcurrentDictionary<Guid, string> connectedUsers);
+    public Task ReceiveListOfConnectedUsers(Guid[] connectedUsersKeys);
 
     public Task ReceiveLatestOptions(ContentLockOptions currentOptions);
 }

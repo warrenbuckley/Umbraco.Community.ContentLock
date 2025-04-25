@@ -33,12 +33,12 @@ export default class CanShowCommonActionsCondition extends UmbConditionBase<UmbC
 
         this.consumeContext(CONTENTLOCK_SIGNALR_CONTEXT, (signalrCtx) => {
             if(!this.#unique) {
-                console.error('Unique identifier of document is not available for SignalR context');
+                console.warn('Unique identifier of document is not available for SignalR context');
                 return;
             }
 
             if(!this.#currentUserUnique) {
-                console.error('Current User Unique identifier is not available for SignalR context');
+                console.warn('Current User Unique identifier is not available for SignalR context');
                 return;
             }
 

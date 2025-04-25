@@ -5,7 +5,6 @@ import { UmbControllerHost } from "@umbraco-cms/backoffice/controller-api";
 import { UMB_AUTH_CONTEXT } from "@umbraco-cms/backoffice/auth";
 import { ContentLockOverviewItem } from "../api";
 import { observeMultiple, UmbArrayState, UmbObjectState } from "@umbraco-cms/backoffice/observable-api";
-import { ConnectedBackofficeUsers } from "../interfaces/ConnectedBackofficeUsers";
 import { ContentLockOptions } from "../interfaces/ContentLockOptions";
 
 export default class ContentLockSignalrContext extends UmbContextBase<ContentLockSignalrContext>
@@ -21,7 +20,7 @@ export default class ContentLockSignalrContext extends UmbContextBase<ContentLoc
     #contentLocks = new UmbArrayState<ContentLockOverviewItem>([], (item) => item.key);
     
     // Used to store the overview of locks
-    #connectedBackofficeUsers = new UmbArrayState<ConnectedBackofficeUsers>([], (item) => item.userKey);
+    #connectedBackofficeUserKeys = new UmbArrayState<string>([], (item) => item);
 
     // Used to store the options for the content lock package
     // Sets the default values for the options
@@ -44,10 +43,10 @@ export default class ContentLockSignalrContext extends UmbContextBase<ContentLoc
     public totalContentLocks = this.#contentLocks.asObservablePart(data => data.length);
 
     // All of the connected users to the backoffice as an observable array of ConnectedBackofficeUsers objects
-    public connectedUsers = this.#connectedBackofficeUsers.asObservable();
+    public connectedUserKeys = this.#connectedBackofficeUserKeys.asObservable();
 
     // The total number of connected users to the backoffice as an observable number
-    public totalConnectedUsers = this.#connectedBackofficeUsers.asObservablePart(users => users.length);
+    public totalConnectedUsers = this.#connectedBackofficeUserKeys.asObservablePart(users => users.length);
 
     /**
      * The total number of connected users to the backoffice as an observable number
@@ -55,8 +54,8 @@ export default class ContentLockSignalrContext extends UmbContextBase<ContentLoc
      * @param currentUserKey - The key of the current user to exclude from the count
      */
     public totalConnectedOtherUsers(currentUserKey:string){
-        return this.#connectedBackofficeUsers.asObservablePart((users) => {
-            const otherUsers = users.filter(user => user.userKey !== currentUserKey);
+        return this.#connectedBackofficeUserKeys.asObservablePart((users) => {
+            const otherUsers = users.filter(userKey => userKey !== currentUserKey);
             return otherUsers.length;
         });
     };
@@ -79,7 +78,7 @@ export default class ContentLockSignalrContext extends UmbContextBase<ContentLoc
         // Need auth context to use the token to pass to SignalR hub
         this.consumeContext(UMB_AUTH_CONTEXT, async (authCtx) => {
             if (!authCtx) {
-                console.error('Auth context is not available for SignalR connection');
+                console.warn('Auth context is not available for SignalR connection');
                 return;
             }
 
@@ -125,8 +124,8 @@ export default class ContentLockSignalrContext extends UmbContextBase<ContentLoc
                 this.#contentLocks.remove(contentKeys);
             });
 
-            this.signalrConnection.on('UserConnected', (connectedUserKey:string, connectedUserName:string) => {
-                this.#connectedBackofficeUsers.appendOne({ userKey: connectedUserKey, userName: connectedUserName });
+            this.signalrConnection.on('UserConnected', (connectedUserKey:string) => {
+                this.#connectedBackofficeUserKeys.appendOne(connectedUserKey);
 
                 this.observe(observeMultiple([this.EnableSounds, this.LoginSound]), ([enableSounds, loginSound]) => {
                     if(enableSounds){
@@ -140,7 +139,7 @@ export default class ContentLockSignalrContext extends UmbContextBase<ContentLoc
             });
 
             this.signalrConnection.on('UserDisconnected', (connectedUserKey:string) => {
-                this.#connectedBackofficeUsers.removeOne(connectedUserKey);
+                this.#connectedBackofficeUserKeys.removeOne(connectedUserKey);
 
                 this.observe(observeMultiple([this.EnableSounds, this.LogoutSound]), ([enableSounds, logoutSound]) => {
                     if(enableSounds){
@@ -153,15 +152,9 @@ export default class ContentLockSignalrContext extends UmbContextBase<ContentLoc
                 });
             });
 
-            this.signalrConnection.on('ReceiveListOfConnectedUsers', (connectedUsers:{ [key: string]: string }) => {
-                // Convert the object into an array of { userKey, userName }
-                const usersArray = Object.entries(connectedUsers).map(([userKey, userName]) => ({
-                    userKey,
-                    userName,
-                }));
-
+            this.signalrConnection.on('ReceiveListOfConnectedUsers', (connectedUsers:string[]) => {
                 // Update the observable state with the new list of users
-                this.#connectedBackofficeUsers.setValue(usersArray);
+                this.#connectedBackofficeUserKeys.setValue(connectedUsers);
             });
 
             this.signalrConnection.on('ReceiveLatestOptions', (options:ContentLockOptions) =>{
