@@ -26,8 +26,6 @@ export class ContentLockNoUsersOnlineHeaderApp extends UmbHeaderAppButtonElement
         this.consumeContext(CONTENTLOCK_SIGNALR_CONTEXT, (signalrContext: ContentLockSignalrContext) => {
             this.observe(observeMultiple([signalrContext.totalConnectedUsers, signalrContext.connectedUserKeys, signalrContext.EnableOnlineUsers]), ([totalConnectedUsers, connectedUserKeys, enableOnlineUsers]) => {
                 this._totalConnectedUsers = totalConnectedUsers;
-
-                console.log('connected user keys observed in SignalR global CTX', connectedUserKeys);
                 this._connectedUserKeys = connectedUserKeys;
 
                 // This is an observable from SignalR watching the AppSettings/Options
@@ -43,7 +41,6 @@ export class ContentLockNoUsersOnlineHeaderApp extends UmbHeaderAppButtonElement
 	}
 
     async #openUserListModal() {
-        console.log('What is value of connected users when opening modal', this._connectedUserKeys);
         await this.#modalManagerCtx?.open(this, CONTENTLOCK_ONLINEUSERS_MODAL);
     };
 
