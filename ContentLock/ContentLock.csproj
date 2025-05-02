@@ -25,30 +25,30 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <Content Include="buildTransitive\**" PackagePath="buildTransitive"/>
+        <Content Include="buildTransitive\**" PackagePath="buildTransitive" />
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Umbraco.Cms.Core" Version="15.3.1" />
-        <PackageReference Include="Umbraco.Cms.Web.Website" Version="15.3.1" />
-        <PackageReference Include="Umbraco.Cms.Web.Common" Version="15.3.1" />
-        <PackageReference Include="Umbraco.Cms.Api.Common" Version="15.3.1" />
-        <PackageReference Include="Umbraco.Cms.Api.Management" Version="15.3.1" />
+        <PackageReference Include="Umbraco.Cms.Core" Version="15.4.0" />
+        <PackageReference Include="Umbraco.Cms.Web.Website" Version="15.4.0" />
+        <PackageReference Include="Umbraco.Cms.Web.Common" Version="15.4.0" />
+        <PackageReference Include="Umbraco.Cms.Api.Common" Version="15.4.0" />
+        <PackageReference Include="Umbraco.Cms.Api.Management" Version="15.4.0" />
     </ItemGroup>
 
     <ItemGroup>
         <!-- Dont include the client folder as part of packaging nuget build -->
-        <Content Remove="Client\**"/>
+        <Content Remove="Client\**" />
 
         <!-- However make the Umbraco-package.json included for dotnet pack or nuget package and visible to the solution -->
-        <None Include="Client\public\umbraco-package.json" Pack="false"/>
+        <None Include="Client\public\umbraco-package.json" Pack="false" />
 
         <!-- Readme & icon for nuget -->
-        <None Include="..\README.md" Pack="true" PackagePath="\"/>
-        <None Include="..\.github\content-lock-icon.png" Pack="true" PackagePath="\"/>
+        <None Include="..\README.md" Pack="true" PackagePath="\" />
+        <None Include="..\.github\content-lock-icon.png" Pack="true" PackagePath="\" />
 
         <!-- AppSettings JSON Schema -->
-        <None Include="..\appsettings-schema.umbraco.community.contentlock.json" Pack="true" PackagePath="\"/>
+        <None Include="..\appsettings-schema.umbraco.community.contentlock.json" Pack="true" PackagePath="\" />
     </ItemGroup>
 
 </Project>
