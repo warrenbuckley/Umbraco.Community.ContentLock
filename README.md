@@ -31,6 +31,33 @@
   - Prevents actions like publish, unpublish, and save for nodes that are currently locked.
 
 
+## Options
+Content Lock has the following options available to configure
+
+## AppSettings
+
+```json
+...
+"ContentLock": {
+  "OnlineUsers": {
+    "Enable": true,
+    "Sounds": {
+      "Enable": true,
+      "LoginSound":"/App_Plugins/ContentLock/sounds/login.mp3",
+      "LogoutSound":"/App_Plugins/ContentLock/sounds/logout.mp3"
+    }
+  }
+}
+```
+
+## Environment Variables
+```
+ContentLock__OnlineUsers__Enable=true
+ContentLock__OnlineUsers__Sounds__Enable=true
+ContentLock__OnlineUsers__Sounds__LoginSound=https://some-snazzy-sound.com/sfx-login.mp3
+ContentLock__OnlineUsers__Sounds__LogoutSound=/App_Plugins/SomePlace/logout.mp3
+```
+
 ---
 
 ### Attributions
