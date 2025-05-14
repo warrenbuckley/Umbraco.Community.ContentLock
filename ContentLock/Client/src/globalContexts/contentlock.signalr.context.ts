@@ -6,6 +6,8 @@ import { UMB_AUTH_CONTEXT } from "@umbraco-cms/backoffice/auth";
 import { ContentLockOverviewItem } from "../api";
 import { observeMultiple, UmbArrayState, UmbObjectState } from "@umbraco-cms/backoffice/observable-api";
 import { ContentLockOptions } from "../interfaces/ContentLockOptions";
+import { map } from "@umbraco-cms/backoffice/external/rxjs";
+import { SignalrLogger } from "./signalr.logger";
 
 export default class ContentLockSignalrContext extends UmbContextBase<ContentLockSignalrContext>
 {
@@ -26,6 +28,7 @@ export default class ContentLockSignalrContext extends UmbContextBase<ContentLoc
     // Sets the default values for the options
     #contentLockOptions = new UmbObjectState<ContentLockOptions>(
         {
+            signalRClientLogLevel: 'Info',
             onlineUsers: {
                 enable: true,
                 sounds: {
@@ -68,12 +71,30 @@ export default class ContentLockSignalrContext extends UmbContextBase<ContentLoc
     public EnableSounds = this.#contentLockOptions.asObservablePart(options => options.onlineUsers.sounds.enable);
     public LoginSound = this.#contentLockOptions.asObservablePart(options => options.onlineUsers.sounds.loginSound);
     public LogoutSound = this.#contentLockOptions.asObservablePart(options => options.onlineUsers.sounds.logoutSound);
+    public SignalrClientLogLevel = this.#contentLockOptions.asObservablePart(options => options.signalRClientLogLevel)
+        .pipe(
+            map((logLevel) =>{
+                if(!logLevel) {
+                    return signalR.LogLevel.Information;
+                }
+
+                switch(logLevel.toLocaleLowerCase()){
+                    case 'trace': return signalR.LogLevel.Trace;
+                    case 'debug': return signalR.LogLevel.Debug;
+                    case 'information': return signalR.LogLevel.Information;
+                    case 'info': return signalR.LogLevel.Information;
+                    case 'warning': return signalR.LogLevel.Warning;
+                    case 'warn': return signalR.LogLevel.Warning;
+                    case 'error': return signalR.LogLevel.Error;
+                    case 'critical': return signalR.LogLevel.Critical;
+                    case 'none': return signalR.LogLevel.None;
+                    default: return signalR.LogLevel.Information;
+                }
+            })
+        );
 
     constructor(host: UmbControllerHost) {
         super(host, CONTENTLOCK_SIGNALR_CONTEXT);
-
-        // Create a new SignalR connection in this context that we will expose
-        // Then otherplaces can get this new'd up hub to send or receive messages
 
         // Need auth context to use the token to pass to SignalR hub
         this.consumeContext(UMB_AUTH_CONTEXT, async (authCtx) => {
@@ -89,7 +110,8 @@ export default class ContentLockSignalrContext extends UmbContextBase<ContentLoc
                 accessTokenFactory: authCtx.getOpenApiConfiguration().token
             })
             .withAutomaticReconnect()
-            .configureLogging(signalR.LogLevel.Information)
+            //.configureLogging(signalR.LogLevel.Information) // None, Critical, Error, Warning, Information, Debug, Trace
+            .configureLogging(new SignalrLogger(this, this.SignalrClientLogLevel))
             .build();
 
             this.#startHub();

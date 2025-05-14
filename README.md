@@ -31,14 +31,31 @@
   - Prevents actions like publish, unpublish, and save for nodes that are currently locked.
 
 
-## Options
-Content Lock has the following options available to configure
+Trace
+Debug
+Information or Info
+Warning or Warn
+Error
+Critical
+None
 
-## AppSettings
+## Options
+Content Lock has the following options available to configure. 
+
+| Setting | Description | Default Value |
+| -- | -- | -- |
+| SignalRClientLogLevel | The SignalR log level of printing messages to the browser console can be set as one of the following values. `Trace`, `Debug`, `Information` or `Info`, `Warning` or `Warn`, `Error`, `Critical` and `None` | `"Info"` |
+| OnlineUsers.Enable | A boolean flag to decide if to displays a header app in the top right with the number of active users connected to the Umbraco backoffice | true
+| OnlineUsers.Sounds.Enable | A boolean flag to decide if to play audio notifications when a user logs in or out of the backoffice | true
+| OnlineUsers.Sounds.LoginSound | A path to an audio file that a browser can play when a new user logins to the Umbraco backoffice | `"/App_Plugins/ContentLock/sounds/login.mp3"`
+| OnlineUsers.Sounds.LogoutSound | A path to an audio file that a browser can play when a user logs out of the Umbraco backoffice | `"/App_Plugins/ContentLock/sounds/logout.mp3"`
+
+### AppSettings
 
 ```json
 ...
 "ContentLock": {
+  "SignalRClientLogLevel": "Info",
   "OnlineUsers": {
     "Enable": true,
     "Sounds": {
@@ -50,13 +67,25 @@ Content Lock has the following options available to configure
 }
 ```
 
-## Environment Variables
+### Environment Variables
 ```
+ContentLock__SignalRClientLogLevel=Info
 ContentLock__OnlineUsers__Enable=true
 ContentLock__OnlineUsers__Sounds__Enable=true
 ContentLock__OnlineUsers__Sounds__LoginSound=https://some-snazzy-sound.com/sfx-login.mp3
 ContentLock__OnlineUsers__Sounds__LogoutSound=/App_Plugins/SomePlace/logout.mp3
 ```
+
+### Reactive Options
+
+> [!TIP]
+> Changing any of these options will be changed **instantly** without having to redeploy or restart the application.
+
+For example you could change the value **OnlineUsers.Enable** and this will instantly toggle the number of connected users in the backoffice in the top right of Umbraco.
+You can see this in action here and [how it was coded](https://blog.hackmakedo.com/2025/04/28/using-signalr-ioptionsmonitor-with-umbraco-bellissima-for-reactive-net-options/) if you are curious:
+
+[![How to use SignalR with Umbraco for real-time options](https://img.youtube.com/vi/MZfeUKSO8h4/0.jpg)](https://www.youtube.com/watch?v=MZfeUKSO8h4)
+
 
 ---
 

@@ -1,3 +1,5 @@
+using Microsoft.Extensions.Logging;
+
 namespace ContentLock.Options;
 
 public class ContentLockOptions
@@ -8,7 +10,16 @@ public class ContentLockOptions
     /// Settings related to the feature of showing the number of online users in the backoffice
     /// </summary>
     public OnlineUsersOptions OnlineUsers { get; set; } = new();
-
+    
+    /// <summary>
+    /// Used to set the log level of the SignalR Javascript client
+    /// </summary>
+    /// <remarks>
+    /// NOTE: This option is not reactively updated in the backoffice
+    /// As we are unable to change the log level of the SignalR client once its booted up
+    /// </remarks>
+    public string SignalRClientLogLevel { get; set; } = "Info";
+    
     public class OnlineUsersOptions
     {
         /// <summary>
