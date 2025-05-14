@@ -30,15 +30,6 @@
 - **Action Restrictions:**  
   - Prevents actions like publish, unpublish, and save for nodes that are currently locked.
 
-
-Trace
-Debug
-Information or Info
-Warning or Warn
-Error
-Critical
-None
-
 ## Options
 Content Lock has the following options available to configure. 
 
