@@ -1,5 +1,6 @@
 export interface ContentLockOptions {
     onlineUsers: OnlineUsersOptions;
+    signalRClientLogLevel: string;
 }
 
 export interface OnlineUsersOptions {
