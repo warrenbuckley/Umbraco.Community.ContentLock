@@ -4,18 +4,25 @@ import { OnlineUsersModalData, OnlineUsersModalValue } from "./onlineusers.modal
 import { UmbUserItemModel, UmbUserItemRepository } from "@umbraco-cms/backoffice/user";
 import ContentLockSignalrContext, { CONTENTLOCK_SIGNALR_CONTEXT } from "../globalContexts/contentlock.signalr.context";
 import { UMB_CURRENT_USER_CONTEXT } from "@umbraco-cms/backoffice/current-user";
+import { UserBasicInfo } from "../interfaces/UserBasicInfo";
+
+type OnlineUsersModalMode = 'specificUsers' | 'allConnectedUsers';
 
 @customElement("contentlock-onlineusers-modal")
 export class OnlineUsersModalElement extends UmbModalBaseElement<OnlineUsersModalData, OnlineUsersModalValue>
 {
     @state()
-    _connectedUsersModels?: UmbUserItemModel[] = [];
-
-    @state()
-    _connectedUserKeys: string[] = [];
+    _connectedUsersModels: UmbUserItemModel[] = [];
 
     @state()
     _currentUserKey?: string;
+
+    @state()
+    private _mode: OnlineUsersModalMode = 'allConnectedUsers'; // Default mode
+
+    @state()
+    private _headline: string = '';
+
 
     #userItemRepository = new UmbUserItemRepository(this);
 
@@ -25,25 +32,56 @@ export class OnlineUsersModalElement extends UmbModalBaseElement<OnlineUsersModa
         this.consumeContext(UMB_CURRENT_USER_CONTEXT, (currentUserCtx) => {
             this.observe(currentUserCtx.unique, (unique) => {
                 this._currentUserKey = unique;
-            });
+            }, 'observeCurrentUser');
         });
+    }
 
-        this.consumeContext(CONTENTLOCK_SIGNALR_CONTEXT, (signalrCtx: ContentLockSignalrContext) => {
-            // The list of GUID connected users as keys/uniques
-            this.observe(signalrCtx.connectedUserKeys, async (connectedUserKeys) => {
-                this._connectedUserKeys = connectedUserKeys;
+    connectedCallback(): void {
+        super.connectedCallback();
+        this._processData();
+    }
+    
+    private _processData() {
+        this._headline = this.data?.modalTitle 
+            ? this.data.modalTitle 
+            : this.localize.term('contentLockUsersModal_modalHeader');
 
-                // Get users from the repo and observe it
-                // TODO: Why does it not work when a user updates their name or avatar?
-                // However when new user logs in or out it reactively shows them with the model open
-                const userItemsObservable = (await this.#userItemRepository.requestItems(connectedUserKeys)).asObservable();
+        if (this.data?.usersToShow && this.data.usersToShow.length > 0) {
+            this._mode = 'specificUsers';
+            const userKeys = this.data.usersToShow.map(u => u.userKey);
+            this.#loadUsersFromKeys(userKeys);
+        } else {
+            this._mode = 'allConnectedUsers';
+            // Fallback to existing logic: observe all connected users from SignalR
+            this.consumeContext(CONTENTLOCK_SIGNALR_CONTEXT, (signalrCtx: ContentLockSignalrContext) => {
+                this.observe(signalrCtx.connectedUserKeys, (connectedUserKeys) => {
+                    this.#loadUsersFromKeys(connectedUserKeys);
+                }, 'observeConnectedUserKeys');
+            });
+        }
+    }
 
-                // Observe the users we wanted to request/fetch and assign them to property/state
-                this.observe(userItemsObservable, (userItems) => {
+    async #loadUsersFromKeys(userKeys: string[]) {
+        if (!userKeys || userKeys.length === 0) {
+            this._connectedUsersModels = [];
+            return;
+        }
+        
+        // UmbUserItemRepository.requestItems returns a promise that resolves to an object with a 'data' observable
+        try {
+            const { data: usersObservable } = await this.#userItemRepository.requestItems(userKeys);
+            
+            if (usersObservable) {
+                this.observe(usersObservable, (userItems) => {
                     this._connectedUsersModels = userItems;
-                });
-            });
-        });
+                }, 'observeUserItems');
+            } else {
+                this._connectedUsersModels = [];
+            }
+        } catch (error) {
+            console.error("Error loading users from keys:", error);
+            this._connectedUsersModels = [];
+        }
     }
     
     #handleClose() {
@@ -52,22 +90,25 @@ export class OnlineUsersModalElement extends UmbModalBaseElement<OnlineUsersModa
     
     render() {
         return html`
-            <umb-body-layout headline=${this.localize.term('contentLockUsersModal_modalHeader')}>
+            <umb-body-layout headline=${this._headline}>
                 <uui-box headline=${this.localize.term('contentLockUsersModal_listOfUsers')}>
-                    ${this._connectedUsersModels?.map((user) => {
-                        return html`
+                    ${this._connectedUsersModels && this._connectedUsersModels.length > 0
+                        ? this._connectedUsersModels.map((user) => {
+                            return html`
                             <div class="user-detail">
                                 <umb-user-avatar name="${user.name}" .imgUrls=${user.avatarUrls ?? []}></umb-user-avatar>
                                 <span>${user.name}</span>
                                 
                                 <!-- Show a tag if the user is the current user -->
                                 ${user.unique === this._currentUserKey
-                                    ? html `<uui-tag color="default" look="outline">You</uui-tag>`
+                                    ? html `<uui-tag color="default" look="outline">${this.localize.term('general_you')}</uui-tag>`
                                     : nothing
                                 }
                             </div>
                         `;
-                    })}
+                        })
+                        : html`<p>${this.localize.term('contentLockUsersModal_noUsers')}</p>`
+                    }
                 </uui-box>
                 
                 <div slot="actions">

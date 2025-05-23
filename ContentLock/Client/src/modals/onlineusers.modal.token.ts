@@ -1,6 +1,9 @@
 import { UmbModalToken } from "@umbraco-cms/backoffice/modal";
+import { UserBasicInfo } from '../interfaces/UserBasicInfo';
 
 export interface OnlineUsersModalData {
+  usersToShow?: UserBasicInfo[];
+  modalTitle?: string;
 }
 
 export interface OnlineUsersModalValue {

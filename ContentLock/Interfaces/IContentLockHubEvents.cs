@@ -37,4 +37,6 @@ public interface IContentLockHubEvents
     public Task ReceiveListOfConnectedUsers(Guid[] connectedUsersKeys);
 
     public Task ReceiveLatestOptions(ContentLockOptions currentOptions);
+
+    public Task UserActivityChanged(Guid userKey, string userName, Guid contentNodeKey, bool isViewing);
 }
