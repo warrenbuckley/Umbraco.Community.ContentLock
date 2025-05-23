@@ -8,7 +8,7 @@ export default {
         lastEditedHeader: 'Sidst redigeret',
         unlockAction: 'Lås op',
         pagesCheckedOutTitle: 'Låste sider',
-        noLocks: 'No locks',
+        noLocks: 'Ingen låse',
         noLocksMessage: '🎉 Zip, zero, nada'
     },
     contentLockFooterApp: {
