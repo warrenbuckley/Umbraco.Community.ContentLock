@@ -12,9 +12,6 @@ export class ContentLockNoUsersOnlineHeaderApp extends UmbHeaderAppButtonElement
     private _totalConnectedUsers: number | undefined;
 
     @state()
-    private _connectedUserKeys?: string[];
-
-    @state()
     private _enableOnlineUsers: boolean = true;
 
     #modalManagerCtx?: UmbModalManagerContext;
@@ -24,9 +21,8 @@ export class ContentLockNoUsersOnlineHeaderApp extends UmbHeaderAppButtonElement
 		super();
 
         this.consumeContext(CONTENTLOCK_SIGNALR_CONTEXT, (signalrContext: ContentLockSignalrContext) => {
-            this.observe(observeMultiple([signalrContext.totalConnectedUsers, signalrContext.connectedUserKeys, signalrContext.EnableOnlineUsers]), ([totalConnectedUsers, connectedUserKeys, enableOnlineUsers]) => {
+            this.observe(observeMultiple([signalrContext.totalConnectedUsers, signalrContext.EnableOnlineUsers]), ([totalConnectedUsers, enableOnlineUsers]) => {
                 this._totalConnectedUsers = totalConnectedUsers;
-                this._connectedUserKeys = connectedUserKeys;
 
                 // This is an observable from SignalR watching the AppSettings/Options
                 // TODO: Perhaps can retire this and use the condition approach when HeaderApps supports it
