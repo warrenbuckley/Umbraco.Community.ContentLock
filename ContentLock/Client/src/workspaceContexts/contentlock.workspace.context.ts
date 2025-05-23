@@ -6,7 +6,7 @@ import { observeMultiple, UmbBooleanState, UmbStringState, UmbArrayState } from 
 import { UmbEntityUnique } from '@umbraco-cms/backoffice/entity';
 import { UmbVariantId } from '@umbraco-cms/backoffice/variant';
 import ContentLockSignalrContext, { CONTENTLOCK_SIGNALR_CONTEXT } from '../globalContexts/contentlock.signalr.context';
-import { UserBasicInfo } from '../interfaces/UserBasicInfo';
+import { UserBasicInfo, ServerUserActivity } from '../interfaces/UserBasicInfo';
 import { UMB_CURRENT_USER_CONTEXT } from '@umbraco-cms/backoffice/current-user';
 
 export class ContentLockWorkspaceContext extends UmbContextBase<ContentLockWorkspaceContext> {
@@ -73,7 +73,22 @@ export class ContentLockWorkspaceContext extends UmbContextBase<ContentLockWorks
 
                 if (unique) {
                     if (this.#signalRContext?.signalrConnection && this.#signalRContext.signalrConnection.state === 'Connected') {
-                        this.#signalRContext.signalrConnection.invoke('UserIsViewingContent', unique.toString()).catch(err => console.error('Error sending UserIsViewingContent:', err));
+                        this.#signalRContext.signalrConnection.invoke<ServerUserActivity[]>('UserIsViewingContent', unique.toString())
+                            .then((initialViewers) => {
+                                if (initialViewers && Array.isArray(initialViewers)) {
+                                    const mappedViewers: UserBasicInfo[] = initialViewers.map(viewer => ({
+                                        userKey: viewer.UserKey, // Ensure casing matches server response
+                                        userName: viewer.UserName // Ensure casing matches server response
+                                    }));
+                                    // Filter out current user from this initial list as well, if currentUserKey is available
+                                    const filteredInitialViewers = this.#currentUserKey
+                                        ? mappedViewers.filter(v => v.userKey !== this.#currentUserKey)
+                                        : mappedViewers;
+
+                                    this.#currentContentViewers.setValue(filteredInitialViewers);
+                                }
+                            })
+                            .catch(err => console.error('Error sending or processing UserIsViewingContent:', err));
                     }
                 }
 

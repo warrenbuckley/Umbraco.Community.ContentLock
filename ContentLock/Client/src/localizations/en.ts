@@ -14,8 +14,7 @@ export default {
     contentLockFooterApp: {
         lockedByYou: 'This page is locked by you',
         lockedByAnother: 'This page is locked by {0}',
-        alsoViewing: 'Also viewing',
-        others: 'others', // Simple plural, consider Umbraco's pluralization for better handling if available
+        contentLockFooterApp_usersViewingThisDocument: 'Users viewing this document',
     },
     contentLockNotification: {
         lockedHeader: 'Content Locked',
@@ -32,6 +31,8 @@ export default {
     },
     contentLockUsersModal: {
         modalHeader: 'Who\'s online?',
-        listOfUsers: 'Online Users'
+        listOfUsers: 'Online Users',
+        contentLockUsersModal_viewingThisDocumentTitle: 'Users Viewing This Document',
+        noUsers: 'No users are currently viewing this document or are online.'
     }
 };

@@ -6,6 +6,8 @@ import { observeMultiple } from "@umbraco-cms/backoffice/observable-api";
 import PageState from "../enums/PageStateEnum";
 import { UserBasicInfo } from '../interfaces/UserBasicInfo';
 import { UMB_CURRENT_USER_CONTEXT, UmbCurrentUserContext } from '@umbraco-cms/backoffice/current-user';
+import { UMB_MODAL_MANAGER_CONTEXT, UmbModalManagerContext } from '@umbraco-cms/backoffice/modal';
+import { CONTENTLOCK_ONLINEUSERS_MODAL } from '../modals/onlineusers.modal.token';
 
 @customElement('contentlock-workspacefooterapp')
 export class ContentLockWorkspaceFooterAppElement extends UmbElementMixin(LitElement) {
@@ -29,12 +31,17 @@ export class ContentLockWorkspaceFooterAppElement extends UmbElementMixin(LitEle
     private _currentUserKey?: string;
 
     private _lockContext: ContentLockWorkspaceContext | undefined;
+    #modalManager?: UmbModalManagerContext;
 
     constructor() {
         super();
 
         // Set init page state to loading until we get response from API
         this.pageState = PageState.Loading;
+
+        this.consumeContext(UMB_MODAL_MANAGER_CONTEXT, (manager) => {
+            this.#modalManager = manager;
+        });
 
         this.consumeContext(UMB_CURRENT_USER_CONTEXT, (currentUserCtx: UmbCurrentUserContext) => {
             this.observe(currentUserCtx.unique, (userKey) => {
@@ -104,30 +111,42 @@ export class ContentLockWorkspaceFooterAppElement extends UmbElementMixin(LitEle
         }
     }
 
-    renderOtherViewers() {
-        if (this._otherViewers.length === 0) {
+    async #openViewersModal() {
+        if (!this._otherViewers || this._otherViewers.length === 0) return;
+
+        const modalTitle = this.localize.term('contentLockUsersModal_viewingThisDocumentTitle');
+        const modalData = {
+            usersToShow: this._otherViewers, // _otherViewers is UserBasicInfo[]
+            modalTitle: modalTitle
+        };
+
+        this.#modalManager?.open(this, CONTENTLOCK_ONLINEUSERS_MODAL, { data: modalData });
+    }
+
+    private _renderOtherViewers() {
+        if (!this._otherViewers || this._otherViewers.length === 0) {
             return nothing;
         }
 
-        const displayNames = this._otherViewers.slice(0, 2).map(viewer => viewer.userName).join(', ');
-        const remainingCount = this._otherViewers.length - 2;
+        const labelText = `${this.localize.term('contentLockFooterApp_usersViewingThisDocument')}: ${this._otherViewers.length}`;
 
         return html`
-            <div id="viewers-message">
+            <uui-button
+                id="other-viewers-button"
+                look="outline" 
+                label=${labelText}
+                compact
+                @click=${this.#openViewersModal}>
                 <uui-icon name="icon-users"></uui-icon>
-                ${this.localize.term('contentLockFooterApp_alsoViewing')}: 
-                ${displayNames}
-                ${remainingCount > 0
-                    ? ` ${this.localize.term('general_and')} ${remainingCount} ${this.localize.term('contentLockFooterApp_others', remainingCount)}`
-                    : ''}
-            </div>
+                <span style="margin-left: var(--uui-size-space-1);">${this._otherViewers.length}</span>
+            </uui-button>
         `;
     }
 
     render() {
         return html`
             ${this.renderLockStatus()}
-            ${this.renderOtherViewers()}
+            ${this._renderOtherViewers()}
         `;
     }
 
@@ -135,35 +154,31 @@ export class ContentLockWorkspaceFooterAppElement extends UmbElementMixin(LitEle
         UmbTextStyles,
         css`
             :host {
-                display: block;
-                padding: var(--uui-size-space-3); /* Consistent padding */
-                text-align: right; /* Align content to the right */
+                display: flex; /* Use flexbox for alignment */
+                justify-content: flex-end; /* Align items to the right */
+                align-items: center; /* Vertically center items */
+                gap: var(--uui-size-space-2); /* Add space between items */
+                padding: var(--uui-size-space-3);
             }
 
             uui-badge {
-                margin-left: var(--uui-size-space-2); /* Space between text and badge */
+                margin-left: var(--uui-size-space-2); 
             }
 
-            #message, #viewers-message {
-                display: inline-block; /* Allow multiple messages on one line if needed, or stack them */
+            #message {
+                display: inline-block; 
                 padding: var(--uui-size-space-1) var(--uui-size-space-3);
                 border-radius: var(--uui-border-radius);
-                font-size: var(--uui-type-small-size); /* Use Umbraco's small font size */
-                font-weight: bold; /* Make text bold */
+                font-size: var(--uui-type-small-size); 
+                font-weight: bold; 
                 background-color: var(--uui-color-surface-alt);
-                color: var(--uui-color-text); /* Standard text color */
-                margin-top: var(--uui-size-space-2); /* Space between messages if stacked */
-            }
-
-            #viewers-message {
-                /* Specific styles for viewers message if needed */
-                background-color: var(--uui-color-surface-alt); /* Or a different color like info */
                 color: var(--uui-color-text);
-                margin-left: var(--uui-size-space-2); /* Space from the lock message if on the same line */
+                /* margin-top is removed as flex handles vertical alignment */
             }
 
-            #viewers-message uui-icon {
-                margin-right: var(--uui-size-space-1);
+            #other-viewers-button {
+                /* Styles for the button if needed, uui-button defaults are usually fine */
+                /* Example: margin-left: var(--uui-size-space-2); if #message is also present */
             }
         `,
     ];

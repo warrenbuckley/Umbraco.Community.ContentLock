@@ -147,15 +147,30 @@ public class ContentLockHub : Hub<IContentLockHubEvents>
         await Clients.Caller.ReceiveLatestOptions(currentOptions);
     }
 
-    public async Task UserIsViewingContent(Guid contentNodeKey)
+    public async Task<List<UserActivity>> UserIsViewingContent(Guid contentNodeKey)
     {
         var connectionId = Context.ConnectionId;
+
+        // First, gather the list of current viewers for the given contentNodeKey
+        var currentViewers = ConnectedUsersActivities.Values
+            .Where(ua => ua.ActiveContentNodeKey == contentNodeKey)
+            .ToList();
+
+        // Next, update the caller's activity and broadcast the change
         if (ConnectedUsersActivities.TryGetValue(connectionId, out var userActivity))
         {
             userActivity.ActiveContentNodeKey = contentNodeKey;
             // Notify all clients that this user is viewing this content
             await Clients.All.UserActivityChanged(userActivity.UserKey, userActivity.UserName, contentNodeKey, true);
         }
+        else
+        {
+            // TODO: Log warning ("UserActivity not found for connectionId: " + connectionId)
+            // This case should ideally not happen for an active connection.
+        }
+
+        // Finally, return the gathered list
+        return currentViewers;
     }
 
     public async Task UserIsLeavingContent(Guid contentNodeKey)
