@@ -14,6 +14,8 @@ export default {
     contentLockFooterApp: {
         lockedByYou: 'This page is locked by you',
         lockedByAnother: 'This page is locked by {0}',
+        alsoViewing: 'Also viewing',
+        others: 'others', // Simple plural, consider Umbraco's pluralization for better handling if available
     },
     contentLockNotification: {
         lockedHeader: 'Content Locked',

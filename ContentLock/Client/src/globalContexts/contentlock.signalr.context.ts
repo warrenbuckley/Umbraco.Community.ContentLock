@@ -6,8 +6,9 @@ import { UMB_AUTH_CONTEXT } from "@umbraco-cms/backoffice/auth";
 import { ContentLockOverviewItem } from "../api";
 import { observeMultiple, UmbArrayState, UmbObjectState } from "@umbraco-cms/backoffice/observable-api";
 import { ContentLockOptions } from "../interfaces/ContentLockOptions";
-import { map } from "@umbraco-cms/backoffice/external/rxjs";
+import { map, Subject } from "@umbraco-cms/backoffice/external/rxjs";
 import { SignalrLogger } from "./signalr.logger";
+import { UserBasicInfo } from "../interfaces/UserBasicInfo";
 
 export default class ContentLockSignalrContext extends UmbContextBase<ContentLockSignalrContext>
 {
@@ -38,6 +39,8 @@ export default class ContentLockSignalrContext extends UmbContextBase<ContentLoc
                 }
             }
         });
+
+    public userActivityOnNode = new Subject<{ contentNodeKey: string, user: UserBasicInfo, isViewing: boolean }>();
 
     // All of the content locks as an observable array of ContentLockOverviewItem objects
     public contentLocks = this.#contentLocks.asObservable();
@@ -181,6 +184,10 @@ export default class ContentLockSignalrContext extends UmbContextBase<ContentLoc
 
             this.signalrConnection.on('ReceiveLatestOptions', (options:ContentLockOptions) =>{
                 this.#contentLockOptions.setValue(options);
+            });
+
+            this.signalrConnection.on('UserActivityChanged', (userKey: string, userName: string, contentNodeKey: string, isViewing: boolean) => {
+                this.userActivityOnNode.next({ contentNodeKey, user: { userKey, userName }, isViewing });
             });
         }
     }

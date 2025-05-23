@@ -5,7 +5,8 @@ using ContentLock.Options;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Options;
-
+using Umbraco.Cms.Core.Models.Membership;
+using Umbraco.Cms.Core.Services;
 using Umbraco.Cms.Core.Collections;
 using Umbraco.Cms.Web.Common.Authorization;
 using Umbraco.Extensions;
@@ -17,14 +18,19 @@ public class ContentLockHub : Hub<IContentLockHubEvents>
 {
     private readonly IContentLockService _contentLockService;
     private readonly IOptionsMonitor<ContentLockOptions> _options;
-    
-    // Change to track 1 or more connection IDs per User Key
-    private static readonly ConcurrentDictionary<Guid, ConcurrentHashSet<string>> ConnectedUsers = new();
+    private readonly IUserService _userService;
 
-    public ContentLockHub(IContentLockService contentLockService, IOptionsMonitor<ContentLockOptions> options)
+    // Change to track UserActivity per connectionId
+    private static readonly ConcurrentDictionary<string, UserActivity> ConnectedUsersActivities = new();
+
+    public ContentLockHub(
+        IContentLockService contentLockService, 
+        IOptionsMonitor<ContentLockOptions> options,
+        IUserService userService)
     {
         _contentLockService = contentLockService;
         _options = options;
+        _userService = userService;
         _options.OnChange(OnOptionsChanged);
     }
 
@@ -38,7 +44,7 @@ public class ContentLockHub : Hub<IContentLockHubEvents>
     public override async Task<Task> OnConnectedAsync()
     {
         // Adds the new connection (user) to the list of connected users
-        await AddNewUserToListOfConnectedUsers();
+        await AddNewUserToListOfConnectedUsersAsync();
 
         // Gets the current list of locks from the DB and sends them out to the newly connected SignalR client
         await GetLatestLockInfoForNewConnection();
@@ -51,7 +57,7 @@ public class ContentLockHub : Hub<IContentLockHubEvents>
     public override async Task<Task> OnDisconnectedAsync(Exception? exception)
     {
         // Removes the user who is disconnecting
-        await RemoveUserFromListOfConnectedUsersAsync();
+        await RemoveUserFromListOfConnectedUsersAsync(Context.ConnectionId);
 
         return base.OnDisconnectedAsync(exception);
     }
@@ -66,56 +72,67 @@ public class ContentLockHub : Hub<IContentLockHubEvents>
         await Clients.Caller.ReceiveLatestContentLocks(currentLocks.Items);
     }
 
-    private async Task AddNewUserToListOfConnectedUsers()
+    private async Task AddNewUserToListOfConnectedUsersAsync()
     {
-        var currentUmbUser = this.Context.User?.GetUmbracoIdentity();
+        var currentUmbUser = Context.User?.GetUmbracoIdentity();
         var currentUserKey = currentUmbUser?.GetUserKey();
-        
-        // Need to keep track of the connections, as a user may have one or more connections (tabs)
-        var connectionId = this.Context.ConnectionId;
-        
-        // Add new user to the list of connected users
+        var connectionId = Context.ConnectionId;
+
         if (currentUserKey.HasValue)
         {
-            // Get or create user's connection dictionary
-            var userConnections = ConnectedUsers.GetOrAdd(currentUserKey.Value, _ => new ConcurrentHashSet<string>());
-            
-            // Add the Connection ID associated to the Users GUID
-            userConnections.TryAdd(connectionId);
-            
-            // Only notify others if this is the user's first connection
-            // As they could be using different tabs or perhaps browser
-            if (userConnections.Count == 1)
+            var user = await _userService.GetAsync(currentUserKey.Value);
+            if (user == null)
             {
-                // Notify a client has connected
-                // Calls everyone else who is already connected to update them that someone new joined
-                await Clients.Others.UserConnected(currentUserKey.Value);
+                // TODO: Log warning ("User not found with key: " + currentUserKey.Value)
+                return;
             }
-    
-            // Sends the newly connected client
-            // The current list of connected users GUID/Keys
-            await Clients.Caller.ReceiveListOfConnectedUsers(ConnectedUsers.Keys.ToArray());
+            var userName = user.Name ?? "Unknown User";
+
+            var activity = new UserActivity { UserKey = currentUserKey.Value, UserName = userName, ActiveContentNodeKey = null };
+            ConnectedUsersActivities.TryAdd(connectionId, activity);
+
+            // Notification Logic:
+            // Only notify others if this is the user's first connection overall.
+            // Check if this UserKey was not previously present in ConnectedUsersActivities.Values (ignoring current connectionId).
+            bool isFirstConnectionForUser = ConnectedUsersActivities.Values.Count(ua => ua.UserKey == currentUserKey.Value) == 1;
+            if (isFirstConnectionForUser)
+            {
+                await Clients.Others.UserConnected(currentUserKey.Value, userName);
+            }
+
+            // Send the newly connected client the current list of unique user keys
+            var allUserKeysAndNames = ConnectedUsersActivities.Values
+                .Select(ua => new { ua.UserKey, ua.UserName })
+                .Distinct()
+                .ToDictionary(x => x.UserKey.ToString(), x => x.UserName);
+            
+            // The client side is expecting an array of Guids (user keys)
+            // For now, let's stick to the existing contract and send only keys
+            // TODO: Update client to receive user names as well for richer display
+            var allUserKeys = ConnectedUsersActivities.Values.Select(ua => ua.UserKey).Distinct().ToArray();
+            await Clients.Caller.ReceiveListOfConnectedUsers(allUserKeys);
         }
     }
 
-    private async Task RemoveUserFromListOfConnectedUsersAsync()
+    private async Task RemoveUserFromListOfConnectedUsersAsync(string connectionId)
     {
-        var currentUmbUser = this.Context.User?.GetUmbracoIdentity();
-        var currentUserKey = currentUmbUser?.GetUserKey();
-        var connectionId = this.Context.ConnectionId;
-
-        if (currentUserKey.HasValue && ConnectedUsers.TryGetValue(currentUserKey.Value, out var userConnections))
+        if (ConnectedUsersActivities.TryRemove(connectionId, out var userActivity))
         {
-            // Remove this specific connection from Hashset associated to the User Key
-            userConnections.Remove(connectionId);
+            var currentUserKey = userActivity.UserKey;
+            var userName = userActivity.UserName; // Store before potential modification/removal
 
-            // If user has no more connections, remove them entirely from dictionary
-            if (userConnections.Count == 0)
+            // If the user was viewing a specific content node, notify others they are no longer viewing it.
+            if (userActivity.ActiveContentNodeKey.HasValue)
             {
-                ConnectedUsers.TryRemove(currentUserKey.Value, out _);
-                
-                // Notify everyone that someone has disconnected
-                await Clients.All.UserDisconnected(currentUserKey.Value);
+                await Clients.All.UserActivityChanged(currentUserKey, userName, userActivity.ActiveContentNodeKey.Value, false);
+            }
+
+            // Notification Logic for UserDisconnected:
+            // Only notify if this was the last connection for the user.
+            bool wasLastConnectionForUser = !ConnectedUsersActivities.Values.Any(ua => ua.UserKey == currentUserKey);
+            if (wasLastConnectionForUser)
+            {
+                await Clients.All.UserDisconnected(currentUserKey);
             }
         }
     }
@@ -128,5 +145,34 @@ public class ContentLockHub : Hub<IContentLockHubEvents>
         // Send the current options to the caller
         // Did not use .All as other connected clients should have a stored state of options in an observable
         await Clients.Caller.ReceiveLatestOptions(currentOptions);
+    }
+
+    public async Task UserIsViewingContent(Guid contentNodeKey)
+    {
+        var connectionId = Context.ConnectionId;
+        if (ConnectedUsersActivities.TryGetValue(connectionId, out var userActivity))
+        {
+            userActivity.ActiveContentNodeKey = contentNodeKey;
+            // Notify all clients that this user is viewing this content
+            await Clients.All.UserActivityChanged(userActivity.UserKey, userActivity.UserName, contentNodeKey, true);
+        }
+    }
+
+    public async Task UserIsLeavingContent(Guid contentNodeKey)
+    {
+        var connectionId = Context.ConnectionId;
+        if (ConnectedUsersActivities.TryGetValue(connectionId, out var userActivity))
+        {
+            // Store details before modifying ActiveContentNodeKey
+            var userKey = userActivity.UserKey;
+            var userName = userActivity.UserName;
+
+            if (userActivity.ActiveContentNodeKey == contentNodeKey)
+            {
+                userActivity.ActiveContentNodeKey = null;
+                // Notify all clients that this user is no longer viewing this content
+                await Clients.All.UserActivityChanged(userKey, userName, contentNodeKey, false);
+            }
+        }
     }
 }
