@@ -22,6 +22,7 @@
         <IncludeSymbols>True</IncludeSymbols>
         <SymbolPackageFormat>snupkg</SymbolPackageFormat>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <Copyright>Warren Buckley</Copyright>
     </PropertyGroup>
 
     <ItemGroup>
