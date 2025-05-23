@@ -1,29 +1,31 @@
 export default {
-    "contentLockDashboard": {
-        "label": "Ýçerik Kilidi",
-        "pageNameHeader": "Sayfa Adý",
-        "contentTypeHeader": "Ýçerik Türü",
-        "checkedOutByHeader": "Tarafýndan Kilitlendi",
-        "checkedOutAtHeader": "Kilitlendiði Zaman",
-        "lastEditedHeader": "Son Düzenleme",
-        "unlockAction": "Kilidi Aç",
-        "pagesCheckedOutTitle": "Kontrol Edilen Sayfalar"
+    contentLockDashboard: {
+        label: "ï¿½ï¿½erik Kilidi",
+        pageNameHeader: "Sayfa Adï¿½",
+        contentTypeHeader: "ï¿½ï¿½erik Tï¿½rï¿½",
+        checkedOutByHeader: "Tarafï¿½ndan Kilitlendi",
+        checkedOutAtHeader: "Kilitlendiï¿½i Zaman",
+        lastEditedHeader: "Son Dï¿½zenleme",
+        unlockAction: "Kilidi Aï¿½",
+        pagesCheckedOutTitle: "Kontrol Edilen Sayfalar",
+        noLocks: "No locks",
+        noLocksMessage: "ðŸŽ‰ Zip, zero, nada"
     },
-    "contentLockFooterApp": {
-        "lockedByYou": "Bu sayfa sizin tarafýnýzdan kilitlendi",
-        "lockedByAnother": "Bu sayfa {0} tarafýndan kilitlendi"
+    contentLockFooterApp: {
+        lockedByYou: "Bu sayfa sizin tarafï¿½nï¿½zdan kilitlendi",
+        lockedByAnother: "Bu sayfa {0} tarafï¿½ndan kilitlendi"
     },
-    "contentLockNotification": {
-        "lockedHeader": "Ýçerik Kilitlendi",
-        "lockedMessage": "Belge düzenlemeniz için kilitlendi.",
-        "unlockedHeader": "Ýçerik Kilidi Açýldý",
-        "unlockedMessage": "Belgenin kilidi açýldý, diðer kullanýcýlarýn düzenlemesine izin verildi.",
-        "bulkUnlockHeader": "Ýçerik Kilidi Açýldý",
-        "bulkUnlockMessage": "Seçilen içeriðin kilidi baþarýyla açýldý"
+    contentLockNotification: {
+        lockedHeader: "ï¿½ï¿½erik Kilitlendi",
+        lockedMessage: "Belge dï¿½zenlemeniz iï¿½in kilitlendi.",
+        unlockedHeader: "ï¿½ï¿½erik Kilidi Aï¿½ï¿½ldï¿½",
+        unlockedMessage: "Belgenin kilidi aï¿½ï¿½ldï¿½, diï¿½er kullanï¿½cï¿½larï¿½n dï¿½zenlemesine izin verildi.",
+        bulkUnlockHeader: "ï¿½ï¿½erik Kilidi Aï¿½ï¿½ldï¿½",
+        bulkUnlockMessage: "Seï¿½ilen iï¿½eriï¿½in kilidi baï¿½arï¿½yla aï¿½ï¿½ldï¿½"
     },
-    "contentLockPermission": {
-        "group": "Content Lock",
-        "label": "Unlocker",
-        "description": "Kullanýcý grubunun baþka bir kullanýcý tarafýndan kilitlenen bir belgenin kilidini açmasýna izin verir."
+    contentLockPermission: {
+        group: "Content Lock",
+        label: "Unlocker",
+        description: "Kullanï¿½cï¿½ grubunun baï¿½ka bir kullanï¿½cï¿½ tarafï¿½ndan kilitlenen bir belgenin kilidini aï¿½masï¿½na izin verir."
     }
 };

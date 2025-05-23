@@ -248,17 +248,24 @@ export class ContentLockDashboardElement extends UmbElementMixin(LitElement) {
       <div class="grid">
         <div class="container">
           <uui-scroll-container>
-              <umb-table 
-                  .config=${this._tableConfig} 
-                  .columns=${this._tableColumns} 
-                  .items=${this._tableItems}
-                  @selected="${this.#onSelected}"
-                  @deselected="${this.#onDeselected}"
-                  @ordered="${this.#onOrdering}"></umb-table>
+            ${this._tableItems.length > 0
+              ? html`
+                  <umb-table 
+                    .config=${this._tableConfig} 
+                    .columns=${this._tableColumns} 
+                    .items=${this._tableItems}
+                    @selected="${this.#onSelected}"
+                    @deselected="${this.#onDeselected}"
+                    @ordered="${this.#onOrdering}"></umb-table>`
+              : html`
+                <uui-box headline=${this.localize.term('contentLockDashboard_noLocks')}>
+                  <h2><umb-localize key="contentLockDashboard_noLocksMessage"></umb-localize></h2>
+                </uui-box>
+              `}
           </uui-scroll-container>
         </div>
         <div class="container entries-col">
-          <uui-box class="entries">
+          <uui-box>
             <span slot="headline">
               <uui-icon name="icon-combination-lock"></uui-icon> 
               <umb-localize key="contentLockDashboard_pagesCheckedOutTitle"></umb-localize>
@@ -296,13 +303,12 @@ export class ContentLockDashboardElement extends UmbElementMixin(LitElement) {
         grid-template-columns: 1fr 350px;
       }
 
-      .entries {
+      uui-box {
         text-align: center;
-        background-color: var(--uui-color-current-emphasis);
       }
 
       h2 {
-        color: var(--uui-palette-violet-blue);
+        color: var(--uui-color-current-contrast);
         font-size: var(--uui-size-14);
       }
 

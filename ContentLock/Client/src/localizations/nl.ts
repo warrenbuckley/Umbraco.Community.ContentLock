@@ -8,6 +8,8 @@ export default {
         lastEditedHeader: 'Laatst bewerkt',
         unlockAction: 'Ontgrendelen',
         pagesCheckedOutTitle: 'Vergrendelde pagina’s',
+        noLocks: 'No locks',
+        noLocksMessage: '🎉 Zip, zero, nada'
     },
     contentLockFooterApp: {
         lockedByYou: 'Deze pagina is door jou vergrendeld',
