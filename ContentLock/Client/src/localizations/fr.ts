@@ -8,6 +8,8 @@ export default {
         lastEditedHeader: 'Dernière modification',
         unlockAction: 'Déverrouiller',
         pagesCheckedOutTitle: 'Pages verrouillées',
+        noLocks: 'No locks',
+        noLocksMessage: '🎉 Zip, zero, nada'
     },
     contentLockFooterApp: {
         lockedByYou: 'Vous avez verrouillé cette page',

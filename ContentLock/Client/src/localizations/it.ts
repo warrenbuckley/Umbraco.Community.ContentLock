@@ -8,6 +8,8 @@ export default {
         lastEditedHeader: 'Ultima modifica',
         unlockAction: 'Sblocca',
         pagesCheckedOutTitle: 'Pagine bloccate',
+        noLocks: 'No locks',
+        noLocksMessage: '🎉 Zip, zero, nada'
     },
     contentLockFooterApp: {
         lockedByYou: 'Questa pagina è bloccata da te',

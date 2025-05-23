@@ -258,8 +258,8 @@ export class ContentLockDashboardElement extends UmbElementMixin(LitElement) {
                     @deselected="${this.#onDeselected}"
                     @ordered="${this.#onOrdering}"></umb-table>`
               : html`
-                <uui-box headline="No locks">
-                  <h2>🎉 Zip, zero, nada</h2>
+                <uui-box headline=${this.localize.term('contentLockDashboard_noLocks')}>
+                  <h2><umb-localize key="contentLockDashboard_noLocksMessage"></umb-localize></h2>
                 </uui-box>
               `}
           </uui-scroll-container>
