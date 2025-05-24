@@ -77,6 +77,97 @@ You can see this in action here and [how it was coded](https://blog.hackmakedo.c
 
 [![How to use SignalR with Umbraco for real-time options](https://img.youtube.com/vi/MZfeUKSO8h4/0.jpg)](https://www.youtube.com/watch?v=MZfeUKSO8h4)
 
+---
+
+## Testing
+
+This project includes C# unit tests, client-side (TypeScript/JavaScript) unit tests, and Playwright End-to-End (E2E) tests.
+
+### C# Unit Tests
+
+These tests cover the backend C# logic of the ContentLock plugin.
+
+1.  **Navigate to the test project directory:**
+    ```bash
+    cd ContentLock.Tests.Unit
+    ```
+2.  **Run the tests:**
+    ```bash
+    dotnet test
+    ```
+
+### Client-Side Unit Tests
+
+These tests cover the frontend TypeScript logic located in `ContentLock/Client/`. They use Vitest.
+
+1.  **Navigate to the client project directory:**
+    ```bash
+    cd ContentLock/Client
+    ```
+2.  **Install dependencies (if you haven't already):**
+    ```bash
+    npm install
+    ```
+3.  **Run the tests:**
+    *   To run tests in the console:
+        ```bash
+        npm test
+        ```
+    *   To run tests with the Vitest UI (opens in a browser):
+        ```bash
+        npm run test:ui
+        ```
+
+### Playwright End-to-End (E2E) Tests
+
+These tests simulate user interactions in a browser to test the full functionality of the ContentLock plugin within an Umbraco environment.
+
+1.  **Navigate to the E2E test project directory:**
+    ```bash
+    cd ContentLock.Tests.E2E
+    ```
+2.  **Install dependencies (if you haven't already):**
+    ```bash
+    npm install
+    ```
+    *Note: The first time you install, Playwright will also download browser binaries. You can also run `npx playwright install --with-deps` manually if needed.*
+
+3.  **Prerequisites for Running E2E Tests:**
+    *   **Running Umbraco Instance:** A compatible Umbraco website (like the provided `ContentLock.Website` example project) must be running and accessible at the `baseURL` configured in `playwright.config.ts` (default: `http://localhost:44391`).
+    *   **Umbraco Credentials:** Valid Umbraco backoffice administrator credentials are required. These can be provided via:
+        *   Environment variables: `UMBRACO_USER` and `UMBRACO_PASS`.
+        *   By updating the default credentials directly in `ContentLock.Tests.E2E/tests/auth.setup.ts` (not recommended for shared environments).
+
+4.  **Run the E2E tests:**
+    *   To run tests headlessly:
+        ```bash
+        npm test 
+        ```
+        (or `npx playwright test`)
+    *   To run tests with a headed browser (visible UI):
+        ```bash
+        npm run test:headed
+        ```
+    *   To run tests with the Playwright UI mode:
+        ```bash
+        npm run test:ui
+        ```
+    *   To view the HTML report after a test run:
+        ```bash
+        npm run report
+        ```
+        (or `npx playwright show-report`)
+
+### CI/CD Considerations
+
+*   **Unit Tests (C# and Client-Side):** Both sets of unit tests are fast and self-contained. They are ideal candidates for execution on every commit or pull request in a CI/CD pipeline (e.g., using GitHub Actions, Azure DevOps, Jenkins).
+*   **Playwright E2E Tests:**
+    *   E2E tests provide the highest confidence but are slower and require a more complex setup in CI.
+    *   To run them in CI, the pipeline would need to:
+        1.  Build and serve the Umbraco application (`ContentLock.Website` or a similar test site). This might involve Docker or directly running the .NET application.
+        2.  Manage Umbraco test credentials securely (e.g., using CI secrets).
+        3.  Ensure browser dependencies are available on the CI agent (Playwright's `--with-deps` flag helps here).
+    *   Due to their execution time, E2E tests might be run on a schedule (e.g., nightly) or as a gate before merging to a main branch, rather than on every single commit to feature branches.
 
 ---
 

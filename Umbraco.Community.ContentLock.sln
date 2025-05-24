@@ -13,6 +13,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Build", "Build", "{0B7F90E6
 		README.md = README.md
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ContentLock.Tests.Unit", "ContentLock.Tests.Unit\ContentLock.Tests.Unit.csproj", "{6FD39B30-D72D-4791-B1D7-757E6775FB5F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -47,6 +49,18 @@ Global
 		{0848E685-8371-4AD9-9D3A-F9BB548F9A13}.Release|x64.Build.0 = Release|Any CPU
 		{0848E685-8371-4AD9-9D3A-F9BB548F9A13}.Release|x86.ActiveCfg = Release|Any CPU
 		{0848E685-8371-4AD9-9D3A-F9BB548F9A13}.Release|x86.Build.0 = Release|Any CPU
+		{6FD39B30-D72D-4791-B1D7-757E6775FB5F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6FD39B30-D72D-4791-B1D7-757E6775FB5F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6FD39B30-D72D-4791-B1D7-757E6775FB5F}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{6FD39B30-D72D-4791-B1D7-757E6775FB5F}.Debug|x64.Build.0 = Debug|Any CPU
+		{6FD39B30-D72D-4791-B1D7-757E6775FB5F}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{6FD39B30-D72D-4791-B1D7-757E6775FB5F}.Debug|x86.Build.0 = Debug|Any CPU
+		{6FD39B30-D72D-4791-B1D7-757E6775FB5F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6FD39B30-D72D-4791-B1D7-757E6775FB5F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6FD39B30-D72D-4791-B1D7-757E6775FB5F}.Release|x64.ActiveCfg = Release|Any CPU
+		{6FD39B30-D72D-4791-B1D7-757E6775FB5F}.Release|x64.Build.0 = Release|Any CPU
+		{6FD39B30-D72D-4791-B1D7-757E6775FB5F}.Release|x86.ActiveCfg = Release|Any CPU
+		{6FD39B30-D72D-4791-B1D7-757E6775FB5F}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
