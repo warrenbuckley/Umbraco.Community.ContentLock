@@ -28,4 +28,8 @@ export default {
         label: 'Déverrouilleur',
         description: 'Permet au groupe d’utilisateurs de déverrouiller un document verrouillé par un autre utilisateur.',
     },
+    contentLockUsersModal: {
+        modalHeader: 'Qui est en ligne',
+        listOfUsers: 'Utilisateurs en ligne'
+    }
 };
