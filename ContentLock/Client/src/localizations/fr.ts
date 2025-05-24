@@ -8,8 +8,8 @@ export default {
         lastEditedHeader: 'Dernière modification',
         unlockAction: 'Déverrouiller',
         pagesCheckedOutTitle: 'Pages verrouillées',
-        noLocks: 'No locks',
-        noLocksMessage: '🎉 Zip, zero, nada'
+        noLocks: 'Aucun verrouillage',
+        noLocksMessage: '🎉 Rien, zéro, nada'
     },
     contentLockFooterApp: {
         lockedByYou: 'Vous avez verrouillé cette page',
@@ -25,7 +25,7 @@ export default {
     },
     contentLockPermission: {
         group: 'Content Lock', // TODO: Currently not used in Umbraco but added for future use
-        label: 'Unlocker',
+        label: 'Déverrouilleur',
         description: 'Permet au groupe d’utilisateurs de déverrouiller un document verrouillé par un autre utilisateur.',
     },
 };
