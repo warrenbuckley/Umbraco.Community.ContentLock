@@ -2,8 +2,8 @@ import { customElement, html, nothing, state } from '@umbraco-cms/backoffice/ext
 import { UmbHeaderAppButtonElement } from '@umbraco-cms/backoffice/components';
 import ContentLockSignalrContext, { CONTENTLOCK_SIGNALR_CONTEXT } from '../globalContexts/contentlock.signalr.context';
 import { UMB_MODAL_MANAGER_CONTEXT, UmbModalManagerContext } from '@umbraco-cms/backoffice/modal';
-import { CONTENTLOCK_ONLINEUSERS_MODAL } from '../modals/onlineusers.modal.token';
-import { observeMultiple } from '@umbraco-cms/backoffice/observable-api';
+import { CONTENTLOCK_USERS_MODAL } from '../modals/users.modal.token';
+import { Observable, observeMultiple } from '@umbraco-cms/backoffice/observable-api';
 
 @customElement('contentlock-nousers-online-headerapp')
 export class ContentLockNoUsersOnlineHeaderApp extends UmbHeaderAppButtonElement {
@@ -16,11 +16,17 @@ export class ContentLockNoUsersOnlineHeaderApp extends UmbHeaderAppButtonElement
 
     #modalManagerCtx?: UmbModalManagerContext;
     
-
+    // We will pass this observable through to the modal
+    private _connectedUserKeys?: Observable<string[]>;
+    
 	constructor() {
 		super();
 
         this.consumeContext(CONTENTLOCK_SIGNALR_CONTEXT, (signalrContext: ContentLockSignalrContext) => {
+
+            // Assign observable to a prop to pass through to modal
+            this._connectedUserKeys = signalrContext.connectedUserKeys;;
+
             this.observe(observeMultiple([signalrContext.totalConnectedUsers, signalrContext.EnableOnlineUsers]), ([totalConnectedUsers, enableOnlineUsers]) => {
                 this._totalConnectedUsers = totalConnectedUsers;
 
@@ -37,7 +43,13 @@ export class ContentLockNoUsersOnlineHeaderApp extends UmbHeaderAppButtonElement
 	}
 
     async #openUserListModal() {
-        await this.#modalManagerCtx?.open(this, CONTENTLOCK_ONLINEUSERS_MODAL);
+        await this.#modalManagerCtx?.open(this, CONTENTLOCK_USERS_MODAL, {
+            value: {
+                header: this.localize.term('contentLockUsersModal_modalHeader'),
+                subHeader: this.localize.term('contentLockUsersModal_listOfUsers'),
+                usersKeys: this._connectedUserKeys
+            }
+        });
     };
 
 	override render() {

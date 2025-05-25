@@ -1,8 +1,8 @@
 export const manifests: Array<UmbExtensionManifest> = [
     {
-        alias: 'contentlock.modal.onlineusers',
+        alias: 'contentlock.modal.users',
         name: '[Content Lock] Modal - Online Users',
         type: 'modal',
-        js: () => import('./onlineusers.modal'),
+        js: () => import('./users.modal'),
     }
 ]
