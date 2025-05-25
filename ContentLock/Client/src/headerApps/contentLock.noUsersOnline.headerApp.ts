@@ -2,8 +2,8 @@ import { customElement, html, nothing, state } from '@umbraco-cms/backoffice/ext
 import { UmbHeaderAppButtonElement } from '@umbraco-cms/backoffice/components';
 import ContentLockSignalrContext, { CONTENTLOCK_SIGNALR_CONTEXT } from '../globalContexts/contentlock.signalr.context';
 import { UMB_MODAL_MANAGER_CONTEXT, UmbModalManagerContext } from '@umbraco-cms/backoffice/modal';
-import { CONTENTLOCK_ONLINEUSERS_MODAL } from '../modals/onlineusers.modal.token';
 import { observeMultiple } from '@umbraco-cms/backoffice/observable-api';
+import { CONTENTLOCK_ONLINEUSERS_MODAL } from '../modals/onlineUsers/onlineusers.modal.token';
 
 @customElement('contentlock-nousers-online-headerapp')
 export class ContentLockNoUsersOnlineHeaderApp extends UmbHeaderAppButtonElement {
@@ -37,7 +37,7 @@ export class ContentLockNoUsersOnlineHeaderApp extends UmbHeaderAppButtonElement
 	}
 
     async #openUserListModal() {
-        await this.#modalManagerCtx?.open(this, CONTENTLOCK_ONLINEUSERS_MODAL);
+        this.#modalManagerCtx?.open(this, CONTENTLOCK_ONLINEUSERS_MODAL);
     };
 
 	override render() {
