@@ -8,8 +8,8 @@ export default {
         lastEditedHeader: 'Laatst bewerkt',
         unlockAction: 'Ontgrendelen',
         pagesCheckedOutTitle: 'Vergrendelde pagina’s',
-        noLocks: 'No locks',
-        noLocksMessage: '🎉 Zip, zero, nada'
+        noLocks: 'Geen grendel',
+        noLocksMessage: '🎉 Niets, zero, nada'
     },
     contentLockFooterApp: {
         lockedByYou: 'Deze pagina is door jou vergrendeld',
@@ -25,7 +25,11 @@ export default {
     },
     contentLockPermission: {
         group: 'Content Lock', // TODO: Currently not used in Umbraco but added for future use
-        label: 'Unlocker',
+        label: 'Ontgrendelaar',
         description: 'Staat de gebruikersgroep toe om een document te ontgrendelen dat door een andere gebruiker is vergrendeld.',
     },
+    contentLockUsersModal: {
+        modalHeader: 'Wie is online?',
+        listOfUsers: 'Online Gebruikers'
+    }
 };
