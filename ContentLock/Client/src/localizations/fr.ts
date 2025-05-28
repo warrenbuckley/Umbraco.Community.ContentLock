@@ -31,6 +31,6 @@ export default {
     contentLockUsersModal: {
         modalHeader: 'Qui est en ligne',
         listOfUsers: 'Utilisateurs en ligne',
-        youLabel: 'You',
+        youLabel: 'Toi',
     }
 };

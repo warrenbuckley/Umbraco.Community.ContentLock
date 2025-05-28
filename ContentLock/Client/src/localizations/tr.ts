@@ -31,6 +31,6 @@ export default {
 	  contentLockUsersModal: {
         modalHeader: 'Kimler çevrimiçi?',
         listOfUsers: 'Çevrimiçi Kullanıcılar',
-        youLabel: 'You',
+        youLabel: 'Sen',
     }
 };

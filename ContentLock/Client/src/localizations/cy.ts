@@ -31,6 +31,6 @@
     contentLockUsersModal: {
         modalHeader: 'Pwy sy\'n ar-lein?',
         listOfUsers: 'Defnyddwyr Ar-lein',
-        youLabel: 'You',
+        youLabel: 'Ti',
     }
 };
