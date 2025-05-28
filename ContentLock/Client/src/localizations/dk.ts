@@ -28,4 +28,9 @@ export default {
         label: 'Unlocker',
         description: 'Giver brugergruppen mulighed for at låse et dokument op, som er låst af en anden bruger.',
     },
+    contentLockUsersModal: {
+        modalHeader: 'Who\'s online?',
+        listOfUsers: 'Online Users',
+        youLabel: 'You',
+    }
 };

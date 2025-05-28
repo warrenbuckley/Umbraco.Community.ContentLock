@@ -28,5 +28,10 @@ export default {
         label: 'Unlocker',
         description: 'Consente al gruppo di utenti di sbloccare un documento bloccato da un altro utente.',
     },
+    contentLockUsersModal: {
+        modalHeader: 'Who\'s online?',
+        listOfUsers: 'Online Users',
+        youLabel: 'You',
+    }
 };
  
