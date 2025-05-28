@@ -2,10 +2,11 @@ import { UmbContextBase } from '@umbraco-cms/backoffice/class-api';
 import { UmbContextToken } from '@umbraco-cms/backoffice/context-api';
 import { type UmbControllerHost } from '@umbraco-cms/backoffice/controller-api';
 import { UMB_DOCUMENT_WORKSPACE_CONTEXT, UmbDocumentVariantModel, UmbDocumentWorkspaceContext } from '@umbraco-cms/backoffice/document';
-import { observeMultiple, UmbBooleanState, UmbStringState } from '@umbraco-cms/backoffice/observable-api';
+import { observeMultiple, UmbBooleanState, UmbStringState, UmbArrayState } from '@umbraco-cms/backoffice/observable-api';
 import { UmbEntityUnique } from '@umbraco-cms/backoffice/entity';
 import { UmbVariantId } from '@umbraco-cms/backoffice/variant';
 import ContentLockSignalrContext, { CONTENTLOCK_SIGNALR_CONTEXT } from '../globalContexts/contentlock.signalr.context';
+import { UserBasicInfo, ServerUserActivity } from '../interfaces/UserBasicInfo';
 import { UMB_CURRENT_USER_CONTEXT } from '@umbraco-cms/backoffice/current-user';
 
 export class ContentLockWorkspaceContext extends UmbContextBase<ContentLockWorkspaceContext> {
@@ -27,12 +28,32 @@ export class ContentLockWorkspaceContext extends UmbContextBase<ContentLockWorks
 
     #currentUserKey?: string;
 
+    #currentContentViewers = new UmbArrayState<UserBasicInfo>([], (viewer) => viewer.userKey);
+    public currentContentViewers = this.#currentContentViewers.asObservable();
+
 
 	constructor(host: UmbControllerHost) {
 		super(host, CONTENTLOCK_WORKSPACE_CONTEXT.toString());
 
         this.consumeContext(CONTENTLOCK_SIGNALR_CONTEXT, (signalRContext) => {
            this.#signalRContext = signalRContext;
+
+            // Subscribe to user activity updates
+            if (this.#signalRContext) {
+                this.observe(this.#signalRContext.userActivityOnNode, (activity) => {
+                    // Ensure this.#unique is available and matches the activity's contentNodeKey
+                    if (this.#unique && activity.contentNodeKey === this.#unique.toString()) {
+                        if (activity.isViewing) {
+                            // Add user if not already present
+                            if (!this.#currentContentViewers.getValue().find(u => u.userKey === activity.user.userKey)) {
+                                this.#currentContentViewers.appendOne(activity.user);
+                            }
+                        } else {
+                            this.#currentContentViewers.removeOne(activity.user.userKey);
+                        }
+                    }
+                }, 'observeUserActivity');
+            }
         });
 
         this.consumeContext(UMB_CURRENT_USER_CONTEXT, (currentUserCtx) => {
@@ -49,6 +70,27 @@ export class ContentLockWorkspaceContext extends UmbContextBase<ContentLockWorks
             this.#docWorkspaceCtx.observe(observeMultiple([this.#docWorkspaceCtx?.unique, this.#docWorkspaceCtx?.variants]), ([unique, variants]) => {
                 this.#unique = unique;
                 this.#variants = variants;
+
+                if (unique) {
+                    if (this.#signalRContext?.signalrConnection && this.#signalRContext.signalrConnection.state === 'Connected') {
+                        this.#signalRContext.signalrConnection.invoke<ServerUserActivity[]>('UserIsViewingContent', unique.toString())
+                            .then((initialViewers) => {
+                                if (initialViewers && Array.isArray(initialViewers)) {
+                                    const mappedViewers: UserBasicInfo[] = initialViewers.map(viewer => ({
+                                        userKey: viewer.UserKey, // Ensure casing matches server response
+                                        userName: viewer.UserName // Ensure casing matches server response
+                                    }));
+                                    // Filter out current user from this initial list as well, if currentUserKey is available
+                                    const filteredInitialViewers = this.#currentUserKey
+                                        ? mappedViewers.filter(v => v.userKey !== this.#currentUserKey)
+                                        : mappedViewers;
+
+                                    this.#currentContentViewers.setValue(filteredInitialViewers);
+                                }
+                            })
+                            .catch(err => console.error('Error sending or processing UserIsViewingContent:', err));
+                    }
+                }
 
                 this.checkContentLockState();
             });
@@ -129,6 +171,18 @@ export class ContentLockWorkspaceContext extends UmbContextBase<ContentLockWorks
 	public setLockedByName(lockedBy: string) {
 		this.#lockedByName.setValue(lockedBy);
 	}
+
+    override async destroy() {
+        if (this.#unique && this.#signalRContext?.signalrConnection && this.#signalRContext.signalrConnection.state === 'Connected') {
+          try {
+            await this.#signalRContext.signalrConnection.invoke('UserIsLeavingContent', this.#unique.toString());
+          } catch (err) {
+            console.error('Error sending UserIsLeavingContent:', err);
+          }
+        }
+        // It's crucial to call super.destroy() if you override it
+        await super.destroy(); 
+      }
 }
 
 // Declare a api export, so Extension Registry can initialize this class:
