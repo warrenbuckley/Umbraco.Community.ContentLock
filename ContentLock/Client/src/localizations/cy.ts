@@ -30,6 +30,7 @@
     },
     contentLockUsersModal: {
         modalHeader: 'Pwy sy\'n ar-lein?',
-        listOfUsers: 'Defnyddwyr Ar-lein'
+        listOfUsers: 'Defnyddwyr Ar-lein',
+        youLabel: 'Ti',
     }
 };

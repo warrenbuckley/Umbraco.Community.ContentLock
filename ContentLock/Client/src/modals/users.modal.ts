@@ -71,7 +71,7 @@ export class OnlineUsersModalElement extends UmbModalBaseElement<UsersModalData,
                                 
                                 <!-- Show a tag if the user is the current user -->
                                 ${user.unique === this._currentUserKey
-                                    ? html `<uui-tag color="default" look="outline">You</uui-tag>`
+                                    ? html `<uui-tag color="default" look="outline"><umb-localize key="contentLockUsersModal_youLabel">You</umb-localize></uui-tag>`
                                     : nothing
                                 }
                             </div>

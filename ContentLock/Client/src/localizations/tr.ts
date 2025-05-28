@@ -1,31 +1,36 @@
 export default {
     contentLockDashboard: {
-        label: "��erik Kilidi",
-        pageNameHeader: "Sayfa Ad�",
-        contentTypeHeader: "��erik T�r�",
-        checkedOutByHeader: "Taraf�ndan Kilitlendi",
-        checkedOutAtHeader: "Kilitlendi�i Zaman",
-        lastEditedHeader: "Son D�zenleme",
-        unlockAction: "Kilidi A�",
+        label: "İçerik Kilidi",
+        pageNameHeader: "Sayfa Adı",
+        contentTypeHeader: "İçerik Tipi",
+        checkedOutByHeader: "Tarafından Kilitlendi",
+        checkedOutAtHeader: "Kilitlendiği Zaman",
+        lastEditedHeader: "Son Düzenleme",
+        unlockAction: "Kilidi Aç",
         pagesCheckedOutTitle: "Kontrol Edilen Sayfalar",
-        noLocks: "No locks",
-        noLocksMessage: "🎉 Zip, zero, nada"
+        noLocks: "Kilit yok",
+        noLocksMessage: "🎉 Kilitli hiçbir şey yok"
     },
     contentLockFooterApp: {
-        lockedByYou: "Bu sayfa sizin taraf�n�zdan kilitlendi",
-        lockedByAnother: "Bu sayfa {0} taraf�ndan kilitlendi"
+        lockedByYou: "Bu sayfa sizin tarafınızdan kilitlendi",
+        lockedByAnother: "Bu sayfa {0} tarafından kilitlendi"
     },
     contentLockNotification: {
-        lockedHeader: "��erik Kilitlendi",
-        lockedMessage: "Belge d�zenlemeniz i�in kilitlendi.",
-        unlockedHeader: "��erik Kilidi A��ld�",
-        unlockedMessage: "Belgenin kilidi a��ld�, di�er kullan�c�lar�n d�zenlemesine izin verildi.",
-        bulkUnlockHeader: "��erik Kilidi A��ld�",
-        bulkUnlockMessage: "Se�ilen i�eri�in kilidi ba�ar�yla a��ld�"
+        lockedHeader: "İçerik Kilitlendi",
+        lockedMessage: "Belge, düzenlemeniz için kilitlendi.",
+        unlockedHeader: "İçerik Kilidi Açıldı",
+        unlockedMessage: "Belgenin kilidi, diğer kullanıcıların düzenlemesine izin vermek için, açıldı.",
+        bulkUnlockHeader: "İçerik Kilidi Açıldı",
+        bulkUnlockMessage: "Seçilen içeriğin kilidi başarıyla açıldı"
     },
     contentLockPermission: {
-        group: "Content Lock",
-        label: "Unlocker",
-        description: "Kullan�c� grubunun ba�ka bir kullan�c� taraf�ndan kilitlenen bir belgenin kilidini a�mas�na izin verir."
+        group: "İçerik Kilidi",
+        label: "Kilit Açıcı",
+        description: "Başka bir kullanıcı tarafından kilitlenmiş bir belgenin, bir grup kullanıcı tarafından kilidinin açılmasına olanak tanır."
+    },
+	  contentLockUsersModal: {
+        modalHeader: 'Kimler çevrimiçi?',
+        listOfUsers: 'Çevrimiçi Kullanıcılar',
+        youLabel: 'Sen',
     }
 };
