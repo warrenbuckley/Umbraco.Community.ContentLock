@@ -8,8 +8,8 @@
         lastEditedHeader: 'Golygiad Diwethaf',
         unlockAction: 'Datgloi',
         pagesCheckedOutTitle: 'Tudalennau wedi\'u Gwirio Allan',
-        noLocks: 'No locks',
-        noLocksMessage: '🎉 Zip, zero, nada'
+        noLocks: 'Dim cloeon',
+        noLocksMessage: '🎉 Dim, sero, nada'
     },
     contentLockFooterApp: {
         lockedByYou: 'Mae\'r dudalen hon wedi\'i chloi gennych chi',
