@@ -3,30 +3,33 @@ import { UmbModalBaseElement, UmbModalRejectReason } from "@umbraco-cms/backoffi
 import { UsersModalData, UsersModalValue } from "./users.modal.token";
 import { UmbUserItemModel, UmbUserItemRepository } from "@umbraco-cms/backoffice/user";
 import { UMB_CURRENT_USER_CONTEXT } from "@umbraco-cms/backoffice/current-user";
+import ContentLockSignalrContext, { CONTENTLOCK_SIGNALR_CONTEXT } from "../globalContexts/contentlock.signalr.context";
 
 @customElement("contentlock-onlineusers-modal")
 export class OnlineUsersModalElement extends UmbModalBaseElement<UsersModalData, UsersModalValue>
 {
     @state()
-    _connectedUsersModels?: UmbUserItemModel[] = [];
+    _usersModels?: UmbUserItemModel[] = [];
 
     @state()
-    _connectedUserKeys?: string[];
+    _userKeys?: string[];
 
     @state()
     _currentUserKey?: string;
 
     #userItemRepository = new UmbUserItemRepository(this);
 
+    #signalrCtx?: ContentLockSignalrContext;
+
     constructor() {
         super();
     }
 
-    connectedCallback(): void {
+    connectedCallback() {
         super.connectedCallback();
 
-        // Use connextions and not ctor
-        // As the .value object we pass in to the modal is not available in the constructor
+        // Use connectedCallback and not the ctor
+        // As the .value object we pass in to the modal is not available in the constructor at that point in lifecycle
 
         this.consumeContext(UMB_CURRENT_USER_CONTEXT, (currentUserCtx) => {
             this.observe(currentUserCtx.unique, (unique) => {
@@ -34,27 +37,66 @@ export class OnlineUsersModalElement extends UmbModalBaseElement<UsersModalData,
             });
         });
 
-        console.log('this.value.usersKeys', this.value.usersKeys);
+        this.consumeContext(CONTENTLOCK_SIGNALR_CONTEXT, (signalrCtx) => {
+            this.#signalrCtx = signalrCtx;
 
-        this.observe(this.value.usersKeys, async (userKeys) => {
-            console.log('OBSERED userKeys', userKeys);
-
-            if(userKeys){
-                this._connectedUserKeys = userKeys;
-
-                // Get users from the repo and observe it
-                // TODO: Why does it not work when a user updates their name or avatar?
-                // However when new user logs in or out it reactively shows them with the model open
-                const userItemsObservable = (await this.#userItemRepository.requestItems(userKeys)).asObservable();
-
-                // Observe the users we wanted to request/fetch and assign them to property/state
-                this.observe(userItemsObservable, (userItems) => {
-                    this._connectedUsersModels = userItems;
-                });
+            // If we have a unique key set when opening the modal as a value 
+            // we want to see the list of users that are viewing the same node
+            if(this.value.unique){
+                this.#getUsersForNode(this.value.unique);
+            }
+            else {
+                // No unique key passed in
+                // so this means this use is for the global list of connected users
+                this.#getConnectedBackofficeUsers();
             }
         });
-    } 
+    }
+
+    #getConnectedBackofficeUsers() {
+        if(!this.#signalrCtx) {
+            console.warn('No Content Lock SignalR context available');
+            return;
+        }
+
+        this.observe(this.#signalrCtx.connectedUserKeys, async (globalConnectedUserKeys)=>{
+            this._userKeys = globalConnectedUserKeys;
+            this.#fetchUsers();
+        });
+    }
+
+    async #getUsersForNode(uniqueKey: string) {
+        console.log('GET USERS for node with unique key:', uniqueKey);
+
+        if(!this.#signalrCtx) {
+            console.warn('No Content Lock SignalR context available');
+            return;
+        }
+
+        // TODO: from SignalR ctx or similar
+        // this.observe(this.#signalrCtx.getUsersForNode(uniqueKey), async (usersForNode) => {
+        //     console.log('Users for node:', usersForNode);
+
+        //     this._userKeys = globalConnectedUserKeys;
+        //     this.#fetchUsers();
+        // });
+    }
     
+    async #fetchUsers() {
+        if (!this._userKeys || this._userKeys.length === 0) {
+            console.warn('No user keys available to fetch users');
+            return;
+        }
+
+        // Get users from the repo and observe it
+        const userItemsObservable = (await this.#userItemRepository.requestItems(this._userKeys)).asObservable();
+
+        // Observe the users we wanted to request/fetch and assign them to property/state
+        this.observe(userItemsObservable, (userItems) => {
+            this._usersModels = userItems;
+        });
+    }
+
     #handleClose() {
         this.modalContext?.reject({ type: "close" } as UmbModalRejectReason);
     }
@@ -63,7 +105,7 @@ export class OnlineUsersModalElement extends UmbModalBaseElement<UsersModalData,
         return html`
             <umb-body-layout headline=${this.value.header}>
                 <uui-box headline=${this.value.subHeader}>
-                    ${this._connectedUsersModels?.map((user) => {
+                    ${this._usersModels?.map((user) => {
                         return html`
                             <div class="user-detail">
                                 <umb-user-avatar name="${user.name}" .imgUrls=${user.avatarUrls ?? []}></umb-user-avatar>
@@ -80,7 +122,9 @@ export class OnlineUsersModalElement extends UmbModalBaseElement<UsersModalData,
                 </uui-box>
                 
                 <div slot="actions">
-                    <uui-button id="close" label="Close" @click=${this.#handleClose}>${this.localize.term('general_close')}</uui-button>
+                    <uui-button id="close" label="Close" @click=${this.#handleClose}>
+                        <umb-localize key="general_close">Close</umb-localize>
+                    </uui-button>
                 </div>
             </umb-body-layout>
         `;

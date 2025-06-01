@@ -1,5 +1,4 @@
 import { UmbModalToken } from "@umbraco-cms/backoffice/modal";
-import { Observable } from "@umbraco-cms/backoffice/observable-api";
 
 export interface UsersModalData {
 }
@@ -8,10 +7,9 @@ export interface UsersModalValue {
     header: string;
     subHeader: string;
     
-    // TODO: Pass in an obseravble of users keys
-    // Can be an observabel array of all connected users to backoffice
-    // or an observable of users that are viewing the same node
-    usersKeys?: Observable<string[]>;
+    // Optional unique/GUID of the node that the user is on
+    // If we do not pass this through we can get the list of all users that are connected to the backoffice
+    unique?: string;
 }
 
 export const CONTENTLOCK_USERS_MODAL = new UmbModalToken<UsersModalData, UsersModalValue>('contentlock.modal.users', {

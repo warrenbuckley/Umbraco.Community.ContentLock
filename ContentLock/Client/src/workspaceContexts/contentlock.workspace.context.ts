@@ -92,7 +92,7 @@ export class ContentLockWorkspaceContext extends UmbContextBase<ContentLockWorks
                         await this.#docWorkspaceCtx?.readOnlyState.addState({
                             unique: `${this.#unique!.toString()}-${variant.culture}`,
                             variantId: new UmbVariantId(variant.culture, variant.segment),
-                            message: `This page is locked by ${lockInfo?.checkedOutBy}`
+                            message: `This page is locked by ${lockInfo?.checkedOutBy}` // TODO: Where is this message shown?!
                         });
                     });
                 }
