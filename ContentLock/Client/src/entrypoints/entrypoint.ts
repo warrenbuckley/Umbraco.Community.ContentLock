@@ -13,6 +13,11 @@ export const onInit: UmbEntryPointOnInit = (_host, _extensionRegistry) => {
     // Get the token info from Umbraco
     const config = authContext?.getOpenApiConfiguration();
 
+    if(!config) {
+      console.warn('No OpenAPI configuration found in auth context, Content Lock API Client will not be initialized.');
+      return;
+    }
+
     client.setConfig({
       baseUrl: config?.base,
       credentials: config?.credentials,
