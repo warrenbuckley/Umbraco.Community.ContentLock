@@ -3,7 +3,6 @@ import { UmbHeaderAppButtonElement } from '@umbraco-cms/backoffice/components';
 import { CONTENTLOCK_SIGNALR_CONTEXT } from '../globalContexts/contentlock.signalr.context';
 import { UMB_MODAL_MANAGER_CONTEXT, UmbModalManagerContext } from '@umbraco-cms/backoffice/modal';
 import { CONTENTLOCK_ONLINEUSERS_MODAL } from '../modals/onlineusers.modal.token';
-import { observeMultiple } from '@umbraco-cms/backoffice/observable-api';
 
 @customElement('contentlock-nousers-online-headerapp')
 export class ContentLockNoUsersOnlineHeaderApp extends UmbHeaderAppButtonElement {
@@ -11,11 +10,7 @@ export class ContentLockNoUsersOnlineHeaderApp extends UmbHeaderAppButtonElement
     @state()
     private _totalConnectedUsers: number | undefined;
 
-    @state()
-    private _enableOnlineUsers: boolean = true;
-
     #modalManagerCtx?: UmbModalManagerContext;
-    
 
 	constructor() {
 		super();
@@ -26,13 +21,8 @@ export class ContentLockNoUsersOnlineHeaderApp extends UmbHeaderAppButtonElement
                 return;
             }
 
-            this.observe(observeMultiple([signalrContext.totalConnectedUsers, signalrContext.EnableOnlineUsers]), ([totalConnectedUsers, enableOnlineUsers]) => {
+            this.observe((signalrContext.totalConnectedUsers), (totalConnectedUsers) => {
                 this._totalConnectedUsers = totalConnectedUsers;
-
-                // This is an observable from SignalR watching the AppSettings/Options
-                // TODO: Perhaps can retire this and use the condition approach when HeaderApps supports it
-                // https://github.com/umbraco/Umbraco-CMS/issues/18979
-                this._enableOnlineUsers = enableOnlineUsers;
             });
         });
 
@@ -46,12 +36,6 @@ export class ContentLockNoUsersOnlineHeaderApp extends UmbHeaderAppButtonElement
     };
 
 	override render() {
-
-        // TODO: Can remove when HeaderApps support conditions in manifest
-        if (!this._enableOnlineUsers) {
-            return html ``;
-        }
-
         const badgeValue = this._totalConnectedUsers !== undefined
             ? (this._totalConnectedUsers > 99 ? '99+' : this._totalConnectedUsers.toString())
             : nothing;
