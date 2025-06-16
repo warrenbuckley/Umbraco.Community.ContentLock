@@ -2,7 +2,7 @@ import { css, customElement, html, state, nothing } from "@umbraco-cms/backoffic
 import { UmbModalBaseElement, UmbModalRejectReason } from "@umbraco-cms/backoffice/modal";
 import { OnlineUsersModalData, OnlineUsersModalValue } from "./onlineusers.modal.token";
 import { UmbUserItemModel, UmbUserItemRepository } from "@umbraco-cms/backoffice/user";
-import ContentLockSignalrContext, { CONTENTLOCK_SIGNALR_CONTEXT } from "../globalContexts/contentlock.signalr.context";
+import { CONTENTLOCK_SIGNALR_CONTEXT } from "../globalContexts/contentlock.signalr.context";
 import { UMB_CURRENT_USER_CONTEXT } from "@umbraco-cms/backoffice/current-user";
 
 @customElement("contentlock-onlineusers-modal")
@@ -23,25 +23,21 @@ export class OnlineUsersModalElement extends UmbModalBaseElement<OnlineUsersModa
         super();
 
         this.consumeContext(UMB_CURRENT_USER_CONTEXT, (currentUserCtx) => {
-            this.observe(currentUserCtx.unique, (unique) => {
+            this.observe(currentUserCtx?.unique, (unique) => {
                 this._currentUserKey = unique;
             });
         });
 
-        this.consumeContext(CONTENTLOCK_SIGNALR_CONTEXT, (signalrCtx: ContentLockSignalrContext) => {
+        this.consumeContext(CONTENTLOCK_SIGNALR_CONTEXT, (signalrCtx) => {
             // The list of GUID connected users as keys/uniques
-            this.observe(signalrCtx.connectedUserKeys, async (connectedUserKeys) => {
-                this._connectedUserKeys = connectedUserKeys;
+            this.observe(signalrCtx?.connectedUserKeys, async (connectedUserKeys) => {
+                if(connectedUserKeys) {
+                    this._connectedUserKeys = connectedUserKeys;
 
-                // Get users from the repo and observe it
-                // TODO: Why does it not work when a user updates their name or avatar?
-                // However when new user logs in or out it reactively shows them with the model open
-                const userItemsObservable = (await this.#userItemRepository.requestItems(connectedUserKeys)).asObservable();
-
-                // Observe the users we wanted to request/fetch and assign them to property/state
-                this.observe(userItemsObservable, (userItems) => {
-                    this._connectedUsersModels = userItems;
-                });
+                    // Get users from the repo
+                    const userItems = (await this.#userItemRepository.requestItems(connectedUserKeys));
+                    this._connectedUsersModels = userItems?.data;
+                }
             });
         });
     }

@@ -9,7 +9,7 @@ import { ContentLockOptions } from "../interfaces/ContentLockOptions";
 import { map } from "@umbraco-cms/backoffice/external/rxjs";
 import { SignalrLogger } from "./signalr.logger";
 
-export default class ContentLockSignalrContext extends UmbContextBase<ContentLockSignalrContext>
+export default class ContentLockSignalrContext extends UmbContextBase
 {
     // SignalR Hub URL endpoint
     #CONTENT_LOCK_HUB_URL = '/umbraco/ContentLockHub';
@@ -103,14 +103,15 @@ export default class ContentLockSignalrContext extends UmbContextBase<ContentLoc
                 return;
             }
 
+            const token = await authCtx.getLatestToken();
+
             // Create a new SignalR connection in this context that we will expose
             // Then otherplaces can get this new'd up hub to send or receive messages
             this.signalrConnection = new signalR.HubConnectionBuilder()
             .withUrl(this.#CONTENT_LOCK_HUB_URL, { 
-                accessTokenFactory: authCtx.getOpenApiConfiguration().token
+                accessTokenFactory: () => token,
             })
             .withAutomaticReconnect()
-            //.configureLogging(signalR.LogLevel.Information) // None, Critical, Error, Warning, Information, Debug, Trace
             .configureLogging(new SignalrLogger(this, this.SignalrClientLogLevel))
             .build();
 

@@ -7,7 +7,7 @@ export default class ContentLockPreviewOnlyWorkspaceAction extends UmbWorkspaceA
         try {
             // Get the workspace context & the current document unique id
             const workspaceContext = await this.getContext(UMB_DOCUMENT_WORKSPACE_CONTEXT);
-            const unique = workspaceContext.getUnique();
+            const unique = workspaceContext?.getUnique();
 
             // This does the cookie handhake etc AFAIK
             await new UmbDocumentPreviewRepository(this).enter();

@@ -11,7 +11,12 @@ export default class ShowUnlockCondition extends UmbConditionBase<UmbConditionCo
 
         this.consumeContext(CONTENTLOCK_WORKSPACE_CONTEXT , (contentLockWorkspaceCtx) => {
             
-            this.observe(observeMultiple([contentLockWorkspaceCtx.isLocked, contentLockWorkspaceCtx.isLockedBySelf,]),([isLocked, isLockedBySelf]) => {
+            if (!contentLockWorkspaceCtx) {
+                console.warn('Content Lock Workspace Context is not available');
+                return;
+            }
+
+            this.observe(observeMultiple([contentLockWorkspaceCtx?.isLocked, contentLockWorkspaceCtx?.isLockedBySelf,]),([isLocked, isLockedBySelf]) => {
                 if(isLocked && isLockedBySelf){
                     // Node is locked by self - show the unlock action
                     this.permitted = true;

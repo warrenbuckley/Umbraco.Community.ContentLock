@@ -8,7 +8,7 @@ import { UmbVariantId } from '@umbraco-cms/backoffice/variant';
 import ContentLockSignalrContext, { CONTENTLOCK_SIGNALR_CONTEXT } from '../globalContexts/contentlock.signalr.context';
 import { UMB_CURRENT_USER_CONTEXT } from '@umbraco-cms/backoffice/current-user';
 
-export class ContentLockWorkspaceContext extends UmbContextBase<ContentLockWorkspaceContext> {
+export class ContentLockWorkspaceContext extends UmbContextBase {
 
     #docWorkspaceCtx?: UmbDocumentWorkspaceContext;
     #unique: UmbEntityUnique | undefined;
@@ -36,7 +36,7 @@ export class ContentLockWorkspaceContext extends UmbContextBase<ContentLockWorks
         });
 
         this.consumeContext(UMB_CURRENT_USER_CONTEXT, (currentUserCtx) => {
-            this.observe(currentUserCtx.unique, (currentUserKey) => {
+            this.observe(currentUserCtx?.unique, (currentUserKey) => {
                 this.#currentUserKey = currentUserKey;
 
                 this.checkContentLockState();
@@ -46,7 +46,7 @@ export class ContentLockWorkspaceContext extends UmbContextBase<ContentLockWorks
         this.consumeContext(UMB_DOCUMENT_WORKSPACE_CONTEXT, (docWorkspaceCtx) => {
             this.#docWorkspaceCtx = docWorkspaceCtx;
 
-            this.#docWorkspaceCtx.observe(observeMultiple([this.#docWorkspaceCtx?.unique, this.#docWorkspaceCtx?.variants]), ([unique, variants]) => {
+            this.#docWorkspaceCtx?.observe(observeMultiple([this.#docWorkspaceCtx?.unique, this.#docWorkspaceCtx?.variants]), ([unique, variants]) => {
                 this.#unique = unique;
                 this.#variants = variants;
 
@@ -80,16 +80,14 @@ export class ContentLockWorkspaceContext extends UmbContextBase<ContentLockWorks
 
                 // Clear out any existing readonly states first
                 // Added: As was seeing issues that it was reporting the state with the same unique was already added
-                this.#docWorkspaceCtx?.readOnlyState.clear();
+                this.#docWorkspaceCtx?.readOnlyGuard.clearRules();
 
                 if(isLocked && isLockedBySelf === false){
-                    // Page is locked by someone else - set the readonly state
-        
-
+                    // Page is locked by someone else - set the readonly state/readonly guard
                     // Set the read only state of the document for ALL culture & segment variant combinations
                     // Even documents without a variant will have a default variant with the culture and segment set to null
                     this.#variants.forEach(async variant => {
-                        await this.#docWorkspaceCtx?.readOnlyState.addState({
+                        await this.#docWorkspaceCtx?.readOnlyGuard.addRule({
                             unique: `${this.#unique!.toString()}-${variant.culture}`,
                             variantId: new UmbVariantId(variant.culture, variant.segment),
                             message: `This page is locked by ${lockInfo?.checkedOutBy}`
@@ -99,7 +97,7 @@ export class ContentLockWorkspaceContext extends UmbContextBase<ContentLockWorks
                 else {
                     // Page is not locked or its locked by self - remove the readonly state
                     this.#variants.forEach(async variant => {
-                        await this.#docWorkspaceCtx?.readOnlyState.removeState(`${this.#unique!.toString()}-${variant.culture}`);
+                        await this.#docWorkspaceCtx?.readOnlyGuard.removeRule(`${this.#unique!.toString()}-${variant.culture}`);
                     });
                 }
             });
