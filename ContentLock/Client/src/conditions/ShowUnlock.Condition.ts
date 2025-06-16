@@ -10,7 +10,6 @@ export default class ShowUnlockCondition extends UmbConditionBase<UmbConditionCo
         super(host, args);
 
         this.consumeContext(CONTENTLOCK_WORKSPACE_CONTEXT , (contentLockWorkspaceCtx) => {
-            
             if (!contentLockWorkspaceCtx) {
                 console.warn('Content Lock Workspace Context is not available');
                 return;

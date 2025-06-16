@@ -103,13 +103,11 @@ export default class ContentLockSignalrContext extends UmbContextBase
                 return;
             }
 
-            const token = await authCtx.getLatestToken();
-
             // Create a new SignalR connection in this context that we will expose
             // Then otherplaces can get this new'd up hub to send or receive messages
             this.signalrConnection = new signalR.HubConnectionBuilder()
             .withUrl(this.#CONTENT_LOCK_HUB_URL, { 
-                accessTokenFactory: () => token,
+                accessTokenFactory: () => authCtx.getLatestToken(),
             })
             .withAutomaticReconnect()
             .configureLogging(new SignalrLogger(this, this.SignalrClientLogLevel))
