@@ -21,7 +21,7 @@ export class ContentLockNoUsersOnlineHeaderApp extends UmbHeaderAppButtonElement
                 return;
             }
 
-            this.observe((signalrContext.totalConnectedUsers), (totalConnectedUsers) => {
+            this.observe(signalrContext.totalConnectedUsers, (totalConnectedUsers) => {
                 this._totalConnectedUsers = totalConnectedUsers;
             });
         });
