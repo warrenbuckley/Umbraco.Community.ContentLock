@@ -7,10 +7,12 @@ export default class SettingsCondition extends UmbConditionBase<UmbConditionConf
 {
     constructor(host: UmbControllerHost, args: UmbConditionControllerArguments<UmbConditionConfigBase>) {
         super(host, args);
-
-        // TODO: Cant use currently as manifest for header apps does not support conditions array property
-        // https://github.com/umbraco/Umbraco-CMS/issues/18979
+        
         this.consumeContext(CONTENTLOCK_SIGNALR_CONTEXT , (signalRCtx) => {
+            if (!signalRCtx) {
+                console.warn('SignalR context is not available. Unable to observe EnableOnlineUsers.');
+                return;
+            }
             this.observe(signalRCtx.EnableOnlineUsers, (enableOnlineUsers) => {
                 if(enableOnlineUsers){
                     // Setting enabled - enable/allow the header app

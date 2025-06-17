@@ -10,8 +10,12 @@ export default class ShowPreviewCondition extends UmbConditionBase<UmbConditionC
         super(host, args);
 
         this.consumeContext(CONTENTLOCK_WORKSPACE_CONTEXT , (contentLockWorkspaceCtx) => {
-            
-            this.observe(observeMultiple([contentLockWorkspaceCtx.isLocked, contentLockWorkspaceCtx.isLockedBySelf,]),([isLocked, isLockedBySelf]) => {
+            if (!contentLockWorkspaceCtx) {
+                console.warn('Content Lock Workspace Context is not available');
+                return;
+            }
+
+            this.observe(observeMultiple([contentLockWorkspaceCtx?.isLocked, contentLockWorkspaceCtx?.isLockedBySelf,]),([isLocked, isLockedBySelf]) => {
                 if(isLocked && !isLockedBySelf){
                     // Node is locked  AND is NOT locked by self - show the preview action
                     this.permitted = true;

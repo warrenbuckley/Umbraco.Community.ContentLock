@@ -33,8 +33,13 @@ export class ContentLockDashboardElement extends UmbElementMixin(LitElement) {
     });
 
     this.consumeContext(CONTENTLOCK_SIGNALR_CONTEXT, (lockCtx) => {
+      if (!lockCtx) {
+        console.warn('Content Lock SignalR Context is not available');
+        return;
+      }
+
       // Observe when the values change from the Global Context that is communicating with SignalR
-      this.observe(observeMultiple([lockCtx.contentLocks, lockCtx.totalContentLocks]), ([contentLocks, totalContentLocks]) => {
+      this.observe(observeMultiple([lockCtx?.contentLocks, lockCtx?.totalContentLocks]), ([contentLocks, totalContentLocks]) => {
         // Our observable locks
         const locks = contentLocks;
 

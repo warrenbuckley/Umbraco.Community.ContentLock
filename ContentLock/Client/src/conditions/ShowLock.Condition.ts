@@ -9,7 +9,12 @@ export default class ShowLockCondition extends UmbConditionBase<UmbConditionConf
         super(host, args);
 
         this.consumeContext(CONTENTLOCK_WORKSPACE_CONTEXT , (contentLockWorkspaceCtx) => {
-            this.observe(contentLockWorkspaceCtx.isLocked, (isLocked) => {
+            if (!contentLockWorkspaceCtx) {
+                console.warn('Content Lock Workspace Context is not available');
+                return;
+            }
+
+            this.observe(contentLockWorkspaceCtx?.isLocked, (isLocked) => {
                 if(!isLocked){
                     // Node is NOT locked - show the lock action
                     this.permitted = true;
