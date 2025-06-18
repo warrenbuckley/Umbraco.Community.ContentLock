@@ -15,7 +15,7 @@ export default class ShowUnlockCondition extends UmbConditionBase<UmbConditionCo
                 return;
             }
 
-            this.observe(observeMultiple([contentLockWorkspaceCtx?.isLocked, contentLockWorkspaceCtx?.isLockedBySelf,]),([isLocked, isLockedBySelf]) => {
+            this.observe(observeMultiple([contentLockWorkspaceCtx?.isLocked, contentLockWorkspaceCtx?.isLockedBySelf]),([isLocked, isLockedBySelf]) => {
                 if(isLocked && isLockedBySelf){
                     // Node is locked by self - show the unlock action
                     this.permitted = true;

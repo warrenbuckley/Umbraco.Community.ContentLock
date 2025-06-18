@@ -9,11 +9,7 @@ export default class SettingsCondition extends UmbConditionBase<UmbConditionConf
         super(host, args);
         
         this.consumeContext(CONTENTLOCK_SIGNALR_CONTEXT , (signalRCtx) => {
-            if (!signalRCtx) {
-                console.warn('SignalR context is not available. Unable to observe EnableOnlineUsers.');
-                return;
-            }
-            this.observe(signalRCtx.EnableOnlineUsers, (enableOnlineUsers) => {
+            this.observe(signalRCtx?.EnableOnlineUsers, (enableOnlineUsers) => {
                 if(enableOnlineUsers){
                     // Setting enabled - enable/allow the header app
                     this.permitted = true;

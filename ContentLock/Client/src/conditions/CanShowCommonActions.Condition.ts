@@ -1,7 +1,6 @@
 import type { UmbControllerHost } from '@umbraco-cms/backoffice/controller-api';
 import { UmbConditionConfigBase, UmbConditionControllerArguments, UmbExtensionCondition } from "@umbraco-cms/backoffice/extension-api";
 import { UmbConditionBase } from '@umbraco-cms/backoffice/extension-registry';
-import { observeMultiple } from '@umbraco-cms/backoffice/observable-api';
 import { UMB_ENTITY_CONTEXT, UmbEntityUnique } from '@umbraco-cms/backoffice/entity';
 import { CONTENTLOCK_SIGNALR_CONTEXT } from '../globalContexts/contentlock.signalr.context';
 import { UMB_CURRENT_USER_CONTEXT } from '@umbraco-cms/backoffice/current-user';
@@ -47,17 +46,9 @@ export default class CanShowCommonActionsCondition extends UmbConditionBase<UmbC
                 return;
             }
 
-            this.observe(observeMultiple([signalrCtx?.isNodeLocked(this.#unique), signalrCtx?.isNodeLockedByMe(this.#unique, this.#currentUserUnique)]), ([isNodeLocked, isNodeLockedByMe]) => {
-                if (!isNodeLocked) {
-                    // Node is unlocked - show the actions
-                    this.permitted = true;
-                } else if (isNodeLocked && isNodeLockedByMe) {
-                    // Node is locked and locked by the current user - show the actions
-                    this.permitted = true;
-                } else {
-                    // Otherwise, hide/remove the actions
-                    this.permitted = false;
-                }
+            this.observe(signalrCtx?.userCanSeeCommonActions(this.#unique, this.#currentUserUnique), (canSeeCommonActions) => {
+                console.log('Can see common actions RESULT =', canSeeCommonActions);
+                this.permitted = canSeeCommonActions;
             });
         });
     }

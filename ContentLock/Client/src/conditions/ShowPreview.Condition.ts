@@ -15,7 +15,7 @@ export default class ShowPreviewCondition extends UmbConditionBase<UmbConditionC
                 return;
             }
 
-            this.observe(observeMultiple([contentLockWorkspaceCtx?.isLocked, contentLockWorkspaceCtx?.isLockedBySelf,]),([isLocked, isLockedBySelf]) => {
+            this.observe(observeMultiple([contentLockWorkspaceCtx?.isLocked, contentLockWorkspaceCtx?.isLockedBySelf]),([isLocked, isLockedBySelf]) => {
                 if(isLocked && !isLockedBySelf){
                     // Node is locked  AND is NOT locked by self - show the preview action
                     this.permitted = true;
