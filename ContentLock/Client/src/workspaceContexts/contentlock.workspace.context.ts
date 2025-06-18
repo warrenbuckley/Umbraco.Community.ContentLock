@@ -123,7 +123,7 @@ export class ContentLockWorkspaceContext extends UmbContextBase {
                         await this.#docWorkspaceCtx?.reload();
                     })
                     .catch(() => {
-                        // Do nothing if the user cancels the modal or preses escape etc
+                        // Do nothing if the user cancels the modal or presses escape etc
                     });
                 }
 
