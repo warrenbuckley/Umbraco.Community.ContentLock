@@ -7,6 +7,7 @@ import { UmbEntityUnique } from '@umbraco-cms/backoffice/entity';
 import { UmbVariantId } from '@umbraco-cms/backoffice/variant';
 import ContentLockSignalrContext, { CONTENTLOCK_SIGNALR_CONTEXT } from '../globalContexts/contentlock.signalr.context';
 import { UMB_CURRENT_USER_CONTEXT } from '@umbraco-cms/backoffice/current-user';
+import { UMB_CONFIRM_MODAL, umbOpenModal } from '@umbraco-cms/backoffice/modal';
 
 export class ContentLockWorkspaceContext extends UmbContextBase {
 
@@ -26,7 +27,6 @@ export class ContentLockWorkspaceContext extends UmbContextBase {
     #signalRContext?: ContentLockSignalrContext;
 
     #currentUserKey?: string;
-
 
 	constructor(host: UmbControllerHost) {
 		super(host, CONTENTLOCK_WORKSPACE_CONTEXT.toString());
@@ -60,6 +60,8 @@ export class ContentLockWorkspaceContext extends UmbContextBase {
         if(!this.#currentUserKey) return;
 
         if (this.#signalRContext) {
+
+            let previousState = { isLocked: false, isLockedBySelf: false }; 
             
             // Observe the 3 states from the SignalR context
             // isLocked: boolean - Is the item locked by anyone
@@ -69,7 +71,7 @@ export class ContentLockWorkspaceContext extends UmbContextBase {
                 this.#signalRContext.isNodeLocked(this.#unique.toString()),
                 this.#signalRContext.isNodeLockedByMe(this.#unique.toString(), this.#currentUserKey),
                 this.#signalRContext.getLock(this.#unique.toString())
-            ]), ([isLocked, isLockedBySelf, lockInfo]) => {
+            ]), async ([isLocked, isLockedBySelf, lockInfo]) => {
 
                 // Set the observables
                 this.setIsLocked(isLocked);
@@ -100,6 +102,33 @@ export class ContentLockWorkspaceContext extends UmbContextBase {
                         await this.#docWorkspaceCtx?.readOnlyGuard.removeRule(`${this.#unique!.toString()}-${variant.culture}`);
                     });
                 }
+
+                // If previously the page was locked by someone else, we can alert the user its now unlocked
+                if (previousState.isLocked && !previousState.isLockedBySelf && !isLocked && !isLockedBySelf) {
+                    umbOpenModal(this, UMB_CONFIRM_MODAL,
+                        {
+                            data: {
+                                headline: "Content Unlocked",
+                                content: "The content is now unlocked and available for editing, however it may have been modified by another user. Please reload the page to see the latest version",
+                                color: "positive",
+                                confirmLabel: "Reload",
+                            }
+                        }
+                    )
+                    .then(async () => {
+                        // This will reload the entire page, so the user can see the latest version of the content
+                        // Might be nice if we can just ask a context to reload the node or something?
+
+                        // There is reload on Workspace context
+                        await this.#docWorkspaceCtx?.reload();
+                    })
+                    .catch(() => {
+                        // Do nothing if the user cancels the modal or presses escape etc
+                    });
+                }
+
+                // Update the previous state
+                previousState = { isLocked, isLockedBySelf };
             });
         }
     }
