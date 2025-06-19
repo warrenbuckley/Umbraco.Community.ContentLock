@@ -32,5 +32,10 @@
         modalHeader: 'Pwy sy\'n ar-lein?',
         listOfUsers: 'Defnyddwyr Ar-lein',
         youLabel: 'Ti',
+    },
+    contentUnlockedModal: {
+        modalHeader: 'Content Unlocked',
+        modalContent: 'The content is now unlocked and available for editing, however it may have been modified by another user. Please reload the page to see the latest version',
+        reload: 'Reload',
     }
 };

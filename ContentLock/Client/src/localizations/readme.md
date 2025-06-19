@@ -59,6 +59,11 @@ https://docs.umbraco.com/umbraco-cms/tutorials/creating-a-custom-dashboard/addin
 | contentLockUsersModal.listOfUsers        | Online Users                                                         |
 | contentLockUsersModal.youLabel           | You                                                                  |
 
+|  Key                                     | Value                                                                                                                                                      |
+|------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| contentUnlockedModal.modalHeader         | Content Unlocked                                                                                                                                           |
+| contentUnlockedModal.modalContent        | The content is now unlocked and available for editing, however it may have been modified by another user. Please reload the page to see the latest version |
+| contentUnlockedModal.reload              | Reload                                                                                                                                                     |
 
 ### en.ts
 ```ts
@@ -96,6 +101,11 @@ export default {
         modalHeader: 'Who\'s online?',
         listOfUsers: 'Online Users',
         youLabel: 'You',
+    },
+    contentUnlockedModal: {
+        modalHeader: 'Content Unlocked',
+        modalContent: 'The content is now unlocked and available for editing, however it may have been modified by another user. Please reload the page to see the latest version',
+        reload: 'Reload',
     }
 };
 ```

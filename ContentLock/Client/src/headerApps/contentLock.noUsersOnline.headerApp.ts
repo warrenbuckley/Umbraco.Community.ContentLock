@@ -1,7 +1,7 @@
 import { customElement, html, nothing, state } from '@umbraco-cms/backoffice/external/lit';
 import { UmbHeaderAppButtonElement } from '@umbraco-cms/backoffice/components';
 import { CONTENTLOCK_SIGNALR_CONTEXT } from '../globalContexts/contentlock.signalr.context';
-import { UMB_MODAL_MANAGER_CONTEXT, UmbModalManagerContext } from '@umbraco-cms/backoffice/modal';
+import { umbOpenModal } from '@umbraco-cms/backoffice/modal';
 import { CONTENTLOCK_ONLINEUSERS_MODAL } from '../modals/onlineusers.modal.token';
 
 @customElement('contentlock-nousers-online-headerapp')
@@ -9,8 +9,6 @@ export class ContentLockNoUsersOnlineHeaderApp extends UmbHeaderAppButtonElement
 	
     @state()
     private _totalConnectedUsers: number | undefined;
-
-    #modalManagerCtx?: UmbModalManagerContext;
 
 	constructor() {
 		super();
@@ -25,14 +23,11 @@ export class ContentLockNoUsersOnlineHeaderApp extends UmbHeaderAppButtonElement
                 this._totalConnectedUsers = totalConnectedUsers;
             });
         });
-
-        this.consumeContext(UMB_MODAL_MANAGER_CONTEXT, (modalManagerCtx) => {
-            this.#modalManagerCtx = modalManagerCtx;
-        });
 	}
 
     async #openUserListModal() {
-        await this.#modalManagerCtx?.open(this, CONTENTLOCK_ONLINEUSERS_MODAL);
+        await umbOpenModal(this, CONTENTLOCK_ONLINEUSERS_MODAL)
+            .catch(() => undefined);
     };
 
 	override render() {
