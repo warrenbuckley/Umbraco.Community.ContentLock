@@ -4,9 +4,9 @@ import { UmbContextToken } from "@umbraco-cms/backoffice/context-api";
 import { UmbControllerHost } from "@umbraco-cms/backoffice/controller-api";
 import { UMB_AUTH_CONTEXT } from "@umbraco-cms/backoffice/auth";
 import { ContentLockOverviewItem } from "../api";
-import { mergeObservables, observeMultiple, UmbArrayState, UmbObjectState } from "@umbraco-cms/backoffice/observable-api";
+import { observeMultiple, UmbArrayState, UmbObjectState } from "@umbraco-cms/backoffice/observable-api";
 import { ContentLockOptions } from "../interfaces/ContentLockOptions";
-import { map } from "@umbraco-cms/backoffice/external/rxjs";
+import { debounceTime, map } from "@umbraco-cms/backoffice/external/rxjs";
 import { SignalrLogger } from "./signalr.logger";
 
 export default class ContentLockSignalrContext extends UmbContextBase
@@ -240,21 +240,25 @@ export default class ContentLockSignalrContext extends UmbContextBase
     public userCanSeeCommonActions(nodeKey: string, currentUserKey: string) {
         console.log(`userCanSeeCommonActions: Checking if user can see common actions for node ${nodeKey} and current user key ${currentUserKey}`);
 
-        return mergeObservables([this.isNodeLocked(nodeKey), this.isNodeLockedByMe(nodeKey, currentUserKey)], ([isNodeLocked, isNodeLockedByMe]) => {
-            if (isNodeLocked && isNodeLockedByMe) {
-                // Node is locked and locked by the current user - show the actions
-                console.log('userCanSeeCommonActions: Node is locked and locked by the current user - show the actions');
-                return true;
-            } else if (isNodeLocked && !isNodeLockedByMe) {
-                // Node is locked by another user - hide the actions
-                console.log('userCanSeeCommonActions: Node is locked by another user - hide the actions');
-                return false;
-            } else {
-                // Node is unlocked - show the actions
-                console.log('userCanSeeCommonActions: Node is unlocked - show the actions');
-                return true;
-            }
-        });
+        return observeMultiple([this.isNodeLocked(nodeKey), this.isNodeLockedByMe(nodeKey, currentUserKey)])
+            .pipe(
+                debounceTime(20),
+                map(([isNodeLocked, isNodeLockedByMe]) => {
+                    if (isNodeLocked && isNodeLockedByMe) {
+                        // Node is locked and locked by the current user - show the actions
+                        console.log('userCanSeeCommonActions: Node is locked BUT its locked by the current user - show the actions');
+                        return true;
+                    } else if (isNodeLocked && !isNodeLockedByMe) {
+                        // Node is locked by another user - hide the actions
+                        console.log('userCanSeeCommonActions: Node is locked by another user - hide the actions');
+                        return false;
+                    } else {
+                        // Node is unlocked - show the actions
+                        console.log('userCanSeeCommonActions: Node is unlocked - show the actions');
+                        return true;
+                    }
+                })
+            );
     }
 
 

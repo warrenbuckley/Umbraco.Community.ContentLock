@@ -13,11 +13,6 @@ export default class CanShowCommonActionsCondition extends UmbConditionBase<UmbC
     constructor(host: UmbControllerHost, args: UmbConditionControllerArguments<UmbConditionConfigBase>) {
         super(host, args);
 
-        // TODO: Trying to fix the entity action for document lock/unlock
-        // Fine inside the workspace top right, but still problematic with context menu in the tree/sidebar
-        
-        // Tried using a higher UMB_ENTIY_CONTEXT rather than the CONTENTLOCK_WORKSPACE_CONTEXT in case the sidebar could not consume it
-        // So used the UMB_ENTITY_CONTEXT instead to pass the uniques into the SignalR Context, but this is not working either
         this.consumeContext(UMB_ENTITY_CONTEXT, (entityCtx) => {
             this.observe(entityCtx?.unique, (unique) => {
                 this.#unique = unique;
