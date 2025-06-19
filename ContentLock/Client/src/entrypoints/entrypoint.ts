@@ -39,7 +39,7 @@ export const onInit: UmbEntryPointOnInit = (_host, _extensionRegistry) => {
       'Umb.EntityAction.Document.RecycleBin.Trash',   // Trash - Action from tree or actions top right
       'Umb.EntityAction.Document.Rollback',           // Rollback - Action from tree or actions top right
       'Umb.EntityAction.Document.MoveTo',             // Move To - Action from tree or actions top right
-      'Umb.EntityAction.Document.Delete',             // Delete - Action from tree or actions top right [Whats the difference to Trash?]
+      'Umb.EntityAction.Document.Delete',             // Delete - Permanently removes the document, unlike Trash which moves it to the Recycle Bin.
       'Umb.EntityAction.Document.DuplicateTo',        // Duplicate To - Action from tree or actions top right
     ];
 
