@@ -8,6 +8,7 @@ import { UmbVariantId } from '@umbraco-cms/backoffice/variant';
 import ContentLockSignalrContext, { CONTENTLOCK_SIGNALR_CONTEXT } from '../globalContexts/contentlock.signalr.context';
 import { UMB_CURRENT_USER_CONTEXT } from '@umbraco-cms/backoffice/current-user';
 import { UMB_CONFIRM_MODAL, umbOpenModal } from '@umbraco-cms/backoffice/modal';
+import { UmbLocalizationController } from '@umbraco-cms/backoffice/localization-api';
 
 export class ContentLockWorkspaceContext extends UmbContextBase {
 
@@ -27,6 +28,8 @@ export class ContentLockWorkspaceContext extends UmbContextBase {
     #signalRContext?: ContentLockSignalrContext;
 
     #currentUserKey?: string;
+
+    #localize = new UmbLocalizationController(this);
 
 	constructor(host: UmbControllerHost) {
 		super(host, CONTENTLOCK_WORKSPACE_CONTEXT.toString());
@@ -108,10 +111,10 @@ export class ContentLockWorkspaceContext extends UmbContextBase {
                     umbOpenModal(this, UMB_CONFIRM_MODAL,
                         {
                             data: {
-                                headline: "Content Unlocked",
-                                content: "The content is now unlocked and available for editing, however it may have been modified by another user. Please reload the page to see the latest version",
+                                headline: this.#localize.term('contentUnlockedModal_modalHeader'),
+                                content: this.#localize.term('contentUnlockedModal_modalContent'),
                                 color: "positive",
-                                confirmLabel: "Reload",
+                                confirmLabel: this.#localize.term('contentUnlockedModal_reload'),
                             }
                         }
                     )
