@@ -34,6 +34,10 @@ export default defineConfig({
 
   /* Configure projects for major browsers */
   projects: [
+    // Setup project
+    // https://playwright.dev/docs/auth#basic-shared-account-in-all-tests
+    { name: 'setup', testMatch: /.*\.setup\.ts/ },
+
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
