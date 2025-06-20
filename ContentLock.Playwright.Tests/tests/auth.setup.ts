@@ -1,23 +1,34 @@
-import { test as setup, expect } from '@playwright/test';
-import path from 'path';
+// Docs for Auth with Playwright§
+// https://playwright.dev/docs/auth
+// https://playwright.dev/docs/auth#multiple-signed-in-roles
+// https://playwright.dev/docs/auth#testing-multiple-roles-together
 
-const authFile = path.join(__dirname, '../playwright/.auth/user.json');
+import * as path from "path";
+import dotenv from 'dotenv';
+import { test as setup } from '@playwright/test';
+import { ConstantHelper, UiHelpers } from '@umbraco/playwright-testhelpers';
+import { MyUiHelpers } from "../code/UiHelpers";
 
-setup('authenticate', async ({ page }) => {
-  // Perform authentication steps. Replace these actions with your own.
-  await page.goto('https://github.com/login');
-  await page.getByLabel('Username or email address').fill('username');
-  await page.getByLabel('Password').fill('password');
-  await page.getByRole('button', { name: 'Sign in' }).click();
-  // Wait until the page receives the cookies.
-  //
-  // Sometimes login flow sets cookies in the process of several redirects.
-  // Wait for the final URL to ensure that the cookies are actually set.
-  await page.waitForURL('https://github.com/');
-  // Alternatively, you can wait until the page reaches a state where all cookies are set.
-  await expect(page.getByRole('button', { name: 'View profile and more' })).toBeVisible();
+// Need to load the values from the .env file
+// As rhe Umbraco npm package depends on using a .env with set variables
+// So we can login and store the state of the login and persisted to a file
+dotenv.config();
 
-  // End of authentication steps.
+const STORAGE_STATE = path.join(__dirname, '../playwright/.auth/user.json');
 
-  await page.context().storageState({ path: authFile });
+
+setup('authenticate', async ({page}) => {
+  const umbracoUi = new MyUiHelpers(page);
+
+  console.log('storage state', STORAGE_STATE);
+  console.log('URL', process.env.URL);
+  console.log('login with', process.env.UMBRACO_USER_LOGIN);
+  console.log('password', process.env.UMBRACO_USER_PASSWORD);
+
+  await umbracoUi.goToMyBackOffice();
+  await umbracoUi.login.enterEmail(process.env.UMBRACO_USER_LOGIN ?? "admin@admin.com");
+  await umbracoUi.login.enterPassword(process.env.UMBRACO_USER_PASSWORD ?? "password");
+  await umbracoUi.login.clickLoginButton();
+  await umbracoUi.login.goToSection(ConstantHelper.sections.settings);
+  await umbracoUi.page.context().storageState({path: STORAGE_STATE});
 });
