@@ -1,10 +1,9 @@
 import { UmbContextBase } from '@umbraco-cms/backoffice/class-api';
 import { UmbContextToken } from '@umbraco-cms/backoffice/context-api';
 import { type UmbControllerHost } from '@umbraco-cms/backoffice/controller-api';
-import { UMB_DOCUMENT_WORKSPACE_CONTEXT, UmbDocumentVariantModel, UmbDocumentWorkspaceContext } from '@umbraco-cms/backoffice/document';
+import { UMB_DOCUMENT_WORKSPACE_CONTEXT, UmbDocumentWorkspaceContext } from '@umbraco-cms/backoffice/document';
 import { observeMultiple, UmbBooleanState, UmbStringState } from '@umbraco-cms/backoffice/observable-api';
 import { UmbEntityUnique } from '@umbraco-cms/backoffice/entity';
-import { UmbVariantId } from '@umbraco-cms/backoffice/variant';
 import ContentLockSignalrContext, { CONTENTLOCK_SIGNALR_CONTEXT } from '../globalContexts/contentlock.signalr.context';
 import { UMB_CURRENT_USER_CONTEXT } from '@umbraco-cms/backoffice/current-user';
 import { UMB_CONFIRM_MODAL, umbOpenModal } from '@umbraco-cms/backoffice/modal';
@@ -14,7 +13,6 @@ export class ContentLockWorkspaceContext extends UmbContextBase {
 
     #docWorkspaceCtx?: UmbDocumentWorkspaceContext;
     #unique: UmbEntityUnique | undefined;
-    #variants: UmbDocumentVariantModel[] = [];
   
     #isLocked = new UmbBooleanState(false);
     isLocked = this.#isLocked.asObservable();
@@ -49,10 +47,8 @@ export class ContentLockWorkspaceContext extends UmbContextBase {
         this.consumeContext(UMB_DOCUMENT_WORKSPACE_CONTEXT, (docWorkspaceCtx) => {
             this.#docWorkspaceCtx = docWorkspaceCtx;
 
-            this.#docWorkspaceCtx?.observe(observeMultiple([this.#docWorkspaceCtx?.unique, this.#docWorkspaceCtx?.variants]), ([unique, variants]) => {
+            this.#docWorkspaceCtx?.observe(this.#docWorkspaceCtx?.unique, (unique) => {
                 this.#unique = unique;
-                this.#variants = variants;
-
                 this.checkContentLockState();
             });
         });
@@ -83,27 +79,17 @@ export class ContentLockWorkspaceContext extends UmbContextBase {
                     this.setLockedByName(lockInfo.checkedOutBy);
                 }
 
-                // Clear out any existing readonly states first
-                // Added: As was seeing issues that it was reporting the state with the same unique was already added
-                this.#docWorkspaceCtx?.readOnlyGuard.clearRules();
-
                 if(isLocked && isLockedBySelf === false){
-                    // Page is locked by someone else - set the readonly state/readonly guard
-                    // Set the read only state of the document for ALL culture & segment variant combinations
-                    // Even documents without a variant will have a default variant with the culture and segment set to null
-                    this.#variants.forEach(async variant => {
-                        await this.#docWorkspaceCtx?.readOnlyGuard.addRule({
-                            unique: `${this.#unique!.toString()}-${variant.culture}`,
-                            variantId: new UmbVariantId(variant.culture, variant.segment),
-                            message: `This page is locked by ${lockInfo?.checkedOutBy}`
-                        });
+                    // Page is locked by someone else - set the propertyWriteGuard
+                    this.#docWorkspaceCtx?.propertyWriteGuard.addRule({
+                        unique: `ContentLock-${this.#unique!.toString()}`,
+                        permitted: false,
+                        message: `This page is locked by ${lockInfo?.checkedOutBy}`
                     });
                 }
                 else {
-                    // Page is not locked or its locked by self - remove the readonly state
-                    this.#variants.forEach(async variant => {
-                        await this.#docWorkspaceCtx?.readOnlyGuard.removeRule(`${this.#unique!.toString()}-${variant.culture}`);
-                    });
+                    // Page is not locked or its locked by self - remove the readonly (propertyWriteGuard)
+                    this.#docWorkspaceCtx?.propertyWriteGuard.removeRule(`ContentLock-${this.#unique!.toString()}`);
                 }
 
                 // If previously the page was locked by someone else, we can alert the user its now unlocked

@@ -42,7 +42,6 @@ export default class CanShowCommonActionsCondition extends UmbConditionBase<UmbC
             }
 
             this.observe(signalrCtx?.userCanSeeCommonActions(this.#unique, this.#currentUserUnique), (canSeeCommonActions) => {
-                console.log('Can see common actions RESULT =', canSeeCommonActions);
                 this.permitted = canSeeCommonActions;
             });
         });
