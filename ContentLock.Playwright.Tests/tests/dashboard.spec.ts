@@ -1,18 +1,29 @@
 import { test, expect, type Page } from '@playwright/test';
+import { MyUiHelpers } from '../code/UiHelpers';
+import { ConstantHelper } from '@umbraco/playwright-testhelpers';
+
+const userAuthFile = 'playwright/.auth/user.json';
+test.use({ storageState: userAuthFile });
 
 test.beforeEach(async ({ page }) => {
-  //await page.goto('https://demo.playwright.dev/todomvc');
-
-  // Navigate to the content section
-  // Navigate to our conent lock dashboard
-
-  // Use our Management API to remove all locks
+  // Goto the Umbraco backoffice
+  const umbracoUi = new MyUiHelpers(page);
+  await umbracoUi.goToMyBackOffice();
 });
 
 test.describe('Content Lock Dashboard', () => {
 
+
     test('is visible', async ({ page }) => {
-        // Can we see the dashboard
+
+        // TODO: How can we not keep repeating this line in every test?
+        const umbracoUi = new MyUiHelpers(page);
+
+        // Navigate to the content section
+        await umbracoUi.content.goToSection(ConstantHelper.sections.content);
+
+        // Find content lock dashboard tab
+        await expect(umbracoUi.contentLock.dashboardTab).toBeVisible();
     });
 
     test('can I see a message when no locks are present', async ({ page }) => {
@@ -28,6 +39,5 @@ test.describe('Content Lock Dashboard', () => {
    // Use unlock all button
    // Verify all locks are gone and no locks message is shown
    // Use API ?? to verify all locks are gone
-
 
 });

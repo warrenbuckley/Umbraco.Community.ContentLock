@@ -41,16 +41,19 @@ export default defineConfig({
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
+      dependencies: ['setup'], // Must run setup test/s first (Login & storing auth)
     },
 
     {
       name: 'firefox',
       use: { ...devices['Desktop Firefox'] },
+      dependencies: ['setup'], // Must run setup test/s first (Login & storing auth)
     },
 
     {
       name: 'webkit',
       use: { ...devices['Desktop Safari'] },
+      dependencies: ['setup'], // Must run setup test/s first (Login & storing auth)
     },
 
     /* Test against mobile viewports. */

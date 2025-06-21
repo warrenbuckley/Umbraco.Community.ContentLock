@@ -18,12 +18,8 @@ const STORAGE_STATE = path.join(__dirname, '../playwright/.auth/user.json');
 
 
 setup('authenticate', async ({page}) => {
+  // MyUiHelper extends Umbraco's UiHelpers
   const umbracoUi = new MyUiHelpers(page);
-
-  console.log('storage state', STORAGE_STATE);
-  console.log('URL', process.env.URL);
-  console.log('login with', process.env.UMBRACO_USER_LOGIN);
-  console.log('password', process.env.UMBRACO_USER_PASSWORD);
 
   await umbracoUi.goToMyBackOffice();
   await umbracoUi.login.enterEmail(process.env.UMBRACO_USER_LOGIN ?? "admin@admin.com");

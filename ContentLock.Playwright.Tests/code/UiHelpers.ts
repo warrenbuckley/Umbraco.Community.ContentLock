@@ -2,6 +2,7 @@ import { Page } from "@playwright/test";
 import { UiHelpers } from "@umbraco/playwright-testhelpers";
 
 import dotenv from 'dotenv';
+import { ContentLockUiHelper } from "./ContentLockUiHelper";
 
 // Need to load the values from the .env file
 // As rhe Umbraco npm package depends on using a .env with set variables
@@ -9,12 +10,18 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 export class MyUiHelpers extends UiHelpers {
+
+    public readonly contentLock: ContentLockUiHelper;
+
     constructor(page: Page) {
         super(page);
+        this.contentLock = new ContentLockUiHelper(this.page);
     }
 
     async goToMyBackOffice() {
         const umbracoUrl = process.env.URL || 'http://localhost:3000';
         await this.page.goto(`${umbracoUrl}/umbraco`);
     }
+
+    
 }
