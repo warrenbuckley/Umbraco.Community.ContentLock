@@ -17,11 +17,5 @@ export class MyUiHelpers extends UiHelpers {
         super(page);
         this.contentLock = new ContentLockUiHelper(this.page);
     }
-
-    async goToMyBackOffice() {
-        const umbracoUrl = process.env.URL || 'http://localhost:3000';
-        await this.page.goto(`${umbracoUrl}/umbraco`);
-    }
-
     
 }

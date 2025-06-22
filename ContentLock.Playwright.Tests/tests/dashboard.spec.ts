@@ -6,28 +6,44 @@ const userAuthFile = 'playwright/.auth/user.json';
 test.use({ storageState: userAuthFile });
 
 test.beforeEach(async ({ page }) => {
-  // Goto the Umbraco backoffice
-  const umbracoUi = new MyUiHelpers(page);
-  await umbracoUi.goToMyBackOffice();
+    // TODO: How can we not keep repeating this line in every test?
+    const umbracoUi = new MyUiHelpers(page);
+
+    // Goto the Umbraco backoffice
+    await page.goto('/umbraco');
+
+    // Navigate to the content section
+    await umbracoUi.content.goToSection(ConstantHelper.sections.content);
 });
 
 test.describe('Content Lock Dashboard', () => {
-
 
     test('is visible', async ({ page }) => {
 
         // TODO: How can we not keep repeating this line in every test?
         const umbracoUi = new MyUiHelpers(page);
-
-        // Navigate to the content section
-        await umbracoUi.content.goToSection(ConstantHelper.sections.content);
-
+        
         // Find content lock dashboard tab
         await expect(umbracoUi.contentLock.dashboardTab).toBeVisible();
     });
 
-    test('can I see a message when no locks are present', async ({ page }) => {
+    test('correctly shows no locks', async ({ page }) => {
+       // TODO: How can we not keep repeating this line in every test?
+        const umbracoUi = new MyUiHelpers(page);
+
+        // Click the dashboard tab
+        await umbracoUi.contentLock.dashboardTab.click();
+
         // Check for a piece of text
+
+
+        // Checks unlock button is disabled
+        await expect(umbracoUi.contentLock.dashboardUnlockBtn).toBeVisible();
+
+        // Disabled only works on native button and not uui-button hence the chained locator to look in shadow dom
+        await expect(umbracoUi.contentLock.dashboardUnlockBtn.locator('button')).toBeDisabled(); 
+
+        // Checks total count of locks is 0
     });
 
     // See list of locks
@@ -40,4 +56,4 @@ test.describe('Content Lock Dashboard', () => {
    // Verify all locks are gone and no locks message is shown
    // Use API ?? to verify all locks are gone
 
-});
+})

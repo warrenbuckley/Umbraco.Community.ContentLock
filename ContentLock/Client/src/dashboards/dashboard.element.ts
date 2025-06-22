@@ -216,12 +216,12 @@ export class ContentLockDashboardElement extends UmbElementMixin(LitElement) {
   render() {
     if (this._isLoading) {
       return html`
-        <uui-button-group>
-          <uui-button label=${this.localize.term('contentLockDashboard_unlockAction')} look="primary" color="default" disabled>
-            <uui-icon name="icon-lock"></uui-icon>
-            ${this.localize.term('contentLockDashboard_unlockAction')}
-          </uui-button>
-        </uui-button-group>
+      <uui-button-group>
+        <uui-button data-mark="contentlock:dashboard:unlock" label=${this.localize.term('contentLockDashboard_unlockAction')} look="primary" color="default" disabled>
+          <uui-icon name="icon-lock"></uui-icon>
+          ${this.localize.term('contentLockDashboard_unlockAction')}
+        </uui-button>
+      </uui-button-group>
         
         <div class="grid">
           <div class="container">
@@ -244,7 +244,7 @@ export class ContentLockDashboardElement extends UmbElementMixin(LitElement) {
 
     return html`
       <uui-button-group>
-        <uui-button .label=${this.localize.term('contentLockDashboard_unlockAction')} look="primary" color="default" @click=${this.#bulkUnlock} ?disabled=${this.#isUnlockDisabled()}>
+        <uui-button data-mark="contentlock:dashboard:unlock" .label=${this.localize.term('contentLockDashboard_unlockAction')} look="primary" color="default" @click=${this.#bulkUnlock} ?disabled=${this.#isUnlockDisabled()}>
           <uui-icon name="icon-lock"></uui-icon>
           ${this.localize.term('contentLockDashboard_unlockAction')}
         </uui-button>

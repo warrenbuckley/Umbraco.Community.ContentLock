@@ -8,9 +8,14 @@ export class ContentLockUiHelper  {
      */
     dashboardTab: Locator;
 
+    dashboardUnlockBtn: Locator;
+
     constructor(page: Page) {
         
         this.dashboardTab = page.getByRole('tab', { name: 'Content Lock' });
+
+        // data-mark attribute
+        this.dashboardUnlockBtn = page.getByTestId('contentlock:dashboard:unlock');
 
         // this.redirectManagementTab = page.getByRole('tab', {name: 'Redirect URL Management'});
         // this.enableURLTrackerBtn = page.getByLabel('Enable URL tracker');

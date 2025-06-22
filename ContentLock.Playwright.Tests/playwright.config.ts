@@ -1,4 +1,5 @@
 import { defineConfig, devices } from '@playwright/test';
+import path from 'path';
 
 /**
  * Read environment variables from file.
@@ -26,10 +27,12 @@ export default defineConfig({
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
-    // baseURL: 'http://localhost:3000',
+    baseURL: 'https://localhost:5001',
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
+    screenshot: 'on',
+    testIdAttribute: 'data-mark' // Uses data-mark attribute same as Umbraco UI test helpers
   },
 
   /* Configure projects for major browsers */
@@ -78,9 +81,12 @@ export default defineConfig({
   ],
 
   /* Run your local dev server before starting the tests */
-  // webServer: {
-  //   command: 'npm run start',
-  //   url: 'http://localhost:3000',
-  //   reuseExistingServer: !process.env.CI,
-  // },
+  webServer: {
+    cwd: path.join(__dirname, '../ContentLock.Website'),
+    command: 'dotnet run --urls "https://localhost:5001"',
+    url: 'https://localhost:5001',
+    stderr: 'pipe',
+    stdout: 'pipe',
+    ignoreHTTPSErrors: true,
+  },
 });
