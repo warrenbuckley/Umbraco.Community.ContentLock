@@ -35,7 +35,8 @@ test.describe('Content Lock Dashboard', () => {
         await umbracoUi.contentLock.dashboardTab.click();
 
         // Check for a piece of text
-
+        await expect(umbracoUi.contentLock.dashboardNoLocksMessage).toBeVisible(); 
+        await expect(umbracoUi.contentLock.dashboardNoLocksMessage).toHaveText(/zero/); // Partial match 'zero' against zip, zero nada
 
         // Checks unlock button is disabled
         await expect(umbracoUi.contentLock.dashboardUnlockBtn).toBeVisible();

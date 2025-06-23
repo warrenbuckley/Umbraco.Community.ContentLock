@@ -264,7 +264,7 @@ export class ContentLockDashboardElement extends UmbElementMixin(LitElement) {
                     @ordered="${this.#onOrdering}"></umb-table>`
               : html`
                 <uui-box headline=${this.localize.term('contentLockDashboard_noLocks')}>
-                  <h2><umb-localize key="contentLockDashboard_noLocksMessage"></umb-localize></h2>
+                  <h2 data-mark="contentlock:dashboard:nolocks"><umb-localize key="contentLockDashboard_noLocksMessage"></umb-localize></h2>
                 </uui-box>
               `}
           </uui-scroll-container>
