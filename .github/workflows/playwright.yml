@@ -50,7 +50,9 @@ jobs:
     - name: Run Playwright tests
       run: npx playwright test
       working-directory: 'ContentLock.Playwright.Tests'
-
+      env:
+        DEBUG: 'pw:webserver'
+        
     - uses: actions/upload-artifact@v4
       if: ${{ !cancelled() }}
       with:
