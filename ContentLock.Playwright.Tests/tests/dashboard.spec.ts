@@ -3,7 +3,19 @@ import { MyUiHelpers } from '../code/UiHelpers';
 import { ConstantHelper } from '@umbraco/playwright-testhelpers';
 
 const userAuthFile = 'playwright/.auth/user.json';
-test.use({ storageState: userAuthFile });
+test.use({ 
+    storageState: userAuthFile,
+
+    // https://playwright.dev/docs/api/class-testoptions#test-options-viewport
+    // Default is 1280 x 720 (aka 720p HD)
+    // 1920 x 1080 HD (1080p)
+    // 2560 x 1440 (aka 1440p) or QHD
+    // Need more screen real estate for this specific test as the number of locks on right is hidden at smaller breakpoints
+    viewport: { 
+        width: 1920, 
+        height: 1080
+    }
+});
 
 test.beforeEach(async ({ page }) => {
     // TODO: How can we not keep repeating this line in every test?
@@ -39,12 +51,13 @@ test.describe('Content Lock Dashboard', () => {
         await expect(umbracoUi.contentLock.dashboardNoLocksMessage).toHaveText(/zero/); // Partial match 'zero' against zip, zero nada
 
         // Checks unlock button is disabled
-        await expect(umbracoUi.contentLock.dashboardUnlockBtn).toBeVisible();
-
         // Disabled only works on native button and not uui-button hence the chained locator to look in shadow dom
+        await expect(umbracoUi.contentLock.dashboardUnlockBtn).toBeVisible();
         await expect(umbracoUi.contentLock.dashboardUnlockBtn.locator('button')).toBeDisabled(); 
 
         // Checks total count of locks is 0
+        await expect(umbracoUi.contentLock.dashboardNumberOfLocks).toBeVisible();
+        await expect(umbracoUi.contentLock.dashboardNumberOfLocks).toHaveText('0'); // Expect the text to be 0
     });
 
     // See list of locks

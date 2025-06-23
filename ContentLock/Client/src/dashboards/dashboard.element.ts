@@ -275,7 +275,7 @@ export class ContentLockDashboardElement extends UmbElementMixin(LitElement) {
               <uui-icon name="icon-combination-lock"></uui-icon> 
               <umb-localize key="contentLockDashboard_pagesCheckedOutTitle"></umb-localize>
             </span>
-            <h2>${this._totalLockedPages}</h2>
+            <h2 data-mark="contentlock:dashboard:numberoflocks">${this._totalLockedPages}</h2>
           </uui-box>
         </div>
       </div>

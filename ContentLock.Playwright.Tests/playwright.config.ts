@@ -88,5 +88,6 @@ export default defineConfig({
     stderr: 'pipe',
     stdout: 'pipe',
     ignoreHTTPSErrors: true,
+    reuseExistingServer: !process.env.CI, // Don't reuse server on CI to ensure a fresh start
   },
 });
