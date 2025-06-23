@@ -22,6 +22,15 @@ jobs:
     - name: Build Content Lock C# Code
       run: dotnet build Umbraco.Community.ContentLock.sln
 
+    - name: Run dotnet trust cert https --clean
+      run: dotnet dev-certs https --clean
+
+    - name: Run dotnet trust cert https --trust
+      run: dotnet dev-certs https --trust
+
+    - name: Run dotnet trust cert https --check
+      run: dotnet dev-certs https --check
+
     - name: Install npm dependencies for Content Lock Client
       run: npm ci
       working-directory: 'ContentLock/Client'
