@@ -23,7 +23,9 @@ export default defineConfig({
   /* Opt out of parallel tests on CI. */
   workers: process.env.CI ? 1 : undefined,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
-  reporter: 'html',
+  // 'github' for GitHub Actions CI to generate annotations, plus a concise 'dot'
+  // default to 'html' when running locally
+  reporter: process.env.CI ? 'github' : 'html',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
@@ -89,5 +91,6 @@ export default defineConfig({
     stdout: 'pipe',
     ignoreHTTPSErrors: true,
     reuseExistingServer: !process.env.CI, // Don't reuse server on CI to ensure a fresh start
+    timeout: 120 * 1000, // Increase timeout to 120 seconds for the server to start - as we need to wait for SQLite DB etc to be created
   },
 });
