@@ -23,9 +23,9 @@ export default defineConfig({
   /* Opt out of parallel tests on CI. */
   workers: process.env.CI ? 1 : undefined,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
-  // 'github' for GitHub Actions CI to generate annotations, plus a concise 'dot'
-  // default to 'html' when running locally
-  reporter: process.env.CI ? 'github' : 'html',
+  // 'github' and HTML for GitHub Actions CI to generate annotations, plus a concise 'dot'
+  // default to just 'html' when running locally
+  reporter: process.env.CI ? [['github'], ['html']] : 'html',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
@@ -34,7 +34,8 @@ export default defineConfig({
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
     screenshot: 'on',
-    testIdAttribute: 'data-mark' // Uses data-mark attribute same as Umbraco UI test helpers
+    testIdAttribute: 'data-mark', // Uses data-mark attribute same as Umbraco UI test helpers
+    ignoreHTTPSErrors: true, // Ignore HTTPS errors for .NET self-signed certs in dev/test environments
   },
 
   /* Configure projects for major browsers */
@@ -86,7 +87,7 @@ export default defineConfig({
   webServer: {
     cwd: path.join(__dirname, '../ContentLock.Website'),
     command: 'dotnet run --urls "https://localhost:5001;http://localhost:5000"',
-    url: process.env.CI ? 'http://localhost:5000/umbraco' : 'https://localhost:5001/umbraco',
+    url: 'https://localhost:5001/umbraco',
     stderr: 'pipe',
     stdout: 'pipe',
     ignoreHTTPSErrors: true,
