@@ -95,7 +95,7 @@ export class ContentLockWorkspaceContext extends UmbContextBase {
                     const rules = this.#variants.map(variant => ({
                         unique: `${this.#unique!.toString()}-${variant.culture}`,
                         variantId: new UmbVariantId(variant.culture, variant.segment),
-                        permitted: false,
+                        permitted: true, // This seems really weird and backwards to me
                         message: `This page is locked by ${lockInfo?.checkedOutBy}`
                     }));
                     this.#docWorkspaceCtx?.readOnlyGuard.addRules(rules);
