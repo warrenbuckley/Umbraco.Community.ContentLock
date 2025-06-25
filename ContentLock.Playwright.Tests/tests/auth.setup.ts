@@ -4,20 +4,17 @@
 // https://playwright.dev/docs/auth#testing-multiple-roles-together
 
 import * as path from "path";
-import { test as setup } from '@playwright/test';
-import { ConstantHelper, UiHelpers } from '@umbraco/playwright-testhelpers';
-import { MyUiHelpers } from "../code/UiHelpers";
+import { test as setup } from "../code/base";
+import { ConstantHelper } from '@umbraco/playwright-testhelpers';
 
 const STORAGE_STATE = path.join(__dirname, '../playwright/.auth/user.json');
 
-setup('authenticate', async ({page}) => {
-  // MyUiHelper extends Umbraco's UiHelpers
-  const umbracoUi = new MyUiHelpers(page);
+setup('authenticate', async ({page, umbracoUi}) => {
 
   await page.goto("/umbraco");
   await umbracoUi.login.enterEmail("warren@hackmakedo.com");
   await umbracoUi.login.enterPassword("password1234");
   await umbracoUi.login.clickLoginButton();
   await umbracoUi.login.goToSection(ConstantHelper.sections.settings);
-  await umbracoUi.page.context().storageState({path: STORAGE_STATE});
+  await page.context().storageState({path: STORAGE_STATE});
 });

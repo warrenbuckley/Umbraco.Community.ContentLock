@@ -1,6 +1,6 @@
-import { test, expect, type Page } from '@playwright/test';
-import { MyUiHelpers } from '../code/UiHelpers';
 import { ConstantHelper } from '@umbraco/playwright-testhelpers';
+import { test } from '../code/base';
+import { expect } from '@playwright/test';
 
 const userAuthFile = 'playwright/.auth/user.json';
 test.use({ 
@@ -17,10 +17,7 @@ test.use({
     }
 });
 
-test.beforeEach(async ({ page }) => {
-    // TODO: How can we not keep repeating this line in every test?
-    const umbracoUi = new MyUiHelpers(page);
-
+test.beforeEach(async ({ page, umbracoUi }) => {
     // Goto the Umbraco backoffice
     await page.goto('/umbraco');
 
@@ -30,34 +27,29 @@ test.beforeEach(async ({ page }) => {
 
 test.describe('Content Lock Dashboard', () => {
 
-    test('is visible', async ({ page }) => {
+    test('is visible', async ({ dashboard }) => {
 
-        // TODO: How can we not keep repeating this line in every test?
-        const umbracoUi = new MyUiHelpers(page);
-        
         // Find content lock dashboard tab
-        await expect(umbracoUi.contentLock.dashboardTab).toBeVisible();
+        await expect(dashboard.dashboardTab).toBeVisible();
     });
 
-    test('correctly shows no locks', async ({ page }) => {
-       // TODO: How can we not keep repeating this line in every test?
-        const umbracoUi = new MyUiHelpers(page);
+    test('correctly shows no locks', async ({ dashboard }) => {
 
         // Click the dashboard tab
-        await umbracoUi.contentLock.dashboardTab.click();
+        await dashboard.dashboardTab.click();
 
         // Check for a piece of text
-        await expect(umbracoUi.contentLock.dashboardNoLocksMessage).toBeVisible(); 
-        await expect(umbracoUi.contentLock.dashboardNoLocksMessage).toHaveText(/zero/); // Partial match 'zero' against zip, zero nada
+        await expect(dashboard.dashboardNoLocksMessage).toBeVisible(); 
+        await expect(dashboard.dashboardNoLocksMessage).toHaveText(/zero/); // Partial match 'zero' against zip, zero nada
 
         // Checks unlock button is disabled
         // Disabled only works on native button and not uui-button hence the chained locator to look in shadow dom
-        await expect(umbracoUi.contentLock.dashboardUnlockBtn).toBeVisible();
-        await expect(umbracoUi.contentLock.dashboardUnlockBtn.locator('button')).toBeDisabled(); 
+        await expect(dashboard.dashboardUnlockBtn).toBeVisible();
+        await expect(dashboard.dashboardUnlockBtn.locator('button')).toBeDisabled();
 
         // Checks total count of locks is 0
-        await expect(umbracoUi.contentLock.dashboardNumberOfLocks).toBeVisible();
-        await expect(umbracoUi.contentLock.dashboardNumberOfLocks).toHaveText('0'); // Expect the text to be 0
+        await expect(dashboard.dashboardNumberOfLocks).toBeVisible();
+        await expect(dashboard.dashboardNumberOfLocks).toHaveText('0'); // Expect the text to be 0
     });
 
     // See list of locks
