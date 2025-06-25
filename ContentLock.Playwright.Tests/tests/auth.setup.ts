@@ -1,4 +1,4 @@
-// Docs for Auth with Playwright§
+// Docs for Auth with Playwright
 // https://playwright.dev/docs/auth
 // https://playwright.dev/docs/auth#multiple-signed-in-roles
 // https://playwright.dev/docs/auth#testing-multiple-roles-together
