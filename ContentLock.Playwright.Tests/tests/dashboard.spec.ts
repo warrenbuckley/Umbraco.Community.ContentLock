@@ -55,7 +55,7 @@ test.describe('Content Lock Dashboard', () => {
     // See list of locks
 
     // From the collection of locks 
-    // Unlock a specifc lock/page and verify it is removed from the list
+    // Unlock a specific lock/page and verify it is removed from the list
     // Do I test with the API that it also not returning the lock we removed?
 
    // Use unlock all button
