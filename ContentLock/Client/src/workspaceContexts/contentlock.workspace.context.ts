@@ -203,7 +203,7 @@ export class ContentLockWorkspaceContext extends UmbContextBase {
                 return;
             }
 
-            var umbVariant = new UmbVariantId(firstVariant.culture, firstVariant.segment);
+            const umbVariant = new UmbVariantId(firstVariant.culture, firstVariant.segment);
             this.#docWorkspaceCtx?.setName(currentName + '1', umbVariant);
             this.#docWorkspaceCtx?.setName(currentName, umbVariant);
 
