@@ -112,6 +112,7 @@ export class ContentLockWorkspaceContext extends UmbContextBase {
                 }
 
                 // TODO: Remember to remove this once PR merged in
+                // TODO: Remove this once we do a V17 targeted release
                 // https://github.com/umbraco/Umbraco-CMS/pull/19621
                 // Call the MEGA HACK workaround in a separate method
                 // ================================================================
@@ -176,6 +177,7 @@ export class ContentLockWorkspaceContext extends UmbContextBase {
     // ================================================================================================
     /**
      * TODO: REMEMBER TO REMOVE THIS
+     * TODO: Remove this once we do a V17 targeted release
      * Temporary workaround for Umbraco bug see https://github.com/umbraco/Umbraco-CMS/pull/19621
      * Forces the workspace name to update to avoid UI issues when unlocking.
      * Thanks to Mads for the idea/hack for now
