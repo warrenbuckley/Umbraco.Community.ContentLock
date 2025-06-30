@@ -4,11 +4,11 @@ import { type UmbControllerHost } from '@umbraco-cms/backoffice/controller-api';
 import { UMB_DOCUMENT_WORKSPACE_CONTEXT, UmbDocumentVariantModel, UmbDocumentWorkspaceContext } from '@umbraco-cms/backoffice/document';
 import { observeMultiple, UmbBooleanState, UmbStringState } from '@umbraco-cms/backoffice/observable-api';
 import { UmbEntityUnique } from '@umbraco-cms/backoffice/entity';
-import { UmbVariantId } from '@umbraco-cms/backoffice/variant';
 import ContentLockSignalrContext, { CONTENTLOCK_SIGNALR_CONTEXT } from '../globalContexts/contentlock.signalr.context';
 import { UMB_CURRENT_USER_CONTEXT } from '@umbraco-cms/backoffice/current-user';
 import { UMB_CONFIRM_MODAL, umbOpenModal } from '@umbraco-cms/backoffice/modal';
 import { UmbLocalizationController } from '@umbraco-cms/backoffice/localization-api';
+import { UmbVariantId } from '@umbraco-cms/backoffice/variant';
 
 export class ContentLockWorkspaceContext extends UmbContextBase {
 
@@ -31,6 +31,8 @@ export class ContentLockWorkspaceContext extends UmbContextBase {
 
     #localize = new UmbLocalizationController(this);
 
+    #isSettingNameHack = false;
+
 	constructor(host: UmbControllerHost) {
 		super(host, CONTENTLOCK_WORKSPACE_CONTEXT.toString());
 
@@ -52,7 +54,6 @@ export class ContentLockWorkspaceContext extends UmbContextBase {
             this.#docWorkspaceCtx?.observe(observeMultiple([this.#docWorkspaceCtx?.unique, this.#docWorkspaceCtx?.variants]), ([unique, variants]) => {
                 this.#unique = unique;
                 this.#variants = variants;
-
                 this.checkContentLockState();
             });
         });
@@ -83,28 +84,41 @@ export class ContentLockWorkspaceContext extends UmbContextBase {
                     this.setLockedByName(lockInfo.checkedOutBy);
                 }
 
-                // Clear out any existing readonly states first
-                // Added: As was seeing issues that it was reporting the state with the same unique was already added
-                this.#docWorkspaceCtx?.readOnlyGuard.clearRules();
-
                 if(isLocked && isLockedBySelf === false){
-                    // Page is locked by someone else - set the readonly state/readonly guard
+                    // Page is locked by someone else - set the propertyWriteGuard
+                    this.#docWorkspaceCtx?.propertyWriteGuard.addRule({
+                        unique: `ContentLock-${this.#unique!.toString()}`,
+                        permitted: false,
+                        message: `This page is locked by ${lockInfo?.checkedOutBy}`
+                    });
+
                     // Set the read only state of the document for ALL culture & segment variant combinations
                     // Even documents without a variant will have a default variant with the culture and segment set to null
-                    this.#variants.forEach(async variant => {
-                        await this.#docWorkspaceCtx?.readOnlyGuard.addRule({
-                            unique: `${this.#unique!.toString()}-${variant.culture}`,
-                            variantId: new UmbVariantId(variant.culture, variant.segment),
-                            message: `This page is locked by ${lockInfo?.checkedOutBy}`
-                        });
-                    });
+                    const rules = this.#variants.map(variant => ({
+                        unique: `${this.#unique!.toString()}-${variant.culture}`,
+                        variantId: new UmbVariantId(variant.culture, variant.segment),
+                        permitted: true, // This seems really weird and backwards to me
+                        message: `This page is locked by ${lockInfo?.checkedOutBy}`
+                    }));
+                    this.#docWorkspaceCtx?.readOnlyGuard.addRules(rules);
                 }
                 else {
-                    // Page is not locked or its locked by self - remove the readonly state
-                    this.#variants.forEach(async variant => {
-                        await this.#docWorkspaceCtx?.readOnlyGuard.removeRule(`${this.#unique!.toString()}-${variant.culture}`);
-                    });
+                    // Page is not locked or its locked by self - remove the readonly (propertyWriteGuard)
+                    this.#docWorkspaceCtx?.propertyWriteGuard.removeRule(`ContentLock-${this.#unique!.toString()}`);
+
+                    // Same for the read only state of the document for ALL culture & segment variant combinations
+                    const ruleKeys = this.#variants.map(variant => `${this.#unique!.toString()}-${variant.culture}`);
+                    this.#docWorkspaceCtx?.readOnlyGuard.removeRules(ruleKeys);
                 }
+
+                // TODO: Remember to remove this once PR merged in
+                // TODO: Remove this once we do a V17 targeted release
+                // https://github.com/umbraco/Umbraco-CMS/pull/19621
+                // Call the MEGA HACK workaround in a separate method
+                // ================================================================
+                this.#runSetNameHack();
+                // ================================================================
+
 
                 // If previously the page was locked by someone else, we can alert the user its now unlocked
                 if (previousState.isLocked && !previousState.isLockedBySelf && !isLocked && !isLockedBySelf) {
@@ -159,6 +173,45 @@ export class ContentLockWorkspaceContext extends UmbContextBase {
 	public setLockedByName(lockedBy: string) {
 		this.#lockedByName.setValue(lockedBy);
 	}
+
+    // ================================================================================================
+    /**
+     * TODO: REMEMBER TO REMOVE THIS
+     * TODO: Remove this once we do a V17 targeted release
+     * Temporary workaround for Umbraco bug see https://github.com/umbraco/Umbraco-CMS/pull/19621
+     * Forces the workspace name to update to avoid UI issues when unlocking.
+     * Thanks to Mads for the idea/hack for now
+     */
+    #runSetNameHack() {
+        if (this.#isSettingNameHack){
+            return;
+        }
+
+        this.#isSettingNameHack = true;
+        
+        try {
+            const currentName = this.#docWorkspaceCtx?.getName();
+            if (!currentName) {
+                this.#isSettingNameHack = false;
+                return;
+            }
+
+            // Even if the node does not vary with languages or segments its still gives us one variant
+            const firstVariant = this.#variants[0];
+            if(!firstVariant) {
+                this.#isSettingNameHack = false;
+                return;
+            }
+
+            const umbVariant = new UmbVariantId(firstVariant.culture, firstVariant.segment);
+            this.#docWorkspaceCtx?.setName(currentName + '1', umbVariant);
+            this.#docWorkspaceCtx?.setName(currentName, umbVariant);
+
+        } finally {
+            this.#isSettingNameHack = false;
+        }
+    }
+    // ================================================================================
 }
 
 // Declare a api export, so Extension Registry can initialize this class:
