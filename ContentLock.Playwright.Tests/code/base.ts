@@ -10,8 +10,8 @@ export type TestOptions = {
 
 // Extend the base test with the Dashboard page object
 export const test = base.extend<TestOptions>({
-    dashboard: async ({ page }, use) => {
-        const dashboard = new Dashboard(page);
+    dashboard: async ({ page, umbracoUi }, use) => {
+        const dashboard = new Dashboard(page, umbracoUi);
         await use(dashboard);
     },
 });

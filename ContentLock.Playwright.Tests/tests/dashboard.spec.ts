@@ -23,6 +23,7 @@ test.beforeEach(async ({ page, umbracoUi }) => {
 
     // Navigate to the content section
     await umbracoUi.content.goToSection(ConstantHelper.sections.content);
+
 });
 
 test.describe('Content Lock Dashboard', () => {
@@ -35,8 +36,8 @@ test.describe('Content Lock Dashboard', () => {
 
     test('correctly shows no locks', async ({ dashboard }) => {
 
-        // Click the dashboard tab
-        await dashboard.dashboardTab.click();
+        // Clicks the dashboard tab in the content section
+        await dashboard.goto();
 
         // Check for a piece of text
         await expect(dashboard.dashboardNoLocksMessage).toBeVisible(); 
@@ -50,6 +51,15 @@ test.describe('Content Lock Dashboard', () => {
         // Checks total count of locks is 0
         await expect(dashboard.dashboardNumberOfLocks).toBeVisible();
         await expect(dashboard.dashboardNumberOfLocks).toHaveText('0'); // Expect the text to be 0
+    });
+
+    test('user can lock several pages and see them in the dashboard', async ({ page, umbracoUi, dashboard }) => {
+        // The test site has Pauls Seals Clean SK in it
+        // So we know which pages/nodes exist to lock
+
+        // await umbracoUi.content.clickActionsMenuForContent('Home');
+        // umbracoUi.content.clickActionsMenuForName('Home');
+        // await umbracoUi.content.clickActionsMenuForNameInSectionSidebar('home');
     });
 
     // See list of locks
