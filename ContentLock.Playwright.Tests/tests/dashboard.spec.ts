@@ -53,13 +53,37 @@ test.describe('Content Lock Dashboard', () => {
         await expect(dashboard.dashboardNumberOfLocks).toHaveText('0'); // Expect the text to be 0
     });
 
-    test('user can lock several pages and see them in the dashboard', async ({ page, umbracoUi, dashboard }) => {
+    test('user can lock a page and see it in the dashboard', async ({ page, umbracoUi, dashboard }) => {
         // The test site has Pauls Seals Clean SK in it
         // So we know which pages/nodes exist to lock
 
-        // await umbracoUi.content.clickActionsMenuForContent('Home');
-        // umbracoUi.content.clickActionsMenuForName('Home');
-        // await umbracoUi.content.clickActionsMenuForNameInSectionSidebar('home');
+        // Clicks the dashboard tab in the content section
+        await dashboard.goto();
+
+        // Verify we start off with no locks
+        await expect(dashboard.dashboardNumberOfLocks).toBeVisible();
+        await expect(dashboard.dashboardNumberOfLocks).toHaveText('0'); // Expect the text to be 0
+
+
+        // Find the 'Home' node in the tree and click the actions menu for it
+        await umbracoUi.content.clickActionsMenuForContent('Home');
+
+        // See if the lock action menu item is visible
+        // entity-action:contentlock.entityaction.document.lock
+        await expect(page.getByTestId('entity-action:contentlock.entityaction.document.lock')).toBeVisible();
+
+        // Click the lock action menu item
+        await page.getByTestId('entity-action:contentlock.entityaction.document.lock').click();
+
+        // Verify the dashboard updated/changed
+        await expect(dashboard.dashboardNumberOfLocks).toBeVisible();
+        await expect(dashboard.dashboardNumberOfLocks).toHaveText('1'); // Expect the text to be 1
+
+        // Need to also check can see the item in the list
+
+        // Checks unlock button is now enabled
+        await expect(dashboard.dashboardUnlockBtn).toBeVisible();
+        await expect(dashboard.dashboardUnlockBtn.locator('button')).toBeEnabled(); // Why is this failing - still shows as disabled
     });
 
     // See list of locks
