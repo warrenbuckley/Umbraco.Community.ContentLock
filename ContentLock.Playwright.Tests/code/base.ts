@@ -1,18 +1,22 @@
-//import { test as base } from "@playwright/test";
 import { test as base } from "@umbraco/playwright-testhelpers";
 import { Dashboard } from "./PageObjectModels/Dashboard";
-
-//export { expect } from "@playwright/test";
+import { Api } from "./api";
 
 export type TestOptions = {
     dashboard: Dashboard;
+    umbracoApi: Api;
 };
 
 // Extend the base test with the Dashboard page object
+// And our updated API class which has extended the one from Umbraco
 export const test = base.extend<TestOptions>({
     dashboard: async ({ page, umbracoUi }, use) => {
         const dashboard = new Dashboard(page, umbracoUi);
         await use(dashboard);
     },
+    umbracoApi: async ({ page }, use) => {
+       const newUmbApi = new Api(page);
+       await use(newUmbApi);
+    }
 });
 

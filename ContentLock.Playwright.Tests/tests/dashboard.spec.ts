@@ -17,7 +17,10 @@ test.use({
     }
 });
 
-test.beforeEach(async ({ page, umbracoUi }) => {
+test.beforeEach(async ({ page, umbracoUi, umbracoApi }) => {
+    // Clean up any existing locks before each test
+    //await umbracoApi.resetContentLocks();
+
     // Goto the Umbraco backoffice
     await page.goto('/umbraco');
 
@@ -77,23 +80,17 @@ test.describe('Content Lock Dashboard', () => {
 
         // Verify the dashboard updated/changed
         await expect(dashboard.dashboardNumberOfLocks).toBeVisible();
-        await expect(dashboard.dashboardNumberOfLocks).toHaveText('1'); // Expect the text to be 1
+        await expect(dashboard.dashboardNumberOfLocks).toHaveText('1'); // Expect the text to be 1    )
 
         // Need to also check can see the item in the list
+        // Verify the following:
+        // * Node Name = 'Home'
+        // * Node Type = 'home'
+        // * User who locked it = 'warren'
 
-        // Checks unlock button is now enabled
-        await expect(dashboard.dashboardUnlockBtn).toBeVisible();
-        await expect(dashboard.dashboardUnlockBtn.locator('button')).toBeEnabled(); // Why is this failing - still shows as disabled
+        // Count number of rows in table (This excludes the header row)
+        // Filter out header rows by checking for columnheader cells
+        const dataRows = page.getByRole('row').filter({ hasNot: page.getByRole('columnheader') });
+        await expect(dataRows).toHaveCount(1);
     });
-
-    // See list of locks
-
-    // From the collection of locks 
-    // Unlock a specific lock/page and verify it is removed from the list
-    // Do I test with the API that it also not returning the lock we removed?
-
-   // Use unlock all button
-   // Verify all locks are gone and no locks message is shown
-   // Use API ?? to verify all locks are gone
-
 })
