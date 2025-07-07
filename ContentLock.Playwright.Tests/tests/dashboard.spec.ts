@@ -18,15 +18,14 @@ test.use({
 });
 
 test.beforeEach(async ({ page, umbracoUi, umbracoApi }) => {
-    // Clean up any existing locks before each test
-    await umbracoApi.resetContentLocks();
-
     // Goto the Umbraco backoffice
     await page.goto('/umbraco');
 
     // Navigate to the content section
     await umbracoUi.content.goToSection(ConstantHelper.sections.content);
 
+    // Clean up any existing locks before each test
+    await umbracoApi.resetContentLocks();
 });
 
 test.describe('Content Lock Dashboard', () => {
