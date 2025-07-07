@@ -20,6 +20,9 @@ public class ContentLockHub : Hub<IContentLockHubEvents>
     
     // Change to track 1 or more connection IDs per User Key
     private static readonly ConcurrentDictionary<Guid, ConcurrentHashSet<string>> ConnectedUsers = new();
+    
+    // Track which users are viewing which content nodes: ContentKey -> UserKey -> ConnectionIds
+    private static readonly ConcurrentDictionary<Guid, ConcurrentDictionary<Guid, ConcurrentHashSet<string>>> ContentViewers = new();
 
     public ContentLockHub(IContentLockService contentLockService, IOptionsMonitor<ContentLockOptions> options)
     {
@@ -50,6 +53,28 @@ public class ContentLockHub : Hub<IContentLockHubEvents>
 
     public override async Task<Task> OnDisconnectedAsync(Exception? exception)
     {
+        var currentUmbUser = this.Context.User?.GetUmbracoIdentity();
+        var currentUserKey = currentUmbUser?.GetUserKey();
+        var connectionId = this.Context.ConnectionId;
+
+        // Remove user from all content they were viewing
+        if (currentUserKey.HasValue)
+        {
+            var contentKeysToClean = new List<Guid>();
+            
+            // Find all content this user was viewing with this connection
+            foreach (var contentViewersKvp in ContentViewers)
+            {
+                contentKeysToClean.Add(contentViewersKvp.Key);
+            }
+
+            // Remove the user from each content they were viewing
+            foreach (var contentKey in contentKeysToClean)
+            {
+                await RemoveUserFromContentViewers(contentKey, currentUserKey.Value, connectionId);
+            }
+        }
+
         // Removes the user who is disconnecting
         await RemoveUserFromListOfConnectedUsersAsync();
 
@@ -128,5 +153,85 @@ public class ContentLockHub : Hub<IContentLockHubEvents>
         // Send the current options to the caller
         // Did not use .All as other connected clients should have a stored state of options in an observable
         await Clients.Caller.ReceiveLatestOptions(currentOptions);
+    }
+
+    /// <summary>
+    /// Called when a user starts viewing a specific content node
+    /// </summary>
+    /// <param name="contentKey">The content node key being viewed</param>
+    public async Task StartViewingContent(Guid contentKey)
+    {
+        var currentUmbUser = this.Context.User?.GetUmbracoIdentity();
+        var currentUserKey = currentUmbUser?.GetUserKey();
+        var connectionId = this.Context.ConnectionId;
+
+        if (!currentUserKey.HasValue)
+            return;
+
+        // Get or create the content viewers dictionary for this content
+        var contentViewers = ContentViewers.GetOrAdd(contentKey, _ => new ConcurrentDictionary<Guid, ConcurrentHashSet<string>>());
+        
+        // Get or create the connection set for this user viewing this content
+        var userConnections = contentViewers.GetOrAdd(currentUserKey.Value, _ => new ConcurrentHashSet<string>());
+        
+        // Track if this is the user's first connection viewing this content
+        var isFirstConnection = userConnections.Count == 0;
+        
+        // Add this connection to the user's viewing connections for this content
+        userConnections.TryAdd(connectionId);
+
+        // Only notify if this is the user's first time viewing this content
+        if (isFirstConnection)
+        {
+            // Notify all clients that this user started viewing this content
+            await Clients.All.UserStartedViewingContent(contentKey, currentUserKey.Value);
+        }
+
+        // Send the current list of viewers for this content to the caller
+        var currentViewers = contentViewers.Keys.ToArray();
+        await Clients.Caller.ReceiveUsersViewingContent(contentKey, currentViewers);
+    }
+
+    /// <summary>
+    /// Called when a user stops viewing a specific content node
+    /// </summary>
+    /// <param name="contentKey">The content node key no longer being viewed</param>
+    public async Task StopViewingContent(Guid contentKey)
+    {
+        var currentUmbUser = this.Context.User?.GetUmbracoIdentity();
+        var currentUserKey = currentUmbUser?.GetUserKey();
+        var connectionId = this.Context.ConnectionId;
+
+        if (!currentUserKey.HasValue)
+            return;
+
+        await RemoveUserFromContentViewers(contentKey, currentUserKey.Value, connectionId);
+    }
+
+    private async Task RemoveUserFromContentViewers(Guid contentKey, Guid userKey, string connectionId)
+    {
+        if (ContentViewers.TryGetValue(contentKey, out var contentViewers))
+        {
+            if (contentViewers.TryGetValue(userKey, out var userConnections))
+            {
+                // Remove this specific connection
+                userConnections.Remove(connectionId);
+
+                // If user has no more connections viewing this content, remove them entirely
+                if (userConnections.Count == 0)
+                {
+                    contentViewers.TryRemove(userKey, out _);
+                    
+                    // Notify all clients that this user stopped viewing this content
+                    await Clients.All.UserStoppedViewingContent(contentKey, userKey);
+                }
+
+                // If no users are viewing this content anymore, clean up the content entry
+                if (contentViewers.Count == 0)
+                {
+                    ContentViewers.TryRemove(contentKey, out _);
+                }
+            }
+        }
     }
 }

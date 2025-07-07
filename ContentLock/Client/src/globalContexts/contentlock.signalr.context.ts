@@ -24,6 +24,9 @@ export default class ContentLockSignalrContext extends UmbContextBase
     // Used to store the overview of locks
     #connectedBackofficeUserKeys = new UmbArrayState<string>([], (item) => item);
 
+    // Used to store users viewing specific content nodes: ContentKey -> UserKeys[]
+    #contentViewers = new UmbObjectState<Record<string, string[]>>({});
+
     // Used to store the options for the content lock package
     // Sets the default values for the options
     #contentLockOptions = new UmbObjectState<ContentLockOptions>(
@@ -62,6 +65,29 @@ export default class ContentLockSignalrContext extends UmbContextBase
             return otherUsers.length;
         });
     };
+
+    /**
+     * Get the list of users viewing a specific content node
+     * @param contentKey - The key of the content node to get viewers for
+     */
+    public getUsersViewingContent(contentKey: string) {
+        return this.#contentViewers.asObservablePart((viewers) => {
+            return viewers[contentKey] || [];
+        });
+    }
+
+    /**
+     * Get the count of users viewing a specific content node excluding the current user
+     * @param contentKey - The key of the content node
+     * @param currentUserKey - The key of the current user to exclude from the count
+     */
+    public getViewersCountExcludingCurrentUser(contentKey: string, currentUserKey: string) {
+        return this.#contentViewers.asObservablePart((viewers) => {
+            const viewingUsers = viewers[contentKey] || [];
+            const otherUsers = viewingUsers.filter(userKey => userKey !== currentUserKey);
+            return otherUsers.length;
+        });
+    }
 
     // The entire options object as an observable
     public contentLockOptions = this.#contentLockOptions.asObservable();
@@ -181,6 +207,45 @@ export default class ContentLockSignalrContext extends UmbContextBase
             this.signalrConnection.on('ReceiveLatestOptions', (options:ContentLockOptions) =>{
                 this.#contentLockOptions.setValue(options);
             });
+
+            // Content viewing events
+            this.signalrConnection.on('UserStartedViewingContent', (contentKey: string, userKey: string) => {
+                const currentViewers = this.#contentViewers.getValue();
+                const contentViewers = currentViewers[contentKey] || [];
+                
+                if (!contentViewers.includes(userKey)) {
+                    contentViewers.push(userKey);
+                    this.#contentViewers.setValue({
+                        ...currentViewers,
+                        [contentKey]: contentViewers
+                    });
+                }
+            });
+
+            this.signalrConnection.on('UserStoppedViewingContent', (contentKey: string, userKey: string) => {
+                const currentViewers = this.#contentViewers.getValue();
+                const contentViewers = currentViewers[contentKey] || [];
+                
+                const updatedViewers = contentViewers.filter(key => key !== userKey);
+                if (updatedViewers.length === 0) {
+                    // Remove the content key entirely if no one is viewing
+                    const { [contentKey]: removed, ...remainingViewers } = currentViewers;
+                    this.#contentViewers.setValue(remainingViewers);
+                } else {
+                    this.#contentViewers.setValue({
+                        ...currentViewers,
+                        [contentKey]: updatedViewers
+                    });
+                }
+            });
+
+            this.signalrConnection.on('ReceiveUsersViewingContent', (contentKey: string, viewingUserKeys: string[]) => {
+                const currentViewers = this.#contentViewers.getValue();
+                this.#contentViewers.setValue({
+                    ...currentViewers,
+                    [contentKey]: viewingUserKeys
+                });
+            });
         }
     }
 
@@ -256,6 +321,33 @@ export default class ContentLockSignalrContext extends UmbContextBase
             );
     }
 
+    /**
+     * Notify the server that the current user started viewing a specific content node
+     * @param contentKey - The key of the content node being viewed
+     */
+    public async startViewingContent(contentKey: string): Promise<void> {
+        if (this.signalrConnection && this.signalrConnection.state === signalR.HubConnectionState.Connected) {
+            try {
+                await this.signalrConnection.invoke('StartViewingContent', contentKey);
+            } catch (error) {
+                console.error('Failed to notify server of content viewing:', error);
+            }
+        }
+    }
+
+    /**
+     * Notify the server that the current user stopped viewing a specific content node
+     * @param contentKey - The key of the content node no longer being viewed
+     */
+    public async stopViewingContent(contentKey: string): Promise<void> {
+        if (this.signalrConnection && this.signalrConnection.state === signalR.HubConnectionState.Connected) {
+            try {
+                await this.signalrConnection.invoke('StopViewingContent', contentKey);
+            } catch (error) {
+                console.error('Failed to notify server of stopping content viewing:', error);
+            }
+        }
+    }
 
     override async destroy(): Promise<void> {
         if (this.signalrConnection) {

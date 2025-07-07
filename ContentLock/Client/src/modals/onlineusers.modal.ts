@@ -29,16 +29,29 @@ export class OnlineUsersModalElement extends UmbModalBaseElement<OnlineUsersModa
         });
 
         this.consumeContext(CONTENTLOCK_SIGNALR_CONTEXT, (signalrCtx) => {
-            // The list of GUID connected users as keys/uniques
-            this.observe(signalrCtx?.connectedUserKeys, async (connectedUserKeys) => {
-                if(connectedUserKeys) {
-                    this._connectedUserKeys = connectedUserKeys;
+            if (this.data?.contentKey) {
+                // Show users viewing specific content
+                this.observe(signalrCtx?.getUsersViewingContent(this.data.contentKey), async (viewingUserKeys) => {
+                    if(viewingUserKeys) {
+                        this._connectedUserKeys = viewingUserKeys;
 
-                    // Get users from the repo
-                    const userItems = (await this.#userItemRepository.requestItems(connectedUserKeys));
-                    this._connectedUsersModels = userItems?.data;
-                }
-            });
+                        // Get users from the repo
+                        const userItems = (await this.#userItemRepository.requestItems(viewingUserKeys));
+                        this._connectedUsersModels = userItems?.data;
+                    }
+                });
+            } else {
+                // Show all connected users (original behavior)
+                this.observe(signalrCtx?.connectedUserKeys, async (connectedUserKeys) => {
+                    if(connectedUserKeys) {
+                        this._connectedUserKeys = connectedUserKeys;
+
+                        // Get users from the repo
+                        const userItems = (await this.#userItemRepository.requestItems(connectedUserKeys));
+                        this._connectedUsersModels = userItems?.data;
+                    }
+                });
+            }
         });
     }
     
@@ -47,9 +60,17 @@ export class OnlineUsersModalElement extends UmbModalBaseElement<OnlineUsersModa
     }
     
     render() {
+        const isContentSpecific = !!this.data?.contentKey;
+        const modalHeader = isContentSpecific 
+            ? this.localize.term('contentLockViewingUsersModal_modalHeader')
+            : this.localize.term('contentLockUsersModal_modalHeader');
+        const listHeader = isContentSpecific 
+            ? this.localize.term('contentLockViewingUsersModal_listOfViewers')
+            : this.localize.term('contentLockUsersModal_listOfUsers');
+
         return html`
-            <umb-body-layout headline=${this.localize.term('contentLockUsersModal_modalHeader')}>
-                <uui-box headline=${this.localize.term('contentLockUsersModal_listOfUsers')}>
+            <umb-body-layout headline=${modalHeader}>
+                <uui-box headline=${listHeader}>
                     ${this._connectedUsersModels?.map((user) => {
                         return html`
                             <div class="user-detail">
