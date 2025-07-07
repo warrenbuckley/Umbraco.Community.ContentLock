@@ -8,8 +8,7 @@ export class Api extends ApiHelpers {
     }
 
     async resetContentLocks() {
-        // If you have a test database cleanup endpoint
-        // TODO: call some test API that will only exist in the test site
-        await this.post('/umbraco/api/test/reset-contentlocks');
+        const response = await this.get('/umbraco/contentlock-e2e/api/reset');
+        console.log("Reset Content Locks Response: Status & OK", response.status(), response.ok());
     }
 }

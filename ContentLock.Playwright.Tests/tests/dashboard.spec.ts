@@ -19,7 +19,7 @@ test.use({
 
 test.beforeEach(async ({ page, umbracoUi, umbracoApi }) => {
     // Clean up any existing locks before each test
-    //await umbracoApi.resetContentLocks();
+    await umbracoApi.resetContentLocks();
 
     // Goto the Umbraco backoffice
     await page.goto('/umbraco');
