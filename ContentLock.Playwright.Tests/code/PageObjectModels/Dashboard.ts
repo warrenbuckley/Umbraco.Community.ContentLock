@@ -1,4 +1,4 @@
-import { Locator, Page } from "@playwright/test";
+import { expect, Locator, Page } from "@playwright/test";
 import { ConstantHelper, UiHelpers } from "@umbraco/playwright-testhelpers";
 
 export class Dashboard {
@@ -26,5 +26,10 @@ export class Dashboard {
 
         // Click the dashboard tab
         await this.dashboardTab.click();
+    }
+
+    async showsNumberOfLocks(count: number){
+        await expect(this.dashboardNumberOfLocks).toBeVisible();
+        await expect(this.dashboardNumberOfLocks).toHaveText(count.toString());
     }
 }
