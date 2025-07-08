@@ -101,6 +101,7 @@ test.describe('Content Lock Dashboard', () => {
 
         // Click the lock action menu item
         await page.getByTestId('entity-action:contentlock.entityaction.document.lock').click();
+        await page.waitForTimeout(1000); // Wait for the lock to be applied
 
         // Verify the dashboard updated/changed
         await dashboard.showsNumberOfLocks(1);
@@ -114,6 +115,7 @@ test.describe('Content Lock Dashboard', () => {
 
         // Click the lock action menu item 
         await page.getByTestId('entity-action:contentlock.entityaction.document.unlock').click();
+        await page.waitForTimeout(1000);
 
         // Verify/assert stuff
         await dashboard.showsNumberOfLocks(0);
