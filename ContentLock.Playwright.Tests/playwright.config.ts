@@ -25,8 +25,8 @@ export default defineConfig({
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   // 'github' and HTML for GitHub Actions CI to generate annotations, plus a concise 'dot'
   // default to just 'html' when running locally
-  //reporter: process.env.CI ? [['github'], ['html']] : 'html',
-  reporter: 'html',
+  reporter: process.env.CI ? [['github'], ['html']] : 'html',
+  //reporter: 'html',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
