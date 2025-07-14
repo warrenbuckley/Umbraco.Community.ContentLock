@@ -18,7 +18,7 @@ export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends 
     meta?: Record<string, unknown>;
 };
 
-export class ContentLock {
+export class ContentLockService {
     public static bulkUnlock<ThrowOnError extends boolean = false>(options?: Options<BulkUnlockData, ThrowOnError>) {
         return (options?.client ?? _heyApiClient).post<BulkUnlockResponses, BulkUnlockErrors, ThrowOnError>({
             security: [

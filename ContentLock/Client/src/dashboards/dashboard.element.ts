@@ -4,7 +4,7 @@ import { UMB_NOTIFICATION_CONTEXT, UmbNotificationContext } from "@umbraco-cms/b
 import { UmbTextStyles } from "@umbraco-cms/backoffice/style";
 import { UmbTableConfig, UmbTableDeselectedEvent, UmbTableElement, UmbTableItem, UmbTableOrderedEvent, UmbTableSelectedEvent } from "@umbraco-cms/backoffice/components";
 import { UmbTableColumnWithSort } from "../interfaces/UmbTableColumnWithSort";
-import { ContentLock as ContentLockService } from "../api";
+import { ContentLockService } from "../api";
 
 import '../components/table/table.pagelink.element';
 import { ProblemDetailResponse } from "../interfaces/ProblemDetailResponse";

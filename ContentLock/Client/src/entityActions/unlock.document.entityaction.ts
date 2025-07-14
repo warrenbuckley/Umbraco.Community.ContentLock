@@ -1,7 +1,7 @@
 import { UmbControllerHost } from "@umbraco-cms/backoffice/controller-api";
 import { UmbEntityActionArgs, UmbEntityActionBase } from "@umbraco-cms/backoffice/entity-action";
 import { UMB_NOTIFICATION_CONTEXT, UmbNotificationContext } from "@umbraco-cms/backoffice/notification";
-import { ContentLock as ContentLockService } from "../api";
+import { ContentLockService } from "../api";
 import { ProblemDetailResponse } from "../interfaces/ProblemDetailResponse";
 import { UmbLocalizationController } from "@umbraco-cms/backoffice/localization-api";
 
