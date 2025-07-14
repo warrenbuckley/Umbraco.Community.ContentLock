@@ -1,6 +1,7 @@
 import fetch from 'node-fetch';
 import chalk from 'chalk';
 import { createClient } from '@hey-api/openapi-ts';
+import { defaultPlugins } from '@hey-api/openapi-ts';
 
 // Start notifying user we are generating the TypeScript client
 console.log(chalk.green("Generating OpenAPI client..."));
@@ -36,9 +37,9 @@ fetch(swaggerUrl).then(response => {
     input: swaggerUrl,
     output: 'src/api',
     plugins:[
-      '@hey-api/client-fetch',
+      ...defaultPlugins,
       {
-        asClass: true,
+        asClass: true, 
         name: '@hey-api/sdk',
       },
     ],
