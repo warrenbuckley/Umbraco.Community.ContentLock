@@ -1,4 +1,5 @@
-﻿using ContentLock.Interfaces;
+﻿using ContentLock.Exceptions;
+using ContentLock.Interfaces;
 using ContentLock.Models.Backoffice;
 using ContentLock.Models.Database;
 
@@ -27,7 +28,7 @@ namespace ContentLock.Services
             IAuditService auditService,
             IUserIdKeyResolver userIdKeyResolver,
             IIdKeyMap idKeyMap,
-            IEntityService  entityService)
+            IEntityService entityService)
         {
             _logger = logger;
             _scopeProvider = scopeProvider;
@@ -116,7 +117,7 @@ namespace ContentLock.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting lock overview");
-                throw new Exception("Error getting lock overview", ex);
+                throw new ContentLockException("Error getting lock overview", ex);
             }
         }
 
@@ -153,7 +154,7 @@ namespace ContentLock.Services
             if (contentNode == null)
             {
                 _logger.LogWarning("Unable to lock node, as content node not found for key {contentKey}", contentKey);
-                throw new Exception($"Unable to lock node, as content node not found for key {contentKey}");
+                throw new ContentLockException($"Unable to lock node, as content node not found for key {contentKey}");
             }
 
             var user = await _userService.GetAsync(userKey);
@@ -192,7 +193,7 @@ namespace ContentLock.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error unlocking content {contentKey} for user {userKey}", contentKey, userKey);
-                throw new Exception($"Error unlocking content {contentKey} for user {userKey}", ex);
+                throw new ContentLockException($"Error unlocking content {contentKey} for user {userKey}", ex);
             }
         }
     }
