@@ -70,7 +70,7 @@ namespace ContentLock.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting lock info for content {contentKey}", contentKey);
-                throw new Exception($"Error getting lock info for content {contentKey}", ex);
+                throw new ContentLockException($"Error getting lock info for content {contentKey}", ex);
             }
         }
 
@@ -145,7 +145,7 @@ namespace ContentLock.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error locking content {contentKey} for user {userKey}", contentKey, userKey);
-                throw new Exception($"Error locking content {contentKey} for user {userKey}", ex);
+                throw new ContentLockException($"Error locking content {contentKey} for user {userKey}", ex);
             }
 
             // Get the info about the locked item
