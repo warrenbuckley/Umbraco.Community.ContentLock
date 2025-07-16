@@ -4,12 +4,10 @@ using ContentLock.Models.Database;
 
 using Microsoft.Extensions.Logging;
 
-using Umbraco.Cms.Core;
 using Umbraco.Cms.Core.Models;
+using Umbraco.Cms.Core.Models.Entities;
 using Umbraco.Cms.Core.Services;
 using Umbraco.Cms.Infrastructure.Scoping;
-
-using static Umbraco.Cms.Core.Constants.HttpContext;
 
 namespace ContentLock.Services
 {
@@ -18,26 +16,26 @@ namespace ContentLock.Services
         private readonly ILogger<ContentLockService> _logger;
         private readonly IScopeProvider _scopeProvider;
         private readonly IUserService _userService;
-        private readonly IPublishedContentQuery _publishedContentQuery;
         private readonly IAuditService _auditService;
         private readonly IUserIdKeyResolver _userIdKeyResolver;
         private readonly IIdKeyMap _idKeyMap;
+        private readonly IEntityService _entityService;
 
         public ContentLockService(ILogger<ContentLockService> logger,
             IScopeProvider scopeProvider,
             IUserService userService,
-            IPublishedContentQuery publishedContentQuery,
             IAuditService auditService,
             IUserIdKeyResolver userIdKeyResolver,
-            IIdKeyMap idKeyMap)
+            IIdKeyMap idKeyMap,
+            IEntityService  entityService)
         {
             _logger = logger;
             _scopeProvider = scopeProvider;
             _userService = userService;
-            _publishedContentQuery = publishedContentQuery;
             _auditService = auditService;
             _userIdKeyResolver = userIdKeyResolver;
             _idKeyMap = idKeyMap;
+            _entityService = entityService;
         }
 
         public async Task<ContentLockStatus> GetLockInfoAsync(Guid contentKey, Guid userKey)
@@ -60,7 +58,7 @@ namespace ContentLock.Services
 
                     return new ContentLockStatus
                     {
-                        IsLocked = lockInfo != null,
+                        IsLocked = true,
                         LockedByKey = lockInfo.UserKey,
                         LockedByName = userName,
                         LockedBySelf = userKey == lockInfo.UserKey,
@@ -71,7 +69,7 @@ namespace ContentLock.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting lock info for content {contentKey}", contentKey);
-                throw;
+                throw new Exception($"Error getting lock info for content {contentKey}", ex);
             }
         }
 
@@ -86,7 +84,7 @@ namespace ContentLock.Services
 
                     foreach (var conLock in contentLocks)
                     {
-                        var contentNode = _publishedContentQuery.Content(conLock.ContentKey);
+                        var contentNode = _entityService.Get(conLock.ContentKey, UmbracoObjectTypes.Document) as IDocumentEntitySlim;
                         if (contentNode == null)
                         {
                             _logger.LogWarning("Content node not found for key {contentKey}", conLock.ContentKey);
@@ -99,8 +97,8 @@ namespace ContentLock.Services
                         items.Add(new ContentLockOverviewItem
                         {
                             Key = conLock.ContentKey,
-                            NodeName = contentNode.Name,
-                            ContentType = contentNode.ContentType.Alias,
+                            NodeName = contentNode.Name ?? "Unknown",
+                            ContentType = contentNode.ContentTypeAlias,
                             CheckedOutBy = userName,
                             CheckedOutByKey = conLock.UserKey,
                             LastEdited = contentNode.UpdateDate,
@@ -118,7 +116,7 @@ namespace ContentLock.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting lock overview");
-                throw;
+                throw new Exception("Error getting lock overview", ex);
             }
         }
 
@@ -146,16 +144,16 @@ namespace ContentLock.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error locking content {contentKey} for user {userKey}", contentKey, userKey);
-                throw;
+                throw new Exception($"Error locking content {contentKey} for user {userKey}", ex);
             }
 
             // Get the info about the locked item
             // This will be sent out via SignalR to all connected clients
-
-            var contentNode = _publishedContentQuery.Content(contentKey);
+            var contentNode = _entityService.Get(contentKey, UmbracoObjectTypes.Document) as IDocumentEntitySlim;
             if (contentNode == null)
             {
-                _logger.LogWarning("Content node not found for key {contentKey}", contentKey);
+                _logger.LogWarning("Unable to lock node, as content node not found for key {contentKey}", contentKey);
+                throw new Exception($"Unable to lock node, as content node not found for key {contentKey}");
             }
 
             var user = await _userService.GetAsync(userKey);
@@ -164,8 +162,8 @@ namespace ContentLock.Services
             var lockInfo = new ContentLockOverviewItem
             {
                 Key = contentKey,
-                NodeName = contentNode.Name,
-                ContentType = contentNode.ContentType.Alias,
+                NodeName = contentNode.Name ?? "Unknown",
+                ContentType = contentNode.ContentTypeAlias,
                 CheckedOutBy = userName,
                 CheckedOutByKey = userKey,
                 LastEdited = contentNode.UpdateDate,
@@ -194,7 +192,7 @@ namespace ContentLock.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error unlocking content {contentKey} for user {userKey}", contentKey, userKey);
-                throw;
+                throw new Exception($"Error unlocking content {contentKey} for user {userKey}", ex);
             }
         }
     }
