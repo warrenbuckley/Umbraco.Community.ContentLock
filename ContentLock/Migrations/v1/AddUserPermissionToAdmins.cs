@@ -10,7 +10,7 @@ using Umbraco.Cms.Infrastructure.Packaging;
 
 namespace ContentLock.Migrations.v1
 {
-    public class AddUserPermissionToAdmins : PackageMigrationBase
+    public class AddUserPermissionToAdmins : AsyncPackageMigrationBase
     {
         private readonly IUserGroupService _userGroupService;
         private readonly ILogger<AddUserPermissionToAdmins> _logger;
@@ -24,7 +24,6 @@ namespace ContentLock.Migrations.v1
             IMigrationContext context,
             IOptions<PackageMigrationSettings> packageMigrationsSettings,
             IUserGroupService userGroupService,
-            IUserService userService,
             ILogger<AddUserPermissionToAdmins> logger)
             : base(
                   packagingService,
@@ -40,25 +39,23 @@ namespace ContentLock.Migrations.v1
             _logger = logger;
         }
 
-        protected override void Migrate()
+        protected override async Task MigrateAsync()
         {
-            // Booo :( the Migrate from PackageMigrationBase does not support Async
-            var adminGroup = _userGroupService.GetAsync(Umbraco.Cms.Core.Constants.Security.AdminGroupKey).Result;
-
+            var adminGroup = await _userGroupService.GetAsync(Umbraco.Cms.Core.Constants.Security.AdminGroupKey);
             if (adminGroup == null)
             {
                 _logger.LogWarning("ContentLock is unable to find the default Umbraco Admin User Group. Exiting");
                 return;
             }
 
-            // Permissions ?!
+            // Existing permissions are already set, so we can just add the new permission
             var permissions = adminGroup.Permissions;
 
             // Add new permission (Same as the permission verb in clientside code)
             permissions.Add(Constants.Permission);
 
             // Update the user group
-            var attempt = _userGroupService.UpdateAsync(adminGroup, Umbraco.Cms.Core.Constants.Security.SuperUserKey).Result;
+            var attempt = await _userGroupService.UpdateAsync(adminGroup, Umbraco.Cms.Core.Constants.Security.SuperUserKey);
 
             _logger.LogTrace("Updated default Umbraco Admin User Group with the 'ContentLock.Enabled' permission with this attempt status {status}", attempt.Status);
 
