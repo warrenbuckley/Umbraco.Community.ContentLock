@@ -145,6 +145,13 @@ export default class ContentLockSignalrContext extends UmbContextBase
                 this.#contentLocks.remove(contentKeys);
             });
 
+            // Purely for E2E tests only SignalR server will send out a 'RemoveAllLocksToClients'
+            // This is after the locks have been removed from the DB and we then need to clear them out in the client obseravable array state
+            this.signalrConnection.on('RemoveAllLocksToClients', () => {
+                // TODO: Would be nice if there was a removeAll or clear method on the UmbArrayState
+                this.#contentLocks.setValue([]);
+            });
+
             this.signalrConnection.on('UserConnected', (connectedUserKey:string) => {
                 this.#connectedBackofficeUserKeys.appendOne(connectedUserKey);
 
