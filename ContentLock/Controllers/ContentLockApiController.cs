@@ -73,7 +73,6 @@ namespace ContentLock.Controllers
             var currentUser = _backOfficeSecurityAccessor.BackOfficeSecurity?.CurrentUser;
             var userKey = currentUser?.Key;
             var userLang = currentUser?.Language ?? "en";
-            var userName = currentUser?.Name ?? "Unknown person";
             var cultureInfo = new CultureInfo(userLang);
 
             // Get current info for lock

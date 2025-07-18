@@ -24,7 +24,6 @@ namespace ContentLock.Migrations.v1
             IMigrationContext context,
             IOptions<PackageMigrationSettings> packageMigrationsSettings,
             IUserGroupService userGroupService,
-            IUserService userService,
             ILogger<AddUserPermissionToAdmins> logger)
             : base(
                   packagingService,
