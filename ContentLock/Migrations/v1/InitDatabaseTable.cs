@@ -10,7 +10,7 @@ using Umbraco.Cms.Infrastructure.Packaging;
 
 namespace ContentLock.Migrations.v1
 {
-    public class InitDatabaseTable : PackageMigrationBase
+    public class InitDatabaseTable : AsyncPackageMigrationBase
     {
         public InitDatabaseTable(
             IPackagingService packagingService,
@@ -33,12 +33,14 @@ namespace ContentLock.Migrations.v1
         {
         }
 
-        protected override void Migrate()
+        protected override Task MigrateAsync()
         {
             if (TableExists(ContentLocks.TableName) is false)
             {
                 Create.Table<ContentLocks>().Do();
             }
+
+            return Task.CompletedTask;
         }
     }
 }
