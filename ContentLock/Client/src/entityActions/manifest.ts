@@ -11,7 +11,7 @@ export const manifests: Array<UmbExtensionManifest> = [
     type: 'entityAction',
     kind: 'default',
     api: LockDocumentEntityAction,
-    weight: 400,
+    weight: 401,
     meta: {
       label: 'Lock Document',
       icon: 'icon-combination-lock',
