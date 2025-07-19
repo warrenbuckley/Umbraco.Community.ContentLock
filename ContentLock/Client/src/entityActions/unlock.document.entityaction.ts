@@ -15,8 +15,7 @@ export class UnlockDocumentEntityAction extends UmbEntityActionBase<never> {
     constructor(host: UmbControllerHost, args: UmbEntityActionArgs<never>) {
         super(host, args);
 
-        // Fetch/consume the contexts & assign to the private fields
-        this.consumeContext(UMB_NOTIFICATION_CONTEXT, (notificationCtx) => {
+        this.getContext(UMB_NOTIFICATION_CONTEXT).then((notificationCtx) => {
             this.#notificationCtx = notificationCtx;
         });
     }
