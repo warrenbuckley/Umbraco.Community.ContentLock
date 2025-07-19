@@ -1,6 +1,7 @@
 import { UmbControllerHost } from "@umbraco-cms/backoffice/controller-api";
-import { UmbEntityActionArgs, UmbEntityActionBase } from "@umbraco-cms/backoffice/entity-action";
+import { UmbEntityActionArgs, UmbEntityActionBase, UmbRequestReloadStructureForEntityEvent } from "@umbraco-cms/backoffice/entity-action";
 import { UMB_NOTIFICATION_CONTEXT, UmbNotificationContext } from "@umbraco-cms/backoffice/notification";
+import { UMB_ACTION_EVENT_CONTEXT } from "@umbraco-cms/backoffice/action";
 import { ContentLockService } from "../api";
 import { ProblemDetailResponse } from "../interfaces/ProblemDetailResponse";
 import { UmbLocalizationController } from "@umbraco-cms/backoffice/localization-api";
@@ -51,5 +52,20 @@ export class LockDocumentEntityAction extends UmbEntityActionBase<never> {
                 message: this.#localize.term('contentLockNotification_lockedMessage')
             }
         });
+
+        // Close the action menu by dispatching the proper event
+        await this.#dispatchReloadEvent();
+    }
+
+    async #dispatchReloadEvent() {
+        const actionEventContext = await this.getContext(UMB_ACTION_EVENT_CONTEXT);
+        if (!actionEventContext) return;
+        
+        const event = new UmbRequestReloadStructureForEntityEvent({
+            unique: this.args.unique,
+            entityType: this.args.entityType,
+        });
+
+        actionEventContext.dispatchEvent(event);
     }
 }
