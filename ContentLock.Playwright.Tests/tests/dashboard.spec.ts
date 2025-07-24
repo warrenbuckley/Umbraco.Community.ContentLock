@@ -103,6 +103,13 @@ test.describe('Content Lock Dashboard', () => {
         await page.getByTestId('entity-action:contentlock.entityaction.document.lock').click();
         await page.waitForTimeout(1000); // Wait for the lock to be applied
 
+        // TODO: Remove this when bug is fixed that enttiy action will close the menu
+        // We are manually closing/toggling the actions menu closed
+        // https://github.com/umbraco/Umbraco-CMS/issues/19761
+        // ==========================================================================
+        await umbracoUi.content.clickActionsMenuForContent('Home');
+        // ==========================================================================
+
         // Verify the dashboard updated/changed
         await dashboard.showsNumberOfLocks(1);
 
@@ -115,7 +122,14 @@ test.describe('Content Lock Dashboard', () => {
 
         // Click the lock action menu item 
         await page.getByTestId('entity-action:contentlock.entityaction.document.unlock').click();
-        await page.waitForTimeout(1000);
+        await page.waitForTimeout(1000); // Wait for the unlock to be applied
+
+        // TODO: Remove this when bug is fixed that enttiy action will close the menu
+        // We are manually closing/toggling the actions menu closed
+        // https://github.com/umbraco/Umbraco-CMS/issues/19761
+        // ==========================================================================
+        await umbracoUi.content.clickActionsMenuForContent('Home');
+        // ==========================================================================
 
         // Verify/assert stuff
         await dashboard.showsNumberOfLocks(0);
