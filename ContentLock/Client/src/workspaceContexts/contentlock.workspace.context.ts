@@ -31,8 +31,6 @@ export class ContentLockWorkspaceContext extends UmbContextBase {
 
     #localize = new UmbLocalizationController(this);
 
-    #isSettingNameHack = false;
-
 	constructor(host: UmbControllerHost) {
 		super(host, CONTENTLOCK_WORKSPACE_CONTEXT.toString());
 
@@ -111,15 +109,6 @@ export class ContentLockWorkspaceContext extends UmbContextBase {
                     this.#docWorkspaceCtx?.readOnlyGuard.removeRules(ruleKeys);
                 }
 
-                // TODO: Remember to remove this once PR merged in
-                // TODO: Remove this once we do a V17 targeted release
-                // https://github.com/umbraco/Umbraco-CMS/pull/19621
-                // Call the MEGA HACK workaround in a separate method
-                // ================================================================
-                this.#runSetNameHack();
-                // ================================================================
-
-
                 // If previously the page was locked by someone else, we can alert the user its now unlocked
                 if (previousState.isLocked && !previousState.isLockedBySelf && !isLocked && !isLockedBySelf) {
                     umbOpenModal(this, UMB_CONFIRM_MODAL,
@@ -173,45 +162,6 @@ export class ContentLockWorkspaceContext extends UmbContextBase {
 	public setLockedByName(lockedBy: string) {
 		this.#lockedByName.setValue(lockedBy);
 	}
-
-    // ================================================================================================
-    /**
-     * TODO: REMEMBER TO REMOVE THIS
-     * TODO: Remove this once we do a V17 targeted release
-     * Temporary workaround for Umbraco bug see https://github.com/umbraco/Umbraco-CMS/pull/19621
-     * Forces the workspace name to update to avoid UI issues when unlocking.
-     * Thanks to Mads for the idea/hack for now
-     */
-    #runSetNameHack() {
-        if (this.#isSettingNameHack){
-            return;
-        }
-
-        this.#isSettingNameHack = true;
-        
-        try {
-            const currentName = this.#docWorkspaceCtx?.getName();
-            if (!currentName) {
-                this.#isSettingNameHack = false;
-                return;
-            }
-
-            // Even if the node does not vary with languages or segments its still gives us one variant
-            const firstVariant = this.#variants[0];
-            if(!firstVariant) {
-                this.#isSettingNameHack = false;
-                return;
-            }
-
-            const umbVariant = new UmbVariantId(firstVariant.culture, firstVariant.segment);
-            this.#docWorkspaceCtx?.setName(currentName + '1', umbVariant);
-            this.#docWorkspaceCtx?.setName(currentName, umbVariant);
-
-        } finally {
-            this.#isSettingNameHack = false;
-        }
-    }
-    // ================================================================================
 }
 
 // Declare a api export, so Extension Registry can initialize this class:
