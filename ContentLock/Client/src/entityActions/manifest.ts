@@ -20,6 +20,9 @@ export const manifests: Array<UmbExtensionManifest> = [
     conditions: [
       {
         alias: CONTENTLOCK_SHOW_LOCK_CONDITION_ALIAS // Node is unlocked
+      },
+      {
+        alias: "Umb.Condition.EntityIsNotTrashed"
       }
     ]
   },
@@ -38,6 +41,9 @@ export const manifests: Array<UmbExtensionManifest> = [
     conditions: [
       {
         alias: CONTENTLOCK_SHOW_UNLOCK_CONDITION_ALIAS // Node is locked AND node is NOT locked by you
+      },
+      {
+        alias: "Umb.Condition.EntityIsNotTrashed"
       }
     ]
   }
