@@ -1,0 +1,61 @@
+name: Playwright Tests
+on:
+  push:
+    branches: [ v16/dev ]
+  pull_request:
+    branches: [ v16/dev ]
+jobs:
+  test:
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - uses: actions/setup-node@v4
+      with:
+        node-version: lts/*
+
+    - uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '9.0.x'
+
+    - name: Build Content Lock C# Code
+      run: dotnet build Umbraco.Community.ContentLock.sln
+
+    - name: Run dotnet trust cert https --clean
+      run: dotnet dev-certs https --clean
+
+    - name: Run dotnet trust cert https --trust
+      run: dotnet dev-certs https --trust
+
+    - name: Run dotnet trust cert https --check
+      run: dotnet dev-certs https --check
+
+    - name: Install npm dependencies for Content Lock Client
+      run: npm ci
+      working-directory: 'ContentLock/Client'
+
+    - name: Build Content Lock Client
+      run: npm run build
+      working-directory: 'ContentLock/Client'
+
+    - name: Install dependencies for playwright tests
+      run: npm ci
+      working-directory: 'ContentLock.Playwright.Tests'
+
+    - name: Install Playwright Browsers
+      run: npx playwright install --with-deps
+      working-directory: 'ContentLock.Playwright.Tests'
+
+    - name: Run Playwright tests
+      run: npx playwright test
+      working-directory: 'ContentLock.Playwright.Tests'
+      env:
+        DEBUG: 'pw:webserver'
+        
+    - uses: actions/upload-artifact@v4
+      if: ${{ !cancelled() }}
+      with:
+        name: playwright-report
+        path: ContentLock.Playwright.Tests/playwright-report/
+        retention-days: 30

@@ -29,6 +29,12 @@ public interface IContentLockHubEvents
     /// <param name="contentKeys">Identifies the content items from which the locks will be removed.</param>
     public Task RemoveLocksToClients(IEnumerable<Guid> contentKeys);
 
+    /// <summary>
+    /// This is used for E2E testing purposes only
+    /// Where the ResetContentLocksAsync method will call this to get clients to remove all locks
+    /// </summary>
+    public Task RemoveAllLocksToClients();
+
     public Task UserConnected(Guid? connectedUserKey);
 
     public Task UserDisconnected(Guid? connectedUserKey);

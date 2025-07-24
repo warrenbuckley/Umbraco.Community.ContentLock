@@ -125,7 +125,7 @@ ipch/
 *.sap
 
 # Visual Studio Trace Files
-*.e2e
+#*.e2e
 
 # TFS 2012 Local Workspace
 $tf/
@@ -482,4 +482,9 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+
+# Content Lock Client built files get copied out here
 ContentLock/wwwroot/App_Plugins/ContentLock
+
+# Content lock Playwirght Auth states
+ContentLock.Playwright.Tests/playwright/.auth

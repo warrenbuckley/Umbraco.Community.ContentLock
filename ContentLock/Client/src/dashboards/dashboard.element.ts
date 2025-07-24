@@ -216,12 +216,12 @@ export class ContentLockDashboardElement extends UmbElementMixin(LitElement) {
   render() {
     if (this._isLoading) {
       return html`
-        <uui-button-group>
-          <uui-button label=${this.localize.term('contentLockDashboard_unlockAction')} look="primary" color="default" disabled>
-            <uui-icon name="icon-lock"></uui-icon>
-            ${this.localize.term('contentLockDashboard_unlockAction')}
-          </uui-button>
-        </uui-button-group>
+      <uui-button-group>
+        <uui-button data-mark="contentlock:dashboard:unlock" label=${this.localize.term('contentLockDashboard_unlockAction')} look="primary" color="default" disabled>
+          <uui-icon name="icon-lock"></uui-icon>
+          ${this.localize.term('contentLockDashboard_unlockAction')}
+        </uui-button>
+      </uui-button-group>
         
         <div class="grid">
           <div class="container">
@@ -244,7 +244,7 @@ export class ContentLockDashboardElement extends UmbElementMixin(LitElement) {
 
     return html`
       <uui-button-group>
-        <uui-button .label=${this.localize.term('contentLockDashboard_unlockAction')} look="primary" color="default" @click=${this.#bulkUnlock} ?disabled=${this.#isUnlockDisabled()}>
+        <uui-button data-mark="contentlock:dashboard:unlock" .label=${this.localize.term('contentLockDashboard_unlockAction')} look="primary" color="default" @click=${this.#bulkUnlock} ?disabled=${this.#isUnlockDisabled()}>
           <uui-icon name="icon-lock"></uui-icon>
           ${this.localize.term('contentLockDashboard_unlockAction')}
         </uui-button>
@@ -264,7 +264,7 @@ export class ContentLockDashboardElement extends UmbElementMixin(LitElement) {
                     @ordered="${this.#onOrdering}"></umb-table>`
               : html`
                 <uui-box headline=${this.localize.term('contentLockDashboard_noLocks')}>
-                  <h2><umb-localize key="contentLockDashboard_noLocksMessage"></umb-localize></h2>
+                  <h2 data-mark="contentlock:dashboard:nolocks"><umb-localize key="contentLockDashboard_noLocksMessage"></umb-localize></h2>
                 </uui-box>
               `}
           </uui-scroll-container>
@@ -275,7 +275,7 @@ export class ContentLockDashboardElement extends UmbElementMixin(LitElement) {
               <uui-icon name="icon-combination-lock"></uui-icon> 
               <umb-localize key="contentLockDashboard_pagesCheckedOutTitle"></umb-localize>
             </span>
-            <h2>${this._totalLockedPages}</h2>
+            <h2 data-mark="contentlock:dashboard:numberoflocks">${this._totalLockedPages}</h2>
           </uui-box>
         </div>
       </div>
