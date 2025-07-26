@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Umbraco.Cms.Core.Configuration.Models;
 using Umbraco.Cms.Core.IO;
 using Umbraco.Cms.Core.Models;
@@ -14,7 +15,7 @@ namespace ContentLock.E2E.Migrations.v1
     public class AddTestUsers : AsyncPackageMigrationBase
     {
         private readonly IUserService _userService;
-        private readonly IUserGroupService _userGroupService;
+        private readonly ILogger<AddTestUsers> _logger;
 
         public AddTestUsers(
             IPackagingService packagingService,
@@ -26,7 +27,7 @@ namespace ContentLock.E2E.Migrations.v1
             IMigrationContext context,
             IOptions<PackageMigrationSettings> packageMigrationsSettings,
             IUserService userService,
-            IUserGroupService userGroupService)
+            ILogger<AddTestUsers> logger)
             : base(
                   packagingService,
                   mediaService,
@@ -38,7 +39,7 @@ namespace ContentLock.E2E.Migrations.v1
                   packageMigrationsSettings)
         {
             _userService = userService;
-            _userGroupService = userGroupService;
+            _logger = logger;
         }
 
         protected override async Task MigrateAsync()
@@ -64,7 +65,7 @@ namespace ContentLock.E2E.Migrations.v1
             }, approveUser: true);
             
             if(createUserResult.Success is false){
-                // TODO: Logging and better error handling
+                _logger.LogError(createUserResult.Exception, "Failed to create user for E2E: {Status}", createUserResult.Status);
                 throw new Exception($"Failed to create user: {createUserResult.Status}");
             }
 
@@ -80,8 +81,8 @@ namespace ContentLock.E2E.Migrations.v1
             
             if (changePassword.Success is false)
             {
-                // TODO: Logging and better error handling
-                throw new Exception($"Failed to change password for super user: {changePassword.Exception?.Message ?? "Unknown error"}");
+                _logger.LogError(changePassword.Exception, "Failed to update password for E2E user: {Status}", changePassword.Status);
+                throw new Exception($"Failed to update password for E2E user: {createUserResult.Status}");
             }
         }
     }
