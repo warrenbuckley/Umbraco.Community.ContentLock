@@ -10,6 +10,6 @@ public class ContentLockNotitifcationComposer : IComposer
 {
     public void Compose(IUmbracoBuilder builder)
     {
-        builder.AddNotificationAsyncHandler<ContentDeletingNotification, ContentDeletingHandler>();
+        builder.AddNotificationAsyncHandler<ContentMovingToRecycleBinNotification, ContentMovingToRecycleBinHandler>();
     }
 }
