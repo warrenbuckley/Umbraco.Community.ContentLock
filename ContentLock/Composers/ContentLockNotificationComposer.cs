@@ -6,7 +6,7 @@ using Umbraco.Cms.Core.Notifications;
 
 namespace ContentLock.Composers;
 
-public class ContentLockNotitifcationComposer : IComposer
+public class ContentLockNotificationComposer : IComposer
 {
     public void Compose(IUmbracoBuilder builder)
     {
