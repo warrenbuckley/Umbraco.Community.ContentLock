@@ -72,8 +72,15 @@ public class ContentMovingToRecycleBinHandler : INotificationAsyncHandler<Conten
             }
             
             // Unlock node
-            await _contentLockService.UnlockContentAsync(lockedDeletedNode.Key, currentUserKey);
-            unlockedKeys.Add(lockedDeletedNode.Key);
+            try
+            {
+                await _contentLockService.UnlockContentAsync(lockedDeletedNode.Key, currentUserKey);
+                unlockedKeys.Add(lockedDeletedNode.Key);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to unlock content with key {lockedDeletedNodeKey} by user {currentUserKey}", lockedDeletedNode.Key, currentUserKey);
+            }
         }
         
         // Notify all connected clients with SignalR that items have been unlocked
