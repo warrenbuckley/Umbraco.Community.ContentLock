@@ -10,14 +10,14 @@ using Umbraco.Cms.Core.Security;
 
 namespace ContentLock.Notifications;
 
-public class ContentMovingToRecycleBinHandler : INotificationAsyncHandler<ContentMovingToRecycleBinNotification>
+public class ContentDeletingNotificationHandler : INotificationAsyncHandler<ContentDeletingNotification>
 {
     private readonly IContentLockService _contentLockService;
+    private readonly IHubContext<ContentLockHub, IContentLockHubEvents> _contentLockHubContext;
     private readonly IBackOfficeSecurityAccessor _backOfficeSecurityAccessor;
     private readonly ILogger<ContentMovingToRecycleBinHandler> _logger;
-    private readonly IHubContext<ContentLockHub, IContentLockHubEvents> _contentLockHubContext;
 
-    public ContentMovingToRecycleBinHandler(
+    public ContentDeletingNotificationHandler(
         IContentLockService contentLockService,
         IHubContext<ContentLockHub, IContentLockHubEvents> contentLockHubContext,
         IBackOfficeSecurityAccessor backOfficeSecurityAccessor,
@@ -28,13 +28,13 @@ public class ContentMovingToRecycleBinHandler : INotificationAsyncHandler<Conten
         _backOfficeSecurityAccessor = backOfficeSecurityAccessor;
         _logger = logger;
     }
-
-    public async Task HandleAsync(ContentMovingToRecycleBinNotification notification, CancellationToken cancellationToken)
+    
+    public async Task HandleAsync(ContentDeletingNotification notification, CancellationToken cancellationToken)
     {
         var currentUser = _backOfficeSecurityAccessor.BackOfficeSecurity?.CurrentUser;
         var currentUserKey = currentUser?.Key ?? Umbraco.Cms.Core.Constants.Security.SuperUserKey;
         
-        var deletingContentKeys = notification.MoveInfoCollection.Select(x => x.Entity.Key).ToHashSet();
+        var deletingContentKeys = notification.DeletedEntities.Select(x => x.Key).ToHashSet();
         var allLocks = await _contentLockService.GetLockOverviewAsync();
         var lockedDeletedItems = allLocks.Items
             .Where(x => deletingContentKeys.Contains(x.Key))
@@ -42,7 +42,7 @@ public class ContentMovingToRecycleBinHandler : INotificationAsyncHandler<Conten
         
         if (lockedDeletedItems.Any() is false)
         {
-            _logger.LogTrace("The content being moved into the recycle bin does not have any content locks. Nothing for us to do here.");
+            _logger.LogTrace("The content being deleted does not have any content locks. Nothing for us to do here.");
             return;
         }
 
@@ -63,11 +63,11 @@ public class ContentMovingToRecycleBinHandler : INotificationAsyncHandler<Conten
                 notification.Cancel = true;
                 notification.Messages.Add(new EventMessage(
                     "Content Lock",
-                    $"You can not move this content into the recycle bin '{lockedDeletedNode.NodeName}' [{lockedDeletedNode.Key}], as it is a locked node that is not locked by you",
+                    $"You can not delete '{lockedDeletedNode.NodeName}' [{lockedDeletedNode.Key}], as it is a locked node that is not locked by you",
                     EventMessageType.Error)
                 );
                 
-                _logger.LogError("You can not move this content into the recycle bin {lockedDeletedNodeName} [{lockedDeletedNodeKey}], as it is a locked node that is not locked by you", lockedDeletedNode.NodeName, lockedDeletedNode.Key);
+                _logger.LogError("You can not delete {lockedDeletedNodeName} [{lockedDeletedNodeKey}], as it is a locked node that is not locked by you", lockedDeletedNode.NodeName, lockedDeletedNode.Key);
                 continue;
             }
             
