@@ -42,4 +42,25 @@ public interface IContentLockHubEvents
     public Task ReceiveListOfConnectedUsers(Guid[] connectedUsersKeys);
 
     public Task ReceiveLatestOptions(ContentLockOptions currentOptions);
+
+    /// <summary>
+    /// Notifies clients when a user starts viewing a specific content node
+    /// </summary>
+    /// <param name="contentKey">The content node key being viewed</param>
+    /// <param name="userKey">The user key who started viewing</param>
+    public Task UserStartedViewingContent(Guid contentKey, Guid userKey);
+
+    /// <summary>
+    /// Notifies clients when a user stops viewing a specific content node
+    /// </summary>
+    /// <param name="contentKey">The content node key no longer being viewed</param>
+    /// <param name="userKey">The user key who stopped viewing</param>
+    public Task UserStoppedViewingContent(Guid contentKey, Guid userKey);
+
+    /// <summary>
+    /// Sends the list of users currently viewing a specific content node
+    /// </summary>
+    /// <param name="contentKey">The content node key</param>
+    /// <param name="viewingUserKeys">Array of user keys currently viewing this content</param>
+    public Task ReceiveUsersViewingContent(Guid contentKey, Guid[] viewingUserKeys);
 }

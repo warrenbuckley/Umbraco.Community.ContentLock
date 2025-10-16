@@ -33,6 +33,14 @@ export default {
         listOfUsers: 'Online Users',
         youLabel: 'You',
     },
+    contentLockViewingUsersModal: {
+        modalHeader: 'Who\'s viewing this page?',
+        listOfViewers: 'Users viewing this page',
+    },
+    contentLockViewingUsersFooterApp: {
+        oneUserViewing: '1 other user viewing this page',
+        multipleUsersViewing: '{0} other users viewing this page',
+    },
     contentUnlockedModal: {
         modalHeader: 'Content Unlocked',
         modalContent: 'The content is now unlocked and available for editing, however it may have been modified by another user. Please reload the page to see the latest version',
