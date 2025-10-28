@@ -44,7 +44,7 @@ public class ContentDeletingNotificationHandler : INotificationAsyncHandler<Cont
         
         var allLocks = await _contentLockService.GetLockOverviewAsync();
         
-        // Optimize: Use HashSet for O(1) lookup instead of Contains in Where
+        // Use HashSet for fast O(1) Contains lookups
         var lockedDeletedItems = allLocks.Items
             .Where(x => deletingContentKeys.Contains(x.Key))
             .ToList();
