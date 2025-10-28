@@ -83,6 +83,11 @@ namespace ContentLock.Services
                     var contentLocks = scope.Database.Fetch<ContentLocks>();
                     var items = new List<ContentLockOverviewItem>();
 
+                    // Batch fetch all users at once to avoid N+1 query problem
+                    var userKeys = contentLocks.Select(x => x.UserKey).Distinct().ToArray();
+                    var users = await _userService.GetAsync(userKeys);
+                    var userLookup = users.ToDictionary(u => u.Key, u => u.Name ?? "Unknown");
+
                     foreach (var conLock in contentLocks)
                     {
                         var contentNode = _entityService.Get(conLock.ContentKey, UmbracoObjectTypes.Document) as IDocumentEntitySlim;
@@ -92,8 +97,7 @@ namespace ContentLock.Services
                             continue;
                         }
 
-                        var user = await _userService.GetAsync(conLock.UserKey);
-                        var userName = user?.Name ?? "Unknown";
+                        var userName = userLookup.TryGetValue(conLock.UserKey, out var name) ? name : "Unknown";
 
                         items.Add(new ContentLockOverviewItem
                         {
@@ -138,8 +142,9 @@ namespace ContentLock.Services
                 }
 
                 // Convert Key to old style int's to use with AuditService
-                var userAsAnId = await _userIdKeyResolver.GetAsync(userKey); // Inject and use IUserIdKeyResolver
-                var contentNodeAsAnId = _idKeyMap.GetIdForKey(contentKey, UmbracoObjectTypes.Document).Result; // Inject and use IIdKeyMap
+                var userAsAnId = await _userIdKeyResolver.GetAsync(userKey);
+                var contentNodeAsAnIdAttempt = _idKeyMap.GetIdForKey(contentKey, UmbracoObjectTypes.Document);
+                var contentNodeAsAnId = contentNodeAsAnIdAttempt.Result;
                 _auditService.Add(AuditType.Custom, userAsAnId, contentNodeAsAnId, Umbraco.Cms.Core.Constants.ObjectTypes.Strings.Document, "Page Locked", "Page Locked");
             }
             catch (Exception ex)
@@ -187,7 +192,8 @@ namespace ContentLock.Services
 
                 // Convert Key to old style int's to use with AuditService
                 var userAsAnId = await _userIdKeyResolver.GetAsync(userKey);
-                var contentNodeAsAnId = _idKeyMap.GetIdForKey(contentKey, UmbracoObjectTypes.Document).Result;
+                var contentNodeAsAnIdAttempt = _idKeyMap.GetIdForKey(contentKey, UmbracoObjectTypes.Document);
+                var contentNodeAsAnId = contentNodeAsAnIdAttempt.Result;
                 _auditService.Add(AuditType.Custom, userAsAnId, contentNodeAsAnId, Umbraco.Cms.Core.Constants.ObjectTypes.Strings.Document, "Page Unlocked", "Page Unlocked");
             }
             catch (Exception ex)

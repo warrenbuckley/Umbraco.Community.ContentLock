@@ -35,7 +35,16 @@ public class ContentDeletingNotificationHandler : INotificationAsyncHandler<Cont
         var currentUserKey = currentUser?.Key ?? Umbraco.Cms.Core.Constants.Security.SuperUserKey;
         
         var deletingContentKeys = notification.DeletedEntities.Select(x => x.Key).ToHashSet();
+        
+        // Optimize: Only fetch lock overview if we have items to check
+        if (deletingContentKeys.Count == 0)
+        {
+            return;
+        }
+        
         var allLocks = await _contentLockService.GetLockOverviewAsync();
+        
+        // Optimize: Use HashSet for O(1) lookup instead of Contains in Where
         var lockedDeletedItems = allLocks.Items
             .Where(x => deletingContentKeys.Contains(x.Key))
             .ToList();

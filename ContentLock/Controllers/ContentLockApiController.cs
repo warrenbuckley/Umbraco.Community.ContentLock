@@ -118,17 +118,18 @@ namespace ContentLock.Controllers
             }
 
             var userKey = _backOfficeSecurityAccessor.BackOfficeSecurity?.CurrentUser?.Key;
+            var keysList = keys.ToList();
 
-            // For each item posted to bulk unlock
-            foreach (var contentKey in keys)
-            {
-                // Call unlock on service
-                await _contentLockService.UnlockContentAsync(contentKey, userKey.Value);
-            }
+            // Process all unlocks in parallel for better performance
+            var unlockTasks = keysList.Select(contentKey => 
+                _contentLockService.UnlockContentAsync(contentKey, userKey.Value)
+            );
+
+            await Task.WhenAll(unlockTasks);
 
             // Use SignalR to send out to ALL clients that many node/s has been unlocked
-            // Then the underlying observable object with the count & array can be updated
-            await _contentLockHubContext.Clients.All.RemoveLocksToClients(keys);
+            // Send a single batched notification instead of individual ones
+            await _contentLockHubContext.Clients.All.RemoveLocksToClients(keysList);
 
             return Ok();
         }
