@@ -1,0 +1,14 @@
+<Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Folder Name="/Build/">
+    <File Path="LICENSE" />
+    <File Path="README.md" />
+  </Folder>
+  <Project Path="ContentLock.E2E/ContentLock.E2E.csproj" />
+  <Project Path="ContentLock.Website/ContentLock.Website.csproj" />
+  <Project Path="ContentLock/ContentLock.csproj" />
+</Solution>
