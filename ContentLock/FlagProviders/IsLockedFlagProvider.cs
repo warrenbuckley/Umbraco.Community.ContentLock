@@ -29,12 +29,16 @@ public class IsLockedFlagProvider : IFlagProvider
     public async Task PopulateFlagsAsync<TItem>(IEnumerable<TItem> itemViewModels)
         where TItem : IHasFlags
     {
+        var keys = itemViewModels
+            .Select(x => x.Id)
+            .Where(id => id != Guid.Empty)
+            .ToHashSet();
+
+        if (keys.Count == 0) return;
+
         using var scope = _serviceScopeFactory.CreateScope();
         var contentLockService = scope.ServiceProvider.GetRequiredService<IContentLockService>();
-
-        // Get all locks currently in the site - once for performance
-        var allLocks = await contentLockService.GetLockOverviewAsync();
-        var lockedKeys = new HashSet<Guid>(allLocks.Items.Select(x => x.Key));
+        var lockedKeys = await contentLockService.GetLockedContentKeysAsync(keys);
 
         foreach (TItem item in itemViewModels)
         {
