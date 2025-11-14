@@ -21,10 +21,10 @@ jobs:
 
     - uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: '9.0.x'
+        dotnet-version: '10.0.x'
 
     - name: Build Content Lock C# Code
-      run: dotnet build Umbraco.Community.ContentLock.sln
+      run: dotnet build
 
     - name: Run dotnet trust cert https --clean
       run: dotnet dev-certs https --clean
