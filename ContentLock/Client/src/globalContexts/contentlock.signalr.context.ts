@@ -104,7 +104,7 @@ export default class ContentLockSignalrContext extends UmbContextBase
         // Need auth context to use the token to pass to SignalR hub
         this.consumeContext(UMB_AUTH_CONTEXT, async (authCtx) => {
             if (!authCtx) {
-                console.warn('Auth context is not available for SignalR connection');
+                console.warn('[Content Lock - SignalR Ctx] Auth context is not available for SignalR connection');
                 return;
             }
 
@@ -132,13 +132,18 @@ export default class ContentLockSignalrContext extends UmbContextBase
      * Will fetch item/s from server again and thus get the latest Locked Flag/Sign info
      * @param key The GUID/Unique/key that got updated
      */
-    #emitReloadTreeEvent(key:string){
-        this.#eventContext?.dispatchEvent(new UmbRequestReloadStructureForEntityEvent(
-            {
-                unique: key,
-                entityType: UMB_DOCUMENT_ENTITY_TYPE
-            }
-        ));
+    #emitReloadTreeEvent(key: string){
+        if(this.#eventContext){
+            this.#eventContext?.dispatchEvent(new UmbRequestReloadStructureForEntityEvent(
+                {
+                    unique: key,
+                    entityType: UMB_DOCUMENT_ENTITY_TYPE
+                }
+            ));
+        } else{
+            console.warn('[Content Lock - SignalR Ctx] Unable to dispatch reload event because UMB_ACTION_EVENT_CONTEXT is not available.');
+        }
+        
     }
 
     // Start the engines...
