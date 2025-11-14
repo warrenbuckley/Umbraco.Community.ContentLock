@@ -40,14 +40,11 @@ public class IsLockedFlagProvider : IFlagProvider
         var contentLockService = scope.ServiceProvider.GetRequiredService<IContentLockService>();
         var lockedKeys = await contentLockService.GetLockedContentKeysAsync(keys);
 
-        foreach (TItem item in itemViewModels)
+        foreach (TItem item in itemViewModels.Where(item => lockedKeys.Contains(item.Id)))
         {
             // IHasFlags exposes Id, so we can check it directly
             // without casting or pattern matching to the diff models
-            if (lockedKeys.Contains(item.Id))
-            {
-                item.AddFlag(Alias);
-            }
+            item.AddFlag(Alias);
         }
     }
 }
