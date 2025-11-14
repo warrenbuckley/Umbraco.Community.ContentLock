@@ -212,7 +212,7 @@ namespace ContentLock.Services
 
                     var lockedKeys = new HashSet<Guid>(
                         allLocks
-                            .Where(x => x.ContentKey != Guid.Empty && keys.Contains(x.ContentKey))
+                            .Where(x => keys.Contains(x.ContentKey))
                             .Select(x => x.ContentKey));
 
                     return lockedKeys;
