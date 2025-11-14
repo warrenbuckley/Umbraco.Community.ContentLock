@@ -134,7 +134,7 @@ export default class ContentLockSignalrContext extends UmbContextBase
      */
     #emitReloadTreeEvent(key: string){
         if(this.#eventContext){
-            this.#eventContext?.dispatchEvent(new UmbRequestReloadStructureForEntityEvent(
+            this.#eventContext.dispatchEvent(new UmbRequestReloadStructureForEntityEvent(
                 {
                     unique: key,
                     entityType: UMB_DOCUMENT_ENTITY_TYPE
