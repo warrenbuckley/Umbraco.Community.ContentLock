@@ -33,11 +33,12 @@ namespace ContentLock.Interfaces
         Task<ContentLockOverview> GetLockOverviewAsync();
 
         /// <summary>
-        /// This will return all locked content keys
-        /// Used in conjunction with FlagProvider to know if the 
+        /// Returns the subset of the provided content keys that are currently locked.
+        /// Used in conjunction with FlagProvider to determine which content nodes are locked.
         /// </summary>
+        /// <param name="keys">A set of content node keys to check for lock status.</param>
         /// <returns>
-        /// Only the returned list of keys are locked
+        /// Only the returned list of keys are locked.
         /// </returns>
         Task<IReadOnlySet<Guid>> GetLockedContentKeysAsync(IReadOnlySet<Guid> keys);
     }
