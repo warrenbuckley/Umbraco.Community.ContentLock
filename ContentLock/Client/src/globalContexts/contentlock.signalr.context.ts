@@ -8,6 +8,9 @@ import { observeMultiple, UmbArrayState, UmbObjectState } from "@umbraco-cms/bac
 import { ContentLockOptions } from "../interfaces/ContentLockOptions";
 import { debounceTime, map } from "@umbraco-cms/backoffice/external/rxjs";
 import { SignalrLogger } from "./signalr.logger";
+import { UMB_ACTION_EVENT_CONTEXT, UmbActionEventContext } from "@umbraco-cms/backoffice/action";
+import { UmbRequestReloadStructureForEntityEvent } from "@umbraco-cms/backoffice/entity-action";
+import { UMB_DOCUMENT_ENTITY_TYPE } from "@umbraco-cms/backoffice/document";
 
 export default class ContentLockSignalrContext extends UmbContextBase
 {
@@ -93,6 +96,8 @@ export default class ContentLockSignalrContext extends UmbContextBase
             })
         );
 
+    #eventContext?: UmbActionEventContext;
+
     constructor(host: UmbControllerHost) {
         super(host, CONTENTLOCK_SIGNALR_CONTEXT);
 
@@ -115,6 +120,25 @@ export default class ContentLockSignalrContext extends UmbContextBase
 
             this.#startHub();
         });
+
+        // Action Event context - to notify about emitting event to trigger a tree reload
+        this.consumeContext(UMB_ACTION_EVENT_CONTEXT, (eventContext) => {
+            this.#eventContext = eventContext;
+        });
+    }
+
+    /**
+     * Send out an event to request the tree to reload the item with the given key
+     * Will fetch item/s from server again and thus get the latest Locked Flag/Sign info
+     * @param key The GUID/Unique/key that got updated
+     */
+    #emitReloadTreeEvent(key:string){
+        this.#eventContext?.dispatchEvent(new UmbRequestReloadStructureForEntityEvent(
+            {
+                unique: key,
+                entityType: UMB_DOCUMENT_ENTITY_TYPE
+            }
+        ));
     }
 
     // Start the engines...
@@ -132,17 +156,29 @@ export default class ContentLockSignalrContext extends UmbContextBase
             // SignalR server will send out a 'AddLockToClients' when someone locks an item
             this.signalrConnection.on('AddLockToClients', (contentLockInfo: ContentLockOverviewItem) => {
                 this.#contentLocks.appendOne(contentLockInfo);
+
+                // Reload tree item - will fetch from server again and thus get the Locked Flag/Sign info
+                this.#emitReloadTreeEvent(contentLockInfo.key);
             });
 
             // SignalR server will send out a 'RemoveLockToClients' when someone removes an individual lock item
-            this.signalrConnection.on('RemoveLockToClients', (contentKey:String) => {
+            this.signalrConnection.on('RemoveLockToClients', (contentKey:string) => {
                 this.#contentLocks.removeOne(contentKey);
+
+                // Reload tree item - will fetch from server again and thus remove the Locked Flag/Sign info
+                this.#emitReloadTreeEvent(contentKey);
             });
 
             // SignalR server will send out a 'RemoveLocksToClients' when one or more locks are removed in bulk
             // This happens from the dashboard overview
-            this.signalrConnection.on('RemoveLocksToClients', (contentKeys:Array<String>) => {
+            this.signalrConnection.on('RemoveLocksToClients', (contentKeys:Array<string>) => {
                 this.#contentLocks.remove(contentKeys);
+
+                // Have to loop over as Umbraco does not have a way to send multiple keys in the event
+                for(const key of contentKeys){
+                    // Reload tree item - will fetch from server again and thus remove the Locked Flag/Sign info
+                    this.#emitReloadTreeEvent(key);
+                }
             });
 
             // Purely for E2E tests only SignalR server will send out a 'RemoveAllLocksToClients'
