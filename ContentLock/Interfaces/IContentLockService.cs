@@ -31,5 +31,14 @@ namespace ContentLock.Interfaces
         /// Used for the overview dashboard
         /// </summary>
         Task<ContentLockOverview> GetLockOverviewAsync();
+
+        /// <summary>
+        /// This will return all locked content keys
+        /// Used in conjunction with FlagProvider to know if the 
+        /// </summary>
+        /// <returns>
+        /// Only the returned list of keys are locked
+        /// </returns>
+        Task<IReadOnlySet<Guid>> GetLockedContentKeysAsync(IReadOnlySet<Guid> keys);
     }
 }

@@ -195,5 +195,34 @@ namespace ContentLock.Services
                 throw new ContentLockException($"Error unlocking content {contentKey} for user {userKey}", ex);
             }
         }
+
+        public async Task<IReadOnlySet<Guid>> GetLockedContentKeysAsync(IReadOnlySet<Guid> keys)
+        {
+            try
+            {
+                if (keys == null || keys.Count == 0)
+                {
+                    return new HashSet<Guid>();
+                }
+
+                using (var scope = _scopeProvider.CreateScope(autoComplete: true))
+                {
+                    // Fetch all locks in a single query
+                    var allLocks = await scope.Database.FetchAsync<ContentLocks>();
+
+                    var lockedKeys = new HashSet<Guid>(
+                        allLocks
+                            .Where(x => x.ContentKey != Guid.Empty && keys.Contains(x.ContentKey))
+                            .Select(x => x.ContentKey));
+
+                    return lockedKeys;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting locked keys for provided content keys");
+                throw new ContentLockException("Error getting locked keys for provided content keys", ex);
+            }
+        }
     }
 }
