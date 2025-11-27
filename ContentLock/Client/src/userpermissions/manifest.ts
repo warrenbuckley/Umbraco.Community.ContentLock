@@ -9,7 +9,7 @@ export const manifests: Array<UmbExtensionManifest> = [
     weight: -1000,
     meta: {
         verbs: ['ContentLock.Unlocker'], // This is key persissted back to server & what we look up in a manifest condition or on the user itself
-        group: 'Content Lock', // When umbraco supports this in the future we can use '#contentLockPermission_group'
+        group: 'contentLock', // This then turns into a localization key #actionCategories_contentLock
         label: '#contentLockPermission_label',
         description: '#contentLockPermission_description'
     }
