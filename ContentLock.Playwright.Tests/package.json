@@ -14,12 +14,12 @@
   "license": "ISC",
   "description": "",
   "devDependencies": {
-    "@playwright/test": "^1.56.1",
+    "@playwright/test": "^1.57.0",
     "@types/node": "^24.10.1",
     "tslib": "^2.8.1"
   },
   "dependencies": {
-    "@umbraco/playwright-testhelpers": "^16.0.59",
+    "@umbraco/playwright-testhelpers": "^17.0.13",
     "dotenv": "^17.2.3"
   }
 }
