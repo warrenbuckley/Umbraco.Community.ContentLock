@@ -65,7 +65,8 @@ test.describe('Content Lock Dashboard', () => {
         await expect(page.getByTestId('entity-action:contentlock.entityaction.document.lock')).toBeVisible();
 
         // Click the lock action menu item
-        await page.getByTestId('entity-action:contentlock.entityaction.document.lock').click();
+        //await page.getByTestId('entity-action:contentlock.entityaction.document.lock').click();
+        await umbracoUi.content.clickEntityActionWithName('lock');
 
         // Verify the dashboard updated/changed
         await dashboard.showsNumberOfLocks(1);
@@ -100,7 +101,9 @@ test.describe('Content Lock Dashboard', () => {
         await expect(page.getByTestId('entity-action:contentlock.entityaction.document.lock')).toBeVisible();
 
         // Click the lock action menu item
-        await page.getByTestId('entity-action:contentlock.entityaction.document.lock').click();
+        // await page.getByTestId('entity-action:contentlock.entityaction.document.lock').click();
+        await umbracoUi.content.clickEntityActionWithName('lock');
+
         await page.waitForTimeout(1000); // Wait for the lock to be applied
 
         // Verify the dashboard updated/changed
@@ -114,7 +117,8 @@ test.describe('Content Lock Dashboard', () => {
         await expect(page.getByTestId('entity-action:contentlock.entityaction.document.unlock')).toBeVisible();
 
         // Click the lock action menu item 
-        await page.getByTestId('entity-action:contentlock.entityaction.document.unlock').click();
+        // await page.getByTestId('entity-action:contentlock.entityaction.document.unlock').click();
+        await umbracoUi.content.clickEntityActionWithName('unlock');
         await page.waitForTimeout(1000); // Wait for the unlock to be applied
 
         // Verify/assert stuff
