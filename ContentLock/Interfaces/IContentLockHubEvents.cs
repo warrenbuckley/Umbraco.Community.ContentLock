@@ -42,4 +42,43 @@ public interface IContentLockHubEvents
     public Task ReceiveListOfConnectedUsers(Guid[] connectedUsersKeys);
 
     public Task ReceiveLatestOptions(ContentLockOptions currentOptions);
+
+    // ── WebRTC Calling ──────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Sent to a specific user when another user wants to start an audio call with them.
+    /// </summary>
+    public Task ReceiveCallOffer(Guid callerKey, string callerName, string sdpOffer);
+
+    /// <summary>
+    /// Sent back to the caller when the target user accepts the call.
+    /// Contains the SDP answer to complete the WebRTC handshake.
+    /// </summary>
+    public Task ReceiveCallAnswer(string sdpAnswer);
+
+    /// <summary>
+    /// Relays a WebRTC ICE candidate between peers during connection establishment.
+    /// </summary>
+    public Task ReceiveIceCandidate(string candidate, string? sdpMid, int? sdpMLineIndex);
+
+    /// <summary>
+    /// Sent to the caller when the target user declines the incoming call.
+    /// </summary>
+    public Task CallDeclined();
+
+    /// <summary>
+    /// Sent to the remaining party when the other user ends or drops the call.
+    /// </summary>
+    public Task CallEnded();
+
+    /// <summary>
+    /// Sent to a caller when the user they are trying to call is already in another call.
+    /// </summary>
+    public Task CallBusy();
+
+    /// <summary>
+    /// Broadcast to all clients when the set of users currently in a call changes.
+    /// Used to update busy indicators in the online users modal.
+    /// </summary>
+    public Task ConnectedUsersInCallUpdated(Guid[] inCallUserKeys);
 }

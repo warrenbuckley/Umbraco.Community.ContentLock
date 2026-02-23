@@ -40,5 +40,23 @@ export default {
     },
     actionCategories: {
         contentLock: "Content Lock"
+    },
+    contentLockCall: {
+        callButton: 'Appeler',
+        busyIndicator: 'En appel',
+        incoming: 'Appel entrant',
+        accept: 'Accepter',
+        decline: 'Refuser',
+        hangUp: 'Raccrocher',
+        mute: 'Couper le son',
+        unmute: 'Réactiver le son',
+        deviceSettings: 'Périphériques audio',
+        microphone: 'Microphone',
+        speaker: 'Haut-parleur',
+        callEnded: 'Appel terminé',
+        callDeclined: '{0} a refusé l\'appel',
+        callBusy: '{0} est actuellement en communication',
+        callFailed: 'Échec de la connexion de l\'appel',
+        calling: 'Appel de {0}...',
     }
 };

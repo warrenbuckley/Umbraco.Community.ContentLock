@@ -40,5 +40,23 @@ export default {
     },
     actionCategories: {
         contentLock: "Content Lock"
+    },
+    contentLockCall: {
+        callButton: 'Ring',
+        busyIndicator: 'I samtale',
+        incoming: 'Innkommende samtale',
+        accept: 'Godta',
+        decline: 'Avslå',
+        hangUp: 'Legg på',
+        mute: 'Slå av lyd',
+        unmute: 'Slå på lyd',
+        deviceSettings: 'Lydenheter',
+        microphone: 'Mikrofon',
+        speaker: 'Høyttaler',
+        callEnded: 'Samtale avsluttet',
+        callDeclined: '{0} avslo samtalen',
+        callBusy: '{0} er for øyeblikket i en samtale',
+        callFailed: 'Kunne ikke koble til samtalen',
+        calling: 'Ringer {0}...',
     }
 };

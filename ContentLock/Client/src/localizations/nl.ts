@@ -40,5 +40,23 @@ export default {
     },
     actionCategories: {
         contentLock: "Content Lock"
+    },
+    contentLockCall: {
+        callButton: 'Bellen',
+        busyIndicator: 'In gesprek',
+        incoming: 'Inkomend gesprek',
+        accept: 'Accepteren',
+        decline: 'Weigeren',
+        hangUp: 'Ophangen',
+        mute: 'Dempen',
+        unmute: 'Dempen opheffen',
+        deviceSettings: 'Audioapparaten',
+        microphone: 'Microfoon',
+        speaker: 'Luidspreker',
+        callEnded: 'Gesprek beëindigd',
+        callDeclined: '{0} heeft het gesprek geweigerd',
+        callBusy: '{0} is momenteel in een gesprek',
+        callFailed: 'Verbinding mislukt',
+        calling: '{0} bellen...',
     }
 };

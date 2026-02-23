@@ -40,5 +40,23 @@
     },
     actionCategories: {
         contentLock: "Content Lock"
+    },
+    contentLockCall: {
+        callButton: 'Galwad',
+        busyIndicator: 'Ar alwad',
+        incoming: 'Galwad i mewn',
+        accept: 'Derbyn',
+        decline: 'Gwrthod',
+        hangUp: 'Rhoi\'r Ffôn i Lawr',
+        mute: 'Tawelu',
+        unmute: 'Dad-dawelu',
+        deviceSettings: 'Dyfeisiau sain',
+        microphone: 'Meicroffon',
+        speaker: 'Siaradwr',
+        callEnded: 'Galwad wedi gorffen',
+        callDeclined: 'Gwrthododd {0} yr alwad',
+        callBusy: 'Mae {0} ar alwad ar hyn o bryd',
+        callFailed: 'Methwyd â chysylltu\'r alwad',
+        calling: 'Yn galw {0}...',
     }
 };

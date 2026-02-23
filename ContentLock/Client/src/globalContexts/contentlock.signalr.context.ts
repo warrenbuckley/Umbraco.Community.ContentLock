@@ -27,6 +27,9 @@ export default class ContentLockSignalrContext extends UmbContextBase
     // Used to store the overview of locks
     #connectedBackofficeUserKeys = new UmbArrayState<string>([], (item) => item);
 
+    // Tracks which users are currently in an active WebRTC call (by user key)
+    #inCallUserKeys = new UmbArrayState<string>([], (item) => item);
+
     // Used to store the options for the content lock package
     // Sets the default values for the options
     #contentLockOptions = new UmbObjectState<ContentLockOptions>(
@@ -39,6 +42,15 @@ export default class ContentLockSignalrContext extends UmbContextBase
                     loginSound: '/App_Plugins/ContentLock/sounds/login.mp3',
                     logoutSound: '/App_Plugins/ContentLock/sounds/logout.mp3',
                 }
+            },
+            webRTC: {
+                enable: true,
+                stunServers: [
+                    'stun:stun.l.google.com:19302',
+                    'stun:stun1.l.google.com:19302',
+                    'stun:stun2.l.google.com:19302',
+                ],
+                turnServers: [],
             }
         });
 
@@ -65,6 +77,17 @@ export default class ContentLockSignalrContext extends UmbContextBase
             return otherUsers.length;
         });
     };
+
+    // All users currently in an active WebRTC call as an observable array of key strings
+    public inCallUserKeys = this.#inCallUserKeys.asObservable();
+
+    /**
+     * Observable boolean: true if the given user key is currently in an active call
+     * @param userKey - The user key to check
+     */
+    public isUserInCall(userKey: string) {
+        return this.#inCallUserKeys.asObservablePart((keys) => keys.includes(userKey));
+    }
 
     // The entire options object as an observable
     public contentLockOptions = this.#contentLockOptions.asObservable();
@@ -228,6 +251,12 @@ export default class ContentLockSignalrContext extends UmbContextBase
 
             this.signalrConnection.on('ReceiveLatestOptions', (options:ContentLockOptions) =>{
                 this.#contentLockOptions.setValue(options);
+            });
+
+            // Track which users are currently in an active WebRTC call
+            // Used to show busy indicators in the online users modal
+            this.signalrConnection.on('ConnectedUsersInCallUpdated', (inCallUserKeys: string[]) => {
+                this.#inCallUserKeys.setValue(inCallUserKeys);
             });
         }
     }

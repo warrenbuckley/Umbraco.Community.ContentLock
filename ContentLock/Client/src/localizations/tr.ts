@@ -40,5 +40,23 @@ export default {
     },
     actionCategories: {
         contentLock: "Content Lock"
+    },
+    contentLockCall: {
+        callButton: 'Ara',
+        busyIndicator: 'Görüşmede',
+        incoming: 'Gelen arama',
+        accept: 'Kabul Et',
+        decline: 'Reddet',
+        hangUp: 'Kapat',
+        mute: 'Sesi Kapat',
+        unmute: 'Sesi Aç',
+        deviceSettings: 'Ses cihazları',
+        microphone: 'Mikrofon',
+        speaker: 'Hoparlör',
+        callEnded: 'Görüşme sona erdi',
+        callDeclined: '{0} aramayı reddetti',
+        callBusy: '{0} şu anda başka bir görüşmede',
+        callFailed: 'Bağlantı kurulamadı',
+        calling: '{0} aranıyor...',
     }
 };

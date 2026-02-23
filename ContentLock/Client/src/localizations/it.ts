@@ -40,6 +40,24 @@ export default {
     },
     actionCategories: {
         contentLock: "Content Lock"
+    },
+    contentLockCall: {
+        callButton: 'Chiama',
+        busyIndicator: 'In chiamata',
+        incoming: 'Chiamata in arrivo',
+        accept: 'Accetta',
+        decline: 'Rifiuta',
+        hangUp: 'Riaggancia',
+        mute: 'Silenzia',
+        unmute: 'Riattiva audio',
+        deviceSettings: 'Dispositivi audio',
+        microphone: 'Microfono',
+        speaker: 'Altoparlante',
+        callEnded: 'Chiamata terminata',
+        callDeclined: '{0} ha rifiutato la chiamata',
+        callBusy: '{0} è attualmente in un\'altra chiamata',
+        callFailed: 'Connessione alla chiamata non riuscita',
+        calling: 'Chiamata a {0}...',
     }
 };
  

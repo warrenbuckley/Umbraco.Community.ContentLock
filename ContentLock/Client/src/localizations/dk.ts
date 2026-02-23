@@ -40,5 +40,23 @@ export default {
     },
     actionCategories: {
         contentLock: "Content Lock"
+    },
+    contentLockCall: {
+        callButton: 'Ring op',
+        busyIndicator: 'I opkald',
+        incoming: 'Indgående opkald',
+        accept: 'Accepter',
+        decline: 'Afvis',
+        hangUp: 'Læg på',
+        mute: 'Slå lyd fra',
+        unmute: 'Slå lyd til',
+        deviceSettings: 'Lydenheder',
+        microphone: 'Mikrofon',
+        speaker: 'Højtaler',
+        callEnded: 'Opkald afsluttet',
+        callDeclined: '{0} afviste opkaldet',
+        callBusy: '{0} er i øjeblikket i et opkald',
+        callFailed: 'Opkaldet kunne ikke forbindes',
+        calling: 'Ringer {0}...',
     }
 };
