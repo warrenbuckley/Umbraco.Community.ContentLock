@@ -37,7 +37,6 @@ export default class ContentLockWebRTCContext extends UmbContextBase {
     #peerConnection?: RTCPeerConnection;
     #localStream?: MediaStream;
     #remoteAudioEl?: HTMLAudioElement;
-    #callWidgetEl?: HTMLElement;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     #incomingCallNotificationHandler?: any;
     #pendingCallInfo?: PendingCallInfo;
@@ -149,7 +148,6 @@ export default class ContentLockWebRTCContext extends UmbContextBase {
 
             this.#callState.setValue('connected');
             this.#callStartTime = new Date();
-            this.#showCallWidget();
         } catch (err) {
             console.error('[ContentLock WebRTC] Failed to accept call:', err);
             this.#cleanUpCall();
@@ -275,7 +273,6 @@ export default class ContentLockWebRTCContext extends UmbContextBase {
 
             this.#callState.setValue('connected');
             this.#callStartTime = new Date();
-            this.#showCallWidget();
         });
 
         // ICE candidate from the remote peer
@@ -373,27 +370,6 @@ export default class ContentLockWebRTCContext extends UmbContextBase {
         this.#notificationCtx?.peek(color, { data: { message } });
     }
 
-    #showCallWidget() {
-        import('./contentlock-active-call.element.js').then(() => {
-            // Remove any existing widget (e.g. after a reconnect)
-            if (this.#callWidgetEl) {
-                document.body.removeChild(this.#callWidgetEl);
-            }
-
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const widget: any = document.createElement('contentlock-active-call-widget');
-            widget.webrtcContext = this;
-            document.body.appendChild(widget);
-            this.#callWidgetEl = widget;
-
-            widget.addEventListener('call-hangup', () => this.hangUp());
-            widget.addEventListener('call-mute-toggle', () => this.toggleMute());
-            widget.addEventListener('call-devices-changed', (e: CustomEvent) => {
-                this.setAudioDevices(e.detail.micId, e.detail.speakerId);
-            });
-        });
-    }
-
     #cleanUpCall() {
         // Stop local microphone tracks
         this.#localStream?.getAudioTracks().forEach((t) => t.stop());
@@ -408,12 +384,6 @@ export default class ContentLockWebRTCContext extends UmbContextBase {
             this.#remoteAudioEl.srcObject = null;
             document.body.removeChild(this.#remoteAudioEl);
             this.#remoteAudioEl = undefined;
-        }
-
-        // Remove the active call widget
-        if (this.#callWidgetEl) {
-            document.body.removeChild(this.#callWidgetEl);
-            this.#callWidgetEl = undefined;
         }
 
         // Dismiss any open incoming call notification

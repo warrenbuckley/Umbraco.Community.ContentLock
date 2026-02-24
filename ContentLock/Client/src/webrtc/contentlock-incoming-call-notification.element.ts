@@ -110,7 +110,7 @@ export class ContentLockIncomingCallNotificationElement extends UmbLitElement {
                         <strong id="caller-name">${name}</strong>
                     </div>
                 </div>
-                <div id="actions">
+                <div slot="actions">
                     <uui-button
                         id="accept"
                         color="positive"
@@ -153,17 +153,16 @@ export class ContentLockIncomingCallNotificationElement extends UmbLitElement {
 
         #incoming-label {
             font-size: var(--uui-type-small-size);
-            color: var(--uui-color-text-alt);
         }
 
         #caller-name {
             font-size: var(--uui-type-default-size);
         }
 
-        #actions {
+        /* #actions {
             display: flex;
             gap: var(--uui-size-3);
-        }
+        } */
 
         #accept {
             flex: 1;
