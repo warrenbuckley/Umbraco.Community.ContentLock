@@ -2,16 +2,12 @@ import { css, customElement, html, query, state } from "@umbraco-cms/backoffice/
 import { UmbHeaderAppButtonElement } from '@umbraco-cms/backoffice/components';
 import { CONTENTLOCK_WEBRTC_CONTEXT, type CallState, type RemotePeerInfo } from "./contentlock.webrtc.context";
 
-const BAR_COUNT = 5;
-const BAR_MIN_HEIGHT = 2;
-const BAR_MAX_HEIGHT = 12;
-
 /**
  * Active call indicator rendered as a header app button.
  *
  * Invisible when idle. When a call is active, shows a compact phone icon + timer
  * in the header bar. Clicking opens a uui-popover-container with full call controls:
- * avatar, waveform, mute, hang-up, and device settings (always visible).
+ * mute, hang-up, and device settings (always visible).
  *
  * Extends UmbHeaderAppButtonElement so it lives inside the Umbraco app shell,
  * giving it native access to consumeContext() and the uui-icon registry.
@@ -27,17 +23,11 @@ export class ContentLockActiveCallHeaderApp extends UmbHeaderAppButtonElement {
     @state() private _speakerDevices: MediaDeviceInfo[] = [];
     @state() private _selectedMicId = '';
     @state() private _selectedSpeakerId = '';
-    @state() private _waveformBars: number[] = new Array(BAR_COUNT).fill(BAR_MIN_HEIGHT);
 
     @query('#contentlock-call-popover')
     private _popoverEl?: HTMLElement;
 
     #webrtcCtx?: typeof CONTENTLOCK_WEBRTC_CONTEXT.TYPE;
-    #analyser?: AnalyserNode;
-    #audioCtx?: AudioContext;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    #freqData?: Uint8Array<any>;
-    #rafId?: number;
     #timerInterval?: ReturnType<typeof setInterval>;
 
     constructor() {
@@ -53,7 +43,6 @@ export class ContentLockActiveCallHeaderApp extends UmbHeaderAppButtonElement {
 
                 if (callState === 'connected' && prev !== 'connected') {
                     this.#startTimer();
-                    this.#startWaveform();
                     this.#loadAudioDevices();
                     // Auto-open the popover after the element re-renders with the connected template
                     this.updateComplete.then(() => {
@@ -61,9 +50,7 @@ export class ContentLockActiveCallHeaderApp extends UmbHeaderAppButtonElement {
                     });
                 } else if (callState === 'idle') {
                     this.#stopTimer();
-                    this.#stopWaveform();
                     this._callDuration = '0:00';
-                    this._waveformBars = new Array(BAR_COUNT).fill(BAR_MIN_HEIGHT);
                 }
             });
 
@@ -75,58 +62,6 @@ export class ContentLockActiveCallHeaderApp extends UmbHeaderAppButtonElement {
     override disconnectedCallback() {
         super.disconnectedCallback();
         this.#stopTimer();
-        this.#stopWaveform();
-    }
-
-    // ── Web Audio API Waveform ─────────────────────────────────────────
-
-    #startWaveform() {
-        const stream = this.#webrtcCtx?.getLocalStream();
-        if (!stream) return;
-
-        try {
-            this.#audioCtx = new AudioContext();
-            // Browsers may start AudioContext in 'suspended'; resume explicitly.
-            if (this.#audioCtx.state === 'suspended') this.#audioCtx.resume();
-
-            this.#analyser = this.#audioCtx.createAnalyser();
-            this.#analyser.fftSize = 64;                 // → 32 frequency bins
-            this.#analyser.smoothingTimeConstant = 0.8;  // smooth bar transitions
-
-            const source = this.#audioCtx.createMediaStreamSource(stream);
-            source.connect(this.#analyser);
-
-            this.#freqData = new Uint8Array(this.#analyser.frequencyBinCount);
-            this.#animateWaveform();
-        } catch {
-            // Web Audio API not available — waveform simply won't render
-        }
-    }
-
-    #animateWaveform() {
-        if (!this.#analyser || !this.#freqData) return;
-
-        this.#analyser.getByteFrequencyData(this.#freqData);
-
-        // Map frequency bins to bars using the voice range (lower half of spectrum)
-        const step = Math.floor((this.#freqData.length / 2) / BAR_COUNT);
-
-        this._waveformBars = Array.from({ length: BAR_COUNT }, (_, i) => {
-            const value = this.#freqData![i * step] ?? 0;  // 0–255
-            const ratio = value / 255;
-            return BAR_MIN_HEIGHT + ratio * (BAR_MAX_HEIGHT - BAR_MIN_HEIGHT);
-        });
-
-        this.#rafId = requestAnimationFrame(() => this.#animateWaveform());
-    }
-
-    #stopWaveform() {
-        if (this.#rafId !== undefined) cancelAnimationFrame(this.#rafId);
-        this.#audioCtx?.close();
-        this.#audioCtx = undefined;
-        this.#analyser = undefined;
-        this.#freqData = undefined;
-        this.#rafId = undefined;
     }
 
     // ── Call Timer ─────────────────────────────────────────────────────
@@ -234,8 +169,6 @@ export class ContentLockActiveCallHeaderApp extends UmbHeaderAppButtonElement {
                             </div>
                         </div>
 
-                        ${this.#renderWaveform()}
-
                         <div id="panel-controls">
                             <uui-button
                                 look="outline"
@@ -264,29 +197,6 @@ export class ContentLockActiveCallHeaderApp extends UmbHeaderAppButtonElement {
                     </div>
                 </umb-popover-layout>
             </uui-popover-container>
-        `;
-    }
-
-    #renderWaveform() {
-        const svgWidth = BAR_COUNT * 10;
-        return html`
-            <div id="waveform" aria-hidden="true">
-                <svg
-                    width="${svgWidth}"
-                    height="${BAR_MAX_HEIGHT}"
-                    viewBox="0 0 ${svgWidth} ${BAR_MAX_HEIGHT}">
-                    ${this._waveformBars.map((barHeight, i) => html`
-                        <rect
-                            x="${i * 10 + 2}"
-                            y="${(BAR_MAX_HEIGHT - barHeight) / 2}"
-                            width="6"
-                            height="${barHeight}"
-                            rx="3"
-                            fill="var(--uui-color-interactive)">
-                        </rect>
-                    `)}
-                </svg>
-            </div>
         `;
     }
 
@@ -387,16 +297,6 @@ export class ContentLockActiveCallHeaderApp extends UmbHeaderAppButtonElement {
             #peer-info .timer {
                 color: var(--uui-color-text-alt);
                 margin-left: 0;
-            }
-
-            #waveform {
-                display: flex;
-                justify-content: center;
-                margin-bottom: var(--uui-size-3);
-            }
-
-            #waveform svg rect {
-                transition: height 0.05s ease, y 0.05s ease;
             }
 
             #panel-controls {

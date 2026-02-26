@@ -27,6 +27,9 @@ export class ContentLockIncomingCallNotificationElement extends UmbLitElement {
     @state()
     private _callerUser?: UmbUserItemModel;
 
+    @state()
+    private _accepting = false;
+
     #userItemRepository = new UmbUserItemRepository(this);
     #webrtcCtx?: typeof CONTENTLOCK_WEBRTC_CONTEXT.TYPE;
     #ringingAudio?: HTMLAudioElement;
@@ -81,6 +84,7 @@ export class ContentLockIncomingCallNotificationElement extends UmbLitElement {
     }
 
     async #handleAccept() {
+        this._accepting = true;
         this.#stopRinging();
         await this.#webrtcCtx?.acceptCall();
         this.notificationHandler?.close();
@@ -116,6 +120,7 @@ export class ContentLockIncomingCallNotificationElement extends UmbLitElement {
                         color="positive"
                         look="primary"
                         label=${this.localize.term('contentLockCall_accept')}
+                        .state=${this._accepting ? 'waiting' : ''}
                         @click=${this.#handleAccept}>
                         <uui-icon name="icon-phone"></uui-icon>
                         <umb-localize key="contentLockCall_accept">Accept</umb-localize>
@@ -125,6 +130,7 @@ export class ContentLockIncomingCallNotificationElement extends UmbLitElement {
                         color="danger"
                         look="primary"
                         label=${this.localize.term('contentLockCall_decline')}
+                        ?disabled=${this._accepting}
                         @click=${this.#handleDecline}>
                         <uui-icon name="icon-wrong"></uui-icon>
                         <umb-localize key="contentLockCall_decline">Decline</umb-localize>
@@ -157,19 +163,6 @@ export class ContentLockIncomingCallNotificationElement extends UmbLitElement {
 
         #caller-name {
             font-size: var(--uui-type-default-size);
-        }
-
-        /* #actions {
-            display: flex;
-            gap: var(--uui-size-3);
-        } */
-
-        #accept {
-            flex: 1;
-        }
-
-        #decline {
-            flex: 1;
         }
     `;
 }

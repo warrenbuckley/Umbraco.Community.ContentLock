@@ -105,7 +105,7 @@ export default class ContentLockWebRTCContext extends UmbContextBase {
         } catch (err) {
             console.error('[ContentLock WebRTC] Failed to initiate call:', err);
             this.#cleanUpCall();
-            this.#showPeekNotification('danger', 'Failed to start call. Please check microphone permissions.');
+            this.#showPeekNotification('danger', this.#getMediaErrorMessage(err));
         }
     }
 
@@ -150,8 +150,12 @@ export default class ContentLockWebRTCContext extends UmbContextBase {
             this.#callStartTime = new Date();
         } catch (err) {
             console.error('[ContentLock WebRTC] Failed to accept call:', err);
+            // Notify the caller so they are not left stuck in the 'calling' state.
+            // SendCallAnswerAsync was never invoked, so ActiveCalls was never registered
+            // on the server — only the caller's JS context needs to be unblocked.
+            await this.#signalrCtx?.signalrConnection?.invoke('DeclineCallAsync', callerKey);
             this.#cleanUpCall();
-            this.#showPeekNotification('danger', 'Failed to start call. Please check microphone permissions.');
+            this.#showPeekNotification('danger', this.#getMediaErrorMessage(err));
         }
     }
 
@@ -368,6 +372,23 @@ export default class ContentLockWebRTCContext extends UmbContextBase {
 
     #showPeekNotification(color: 'default' | 'positive' | 'warning' | 'danger', message: string) {
         this.#notificationCtx?.peek(color, { data: { message } });
+    }
+
+    #getMediaErrorMessage(err: unknown): string {
+        if (err instanceof DOMException) {
+            switch (err.name) {
+                case 'NotAllowedError':
+                case 'PermissionDeniedError':
+                    return 'Microphone access was denied. Please allow microphone access in your browser settings and try again.';
+                case 'NotFoundError':
+                case 'DevicesNotFoundError':
+                    return 'No microphone was found. Please connect a microphone and try again.';
+                case 'NotReadableError':
+                case 'TrackStartError':
+                    return 'Your microphone could not be accessed. It may be in use by another application.';
+            }
+        }
+        return 'Failed to start call. Please check your microphone and try again.';
     }
 
     #cleanUpCall() {
