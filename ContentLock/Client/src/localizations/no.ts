@@ -58,5 +58,7 @@ export default {
         callBusy: '{0} er for øyeblikket i en samtale',
         callFailed: 'Kunne ikke koble til samtalen',
         calling: 'Ringer {0}...',
+        missedCall: 'Missed call',
+        missedCallFrom: '{0} tried to call you',
     }
 };

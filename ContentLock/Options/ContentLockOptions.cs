@@ -88,6 +88,12 @@ public class ContentLockOptions
         /// </summary>
         public TurnServerOptions[] TurnServers { get; set; } = [];
 
+        /// <summary>
+        /// Number of seconds to ring before automatically timing out.
+        /// Read at call-offer time, so changes take effect on next call without restart.
+        /// </summary>
+        public int RingTimeoutSeconds { get; set; } = 20;
+
         public class TurnServerOptions
         {
             /// <summary>TURN server URL, e.g. "turn:turn.example.com:3478"</summary>

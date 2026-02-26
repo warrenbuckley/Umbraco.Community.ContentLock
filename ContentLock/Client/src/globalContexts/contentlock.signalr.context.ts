@@ -51,6 +51,7 @@ export default class ContentLockSignalrContext extends UmbContextBase
                     'stun:stun2.l.google.com:19302',
                 ],
                 turnServers: [],
+                ringTimeoutSeconds: 20,
             }
         });
 

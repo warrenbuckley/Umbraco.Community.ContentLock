@@ -58,5 +58,7 @@ export default {
         callBusy: '{0} is currently on another call',
         callFailed: 'Call failed to connect',
         calling: 'Calling {0}...',
+        missedCall: 'Missed call',
+        missedCallFrom: '{0} tried to call you',
     }
 };

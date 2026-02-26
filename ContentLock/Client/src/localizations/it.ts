@@ -58,6 +58,8 @@ export default {
         callBusy: '{0} è attualmente in un\'altra chiamata',
         callFailed: 'Connessione alla chiamata non riuscita',
         calling: 'Chiamata a {0}...',
+        missedCall: 'Missed call',
+        missedCallFrom: '{0} tried to call you',
     }
 };
  

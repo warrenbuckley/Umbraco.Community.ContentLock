@@ -58,5 +58,7 @@ export default {
         callBusy: '{0} est actuellement en communication',
         callFailed: 'Échec de la connexion de l\'appel',
         calling: 'Appel de {0}...',
+        missedCall: 'Missed call',
+        missedCallFrom: '{0} tried to call you',
     }
 };

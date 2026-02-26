@@ -58,5 +58,7 @@ export default {
         callBusy: '{0} er i øjeblikket i et opkald',
         callFailed: 'Opkaldet kunne ikke forbindes',
         calling: 'Ringer {0}...',
+        missedCall: 'Missed call',
+        missedCallFrom: '{0} tried to call you',
     }
 };

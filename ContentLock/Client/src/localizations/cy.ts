@@ -58,5 +58,7 @@
         callBusy: 'Mae {0} ar alwad ar hyn o bryd',
         callFailed: 'Methwyd â chysylltu\'r alwad',
         calling: 'Yn galw {0}...',
+        missedCall: 'Missed call',
+        missedCallFrom: '{0} tried to call you',
     }
 };

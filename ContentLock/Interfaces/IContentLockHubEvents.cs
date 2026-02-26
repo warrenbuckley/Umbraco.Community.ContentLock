@@ -81,4 +81,10 @@ public interface IContentLockHubEvents
     /// Used to update busy indicators in the online users modal.
     /// </summary>
     public Task ConnectedUsersInCallUpdated(Guid[] inCallUserKeys);
+
+    /// <summary>Sent to the CALLER when the ring timeout expires without an answer.</summary>
+    public Task CallNoAnswer();
+
+    /// <summary>Sent to the CALLEE when the ring timeout expires. They missed the call.</summary>
+    public Task MissedCall(Guid callerKey, string callerName);
 }

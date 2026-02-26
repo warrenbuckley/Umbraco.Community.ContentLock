@@ -58,5 +58,7 @@ export default {
         callBusy: '{0} şu anda başka bir görüşmede',
         callFailed: 'Bağlantı kurulamadı',
         calling: '{0} aranıyor...',
+        missedCall: 'Missed call',
+        missedCallFrom: '{0} tried to call you',
     }
 };

@@ -314,6 +314,27 @@ export default class ContentLockWebRTCContext extends UmbContextBase {
             this.#cleanUpCall();
             this.#showPeekNotification('warning', `${peerName} is currently on another call`);
         });
+
+        // Ring timeout expired — callee never answered (received by the caller)
+        connection.on('CallNoAnswer', () => {
+            const peerName = this.#remotePeer.getValue()?.name ?? 'User';
+            this.#cleanUpCall();
+            this.#showPeekNotification('warning', `${peerName} didn't answer`);
+        });
+
+        // Ring timeout expired — this client was the callee who missed the call
+        connection.on('MissedCall', (_callerKey: string, callerName: string) => {
+            this.#incomingCallNotificationHandler?.close();
+            this.#incomingCallNotificationHandler = undefined;
+            this.#pendingCallInfo = undefined;
+            this.#callState.setValue('idle');
+            this.#notificationCtx?.stay('warning', {
+                data: {
+                    headline: 'Missed call',
+                    message: `${callerName} tried to call you`,
+                },
+            });
+        });
     }
 
     // ── Private: WebRTC Peer Connection ───────────────────────────────────

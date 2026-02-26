@@ -17,6 +17,7 @@ public class ContentLockHub : Hub<IContentLockHubEvents>
 {
     private readonly IContentLockService _contentLockService;
     private readonly IOptionsMonitor<ContentLockOptions> _options;
+    private readonly IHubContext<ContentLockHub, IContentLockHubEvents> _hubContext;
 
     // Track 1 or more connection IDs per User Key (a user may have multiple tabs open)
     private static readonly ConcurrentDictionary<Guid, ConcurrentHashSet<string>> ConnectedUsers = new();
@@ -25,10 +26,20 @@ public class ContentLockHub : Hub<IContentLockHubEvents>
     // e.g. if A calls B: ActiveCalls[A]=B and ActiveCalls[B]=A
     private static readonly ConcurrentDictionary<Guid, Guid> ActiveCalls = new();
 
-    public ContentLockHub(IContentLockService contentLockService, IOptionsMonitor<ContentLockOptions> options)
+    // Track pending rings awaiting answer: callerKey → (calleeKey, CancellationTokenSource)
+    private static readonly ConcurrentDictionary<Guid, (Guid CalleeKey, CancellationTokenSource Cts)> _pendingRings = new();
+
+    // Reverse index for pending rings: calleeKey → callerKey (used to look up on callee disconnect)
+    private static readonly ConcurrentDictionary<Guid, Guid> _pendingRingByCallee = new();
+
+    public ContentLockHub(
+        IContentLockService contentLockService,
+        IOptionsMonitor<ContentLockOptions> options,
+        IHubContext<ContentLockHub, IContentLockHubEvents> hubContext)
     {
         _contentLockService = contentLockService;
         _options = options;
+        _hubContext = hubContext;
         _options.OnChange(OnOptionsChanged);
     }
 
@@ -59,6 +70,9 @@ public class ContentLockHub : Hub<IContentLockHubEvents>
 
         if (currentUserKey.HasValue)
         {
+            // If this user was in a pending ring (caller or callee), cancel and notify the other party
+            await CleanUpPendingRingOnDisconnectAsync(currentUserKey.Value);
+
             // If this user was in an active call, notify the peer and clean up
             await CleanUpCallOnDisconnectAsync(currentUserKey.Value);
         }
@@ -95,6 +109,12 @@ public class ContentLockHub : Hub<IContentLockHubEvents>
         if (targetConnections.Length == 0) return;
 
         await Clients.Clients(targetConnections).ReceiveCallOffer(callerKey.Value, callerName, sdpOffer);
+
+        // Start ring timeout — fires CallNoAnswer to caller and MissedCall to callee if unanswered
+        var cts = new CancellationTokenSource();
+        _pendingRings[callerKey.Value] = (targetUserKey, cts);
+        _pendingRingByCallee[targetUserKey] = callerKey.Value;
+        _ = HandleRingTimeoutAsync(callerKey.Value, targetUserKey, callerName, cts.Token);
     }
 
     /// <summary>
@@ -107,6 +127,9 @@ public class ContentLockHub : Hub<IContentLockHubEvents>
         var calleeKey = currentUmbUser?.GetUserKey();
 
         if (!calleeKey.HasValue) return;
+
+        // Cancel the ring timeout — callee answered in time
+        CancelRingTimeout(callerUserKey);
 
         // Mark both users as in an active call (bidirectional so either can look up the other)
         ActiveCalls[callerUserKey] = calleeKey.Value;
@@ -140,6 +163,9 @@ public class ContentLockHub : Hub<IContentLockHubEvents>
     /// </summary>
     public async Task DeclineCallAsync(Guid callerUserKey)
     {
+        // Cancel the ring timeout — callee explicitly declined
+        CancelRingTimeout(callerUserKey);
+
         var callerConnections = GetConnectionsForUser(callerUserKey);
         if (callerConnections.Length > 0)
         {
@@ -207,6 +233,71 @@ public class ContentLockHub : Hub<IContentLockHubEvents>
 
         // Broadcast updated in-call list (now empty for these two users)
         await BroadcastInCallUsersAsync();
+    }
+
+    private async Task CleanUpPendingRingOnDisconnectAsync(Guid disconnectedUserKey)
+    {
+        // Case 1: Disconnected user was the caller — notify the callee that the ring is gone
+        if (_pendingRings.TryGetValue(disconnectedUserKey, out var ring))
+        {
+            var calleeKey = ring.CalleeKey;
+            CancelRingTimeout(disconnectedUserKey);
+
+            var calleeConnections = GetConnectionsForUser(calleeKey);
+            if (calleeConnections.Length > 0)
+            {
+                await Clients.Clients(calleeConnections).CallEnded();
+            }
+
+            return;
+        }
+
+        // Case 2: Disconnected user was the callee — cancel the caller's ring timeout and notify them
+        if (_pendingRingByCallee.TryGetValue(disconnectedUserKey, out var callerKey))
+        {
+            CancelRingTimeout(callerKey);
+
+            var callerConnections = GetConnectionsForUser(callerKey);
+            if (callerConnections.Length > 0)
+            {
+                await Clients.Clients(callerConnections).CallEnded();
+            }
+        }
+    }
+
+    private async Task HandleRingTimeoutAsync(Guid callerKey, Guid calleeKey, string callerName, CancellationToken ct)
+    {
+        try
+        {
+            await Task.Delay(TimeSpan.FromSeconds(_options.CurrentValue.WebRTC.RingTimeoutSeconds), ct);
+        }
+        catch (OperationCanceledException)
+        {
+            // Timer was cancelled — call was answered, declined, or a party disconnected; nothing to do
+            return;
+        }
+
+        _pendingRings.TryRemove(callerKey, out _);
+        _pendingRingByCallee.TryRemove(calleeKey, out _);
+
+        var callerConns = GetConnectionsForUser(callerKey);
+        var calleeConns = GetConnectionsForUser(calleeKey);
+
+        if (callerConns.Length > 0)
+            await _hubContext.Clients.Clients(callerConns).CallNoAnswer();
+
+        if (calleeConns.Length > 0)
+            await _hubContext.Clients.Clients(calleeConns).MissedCall(callerKey, callerName);
+    }
+
+    private static void CancelRingTimeout(Guid callerKey)
+    {
+        if (_pendingRings.TryRemove(callerKey, out var ring))
+        {
+            _pendingRingByCallee.TryRemove(ring.CalleeKey, out _);
+            ring.Cts.Cancel();
+            ring.Cts.Dispose();
+        }
     }
 
     private async Task GetLatestLockInfoForNewConnection()

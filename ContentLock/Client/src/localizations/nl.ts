@@ -58,5 +58,7 @@ export default {
         callBusy: '{0} is momenteel in een gesprek',
         callFailed: 'Verbinding mislukt',
         calling: '{0} bellen...',
+        missedCall: 'Missed call',
+        missedCallFrom: '{0} tried to call you',
     }
 };

@@ -19,6 +19,7 @@ export interface WebRTCOptions {
     enable: boolean;
     stunServers: string[];
     turnServers: WebRTCTurnServerOptions[];
+    ringTimeoutSeconds: number;
 }
 
 export interface WebRTCTurnServerOptions {
