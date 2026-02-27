@@ -94,6 +94,28 @@ public class ContentLockOptions
         /// </summary>
         public int RingTimeoutSeconds { get; set; } = 20;
 
+        /// <summary>
+        /// Settings to control the sounds played during WebRTC calls.
+        /// </summary>
+        public SoundsOptions Sounds { get; set; } = new();
+
+        public class SoundsOptions
+        {
+            /// <summary>
+            /// Path to the audio file played on the callee's device while an incoming call is ringing.
+            /// This can be a relative path or an absolute URL.
+            /// Changes are reactively applied without a server restart.
+            /// </summary>
+            public string RingSound { get; set; } = "/App_Plugins/ContentLock/sounds/login.mp3";
+
+            /// <summary>
+            /// Path to the audio file played on the caller's device while waiting for the callee to answer.
+            /// This can be a relative path or an absolute URL.
+            /// Changes are reactively applied without a server restart.
+            /// </summary>
+            public string RingbackSound { get; set; } = "/App_Plugins/ContentLock/sounds/login.mp3";
+        }
+
         public class TurnServerOptions
         {
             /// <summary>TURN server URL, e.g. "turn:turn.example.com:3478"</summary>

@@ -6,6 +6,7 @@ import { CONTENTLOCK_WEBRTC_CONTEXT } from "./contentlock.webrtc.context";
 interface IncomingCallData {
     callerKey: string;
     callerName: string;
+    ringSound?: string;
 }
 
 /**
@@ -61,12 +62,9 @@ export class ContentLockIncomingCallNotificationElement extends UmbLitElement {
     }
 
     #startRinging() {
-        // Use the same configurable sound path pattern as existing login/logout sounds.
-        // Default to a simple in-browser beep via Web Audio API if no dedicated ring sound is configured.
+        const src = this.data?.ringSound ?? '/App_Plugins/ContentLock/sounds/login.mp3';
         try {
-            this.#ringingAudio = Object.assign(new Audio('/App_Plugins/ContentLock/sounds/login.mp3'), {
-                loop: true,
-            });
+            this.#ringingAudio = Object.assign(new Audio(src), { loop: true });
             this.#ringingAudio.play().catch(() => {
                 // Browser may block autoplay — safe to ignore, the notification still shows
             });

@@ -37,11 +37,14 @@ export default class ContentLockWebRTCContext extends UmbContextBase {
     #peerConnection?: RTCPeerConnection;
     #localStream?: MediaStream;
     #remoteAudioEl?: HTMLAudioElement;
+    #ringbackAudio?: HTMLAudioElement;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     #incomingCallNotificationHandler?: any;
     #pendingCallInfo?: PendingCallInfo;
     #pendingIceCandidates: RTCIceCandidateInit[] = [];
     #callStartTime?: Date;
+    #ringSound: string = '/App_Plugins/ContentLock/sounds/login.mp3';
+    #ringbackSound: string = '/App_Plugins/ContentLock/sounds/login.mp3';
     #iceServers: RTCIceServer[] = [
         { urls: 'stun:stun.l.google.com:19302' },
         { urls: 'stun:stun1.l.google.com:19302' },
@@ -63,10 +66,16 @@ export default class ContentLockWebRTCContext extends UmbContextBase {
 
             this.#signalrCtx = signalrCtx;
 
-            // Keep ICE servers in sync with reactive options
+            // Keep ICE servers and sounds in sync with reactive options
             this.observe(signalrCtx.contentLockOptions, (options) => {
                 if (options?.webRTC) {
                     this.#updateIceServers(options.webRTC);
+                    if (options.webRTC.sounds?.ringSound) {
+                        this.#ringSound = options.webRTC.sounds.ringSound;
+                    }
+                    if (options.webRTC.sounds?.ringbackSound) {
+                        this.#ringbackSound = options.webRTC.sounds.ringbackSound;
+                    }
                 }
             });
 
@@ -102,6 +111,7 @@ export default class ContentLockWebRTCContext extends UmbContextBase {
             await this.#peerConnection.setLocalDescription(offer);
 
             await this.#signalrCtx?.signalrConnection?.invoke('SendCallOfferAsync', targetUserKey, offer.sdp);
+            this.#startRingback();
         } catch (err) {
             console.error('[ContentLock WebRTC] Failed to initiate call:', err);
             this.#cleanUpCall();
@@ -270,6 +280,8 @@ export default class ContentLockWebRTCContext extends UmbContextBase {
         connection.on('ReceiveCallAnswer', async (sdpAnswer: string) => {
             if (!this.#peerConnection) return;
 
+            this.#stopRingback();
+
             await this.#peerConnection.setRemoteDescription(
                 new RTCSessionDescription({ type: 'answer', sdp: sdpAnswer })
             );
@@ -376,6 +388,27 @@ export default class ContentLockWebRTCContext extends UmbContextBase {
         this.#pendingIceCandidates = [];
     }
 
+    // ── Private: Ringback Audio ───────────────────────────────────────────
+
+    #startRingback() {
+        try {
+            this.#ringbackAudio = Object.assign(new Audio(this.#ringbackSound), { loop: true });
+            this.#ringbackAudio.play().catch(() => {
+                // Browser may block autoplay — safe to ignore, the UI still shows
+            });
+        } catch {
+            // Audio not critical for the call to function
+        }
+    }
+
+    #stopRingback() {
+        if (this.#ringbackAudio) {
+            this.#ringbackAudio.pause();
+            this.#ringbackAudio.currentTime = 0;
+            this.#ringbackAudio = undefined;
+        }
+    }
+
     // ── Private: UI ───────────────────────────────────────────────────────
 
     async #showIncomingCallNotification(callerKey: string, callerName: string) {
@@ -387,7 +420,7 @@ export default class ContentLockWebRTCContext extends UmbContextBase {
         this.#incomingCallNotificationHandler = this.#notificationCtx.stay('default', {
             elementName: 'contentlock-incoming-call-notification',
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            data: { callerKey, callerName } as any,
+            data: { callerKey, callerName, ringSound: this.#ringSound } as any,
         });
     }
 
@@ -413,6 +446,9 @@ export default class ContentLockWebRTCContext extends UmbContextBase {
     }
 
     #cleanUpCall() {
+        // Stop ringback tone (caller side)
+        this.#stopRingback();
+
         // Stop local microphone tracks
         this.#localStream?.getAudioTracks().forEach((t) => t.stop());
         this.#localStream = undefined;

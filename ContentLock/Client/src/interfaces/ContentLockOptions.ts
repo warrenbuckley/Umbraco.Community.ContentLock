@@ -20,6 +20,12 @@ export interface WebRTCOptions {
     stunServers: string[];
     turnServers: WebRTCTurnServerOptions[];
     ringTimeoutSeconds: number;
+    sounds: WebRTCSoundsOptions;
+}
+
+export interface WebRTCSoundsOptions {
+    ringSound: string;
+    ringbackSound: string;
 }
 
 export interface WebRTCTurnServerOptions {
