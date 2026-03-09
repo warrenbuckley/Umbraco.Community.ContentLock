@@ -4,8 +4,8 @@ import { OnlineUsersModalData, OnlineUsersModalValue } from "./onlineusers.modal
 import { UmbUserItemModel, UmbUserItemRepository } from "@umbraco-cms/backoffice/user";
 import { CONTENTLOCK_SIGNALR_CONTEXT } from "../globalContexts/contentlock.signalr.context";
 import { UMB_CURRENT_USER_CONTEXT } from "@umbraco-cms/backoffice/current-user";
-import { CONTENTLOCK_WEBRTC_CONTEXT } from "../webrtc/contentlock.webrtc.context";
-import type ContentLockWebRTCContext from "../webrtc/contentlock.webrtc.context";
+import { CONTENTLOCK_WEBRTC_CONTEXT } from "../globalContexts/contentlock.webrtc.context";
+import type ContentLockWebRTCContext from "../globalContexts/contentlock.webrtc.context";
 
 @customElement("contentlock-onlineusers-modal")
 export class OnlineUsersModalElement extends UmbModalBaseElement<OnlineUsersModalData, OnlineUsersModalValue>
@@ -106,7 +106,7 @@ export class OnlineUsersModalElement extends UmbModalBaseElement<OnlineUsersModa
 
                                 <!-- Busy tag if the remote user is already in a call -->
                                 ${!isSelf && isInCall
-                                    ? html`<uui-tag color="warning" look="default">
+                                    ? html`<uui-tag color="danger" look="outline">
                                             <uui-icon name="icon-phone"></uui-icon>
                                             <umb-localize key="contentLockCall_busyIndicator">On a call</umb-localize>
                                         </uui-tag>`
@@ -116,14 +116,15 @@ export class OnlineUsersModalElement extends UmbModalBaseElement<OnlineUsersModa
                                 <!-- Call button — only shown for other users when WebRTC is enabled -->
                                 ${!isSelf && this._webRTCEnabled
                                     ? html`<uui-button
-                                            compact
-                                            look="outline"
+                                            look="primary"
+                                            color="positive"
                                             class="call-btn"
                                             label=${this.localize.term('contentLockCall_callButton')}
                                             title=${this.localize.term('contentLockCall_callButton')}
                                             ?disabled=${isInCall || callerBusy}
                                             @click=${() => this.#handleCall(user)}>
                                             <uui-icon name="icon-phone"></uui-icon>
+                                            <umb-localize key="contentLockCall_callButton">Call</umb-localize>
                                         </uui-button>`
                                     : nothing
                                 }

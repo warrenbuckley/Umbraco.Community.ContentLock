@@ -273,7 +273,7 @@ export default class ContentLockWebRTCContext extends UmbContextBase {
         connection.on('ReceiveCallOffer', async (callerKey: string, callerName: string, sdpOffer: string) => {
             this.#pendingCallInfo = { callerKey, callerName, sdpOffer };
             this.#callState.setValue('incoming');
-            await this.#showIncomingCallNotification(callerKey, callerName);
+            this.#showIncomingCallNotification(callerKey, callerName);
         });
 
         // Callee accepted — SDP answer received by the caller
@@ -411,13 +411,10 @@ export default class ContentLockWebRTCContext extends UmbContextBase {
 
     // ── Private: UI ───────────────────────────────────────────────────────
 
-    async #showIncomingCallNotification(callerKey: string, callerName: string) {
+    #showIncomingCallNotification(callerKey: string, callerName: string) {
         if (!this.#notificationCtx) return;
 
-        // Ensure the custom element is registered before Umbraco tries to create it
-        await import('./contentlock-incoming-call-notification.element.js');
-
-        this.#incomingCallNotificationHandler = this.#notificationCtx.stay('default', {
+        this.#incomingCallNotificationHandler = this.#notificationCtx.stay("default", {
             elementName: 'contentlock-incoming-call-notification',
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             data: { callerKey, callerName, ringSound: this.#ringSound } as any,

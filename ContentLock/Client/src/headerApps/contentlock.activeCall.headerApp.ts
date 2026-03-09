@@ -1,6 +1,7 @@
 import { css, customElement, html, query, state } from "@umbraco-cms/backoffice/external/lit";
 import { UmbHeaderAppButtonElement } from '@umbraco-cms/backoffice/components';
-import { CONTENTLOCK_WEBRTC_CONTEXT, type CallState, type RemotePeerInfo } from "./contentlock.webrtc.context";
+import { CONTENTLOCK_WEBRTC_CONTEXT } from "../globalContexts/contentlock.webrtc.context";
+import type { CallState, RemotePeerInfo } from "../globalContexts/contentlock.webrtc.context";
 
 /**
  * Active call indicator rendered as a header app button.
@@ -104,6 +105,7 @@ export class ContentLockActiveCallHeaderApp extends UmbHeaderAppButtonElement {
         // Nothing shown when not in a call; incoming calls handled by the toast notification
         if (this._callState === 'idle' || this._callState === 'incoming') return html``;
 
+        // When calling another user
         if (this._callState === 'calling') {
             return html`
                 <uui-button
@@ -117,10 +119,7 @@ export class ContentLockActiveCallHeaderApp extends UmbHeaderAppButtonElement {
                     <umb-popover-layout>
                         <div id="panel-content">
                             <div id="panel-header">
-                                <umb-user-avatar
-                                    name="${this._remotePeer?.name ?? ''}"
-                                    .imgUrls=${[]}>
-                                </umb-user-avatar>
+                                <umb-user-avatar name="${this._remotePeer?.name ?? ''}" .imgUrls=${[]}></umb-user-avatar>
                                 <div id="peer-info">
                                     <strong>${this._remotePeer?.name}</strong>
                                     <span class="calling-label">
@@ -144,12 +143,11 @@ export class ContentLockActiveCallHeaderApp extends UmbHeaderAppButtonElement {
             `;
         }
 
-        // connected
+        // connected to a call
         return html`
             <uui-button
                 compact
                 look="primary"
-                color="positive"
                 popovertarget="contentlock-call-popover"
                 label="${this.localize.term('contentLockCall_callButton')}">
                 <uui-icon name="icon-phone"></uui-icon>

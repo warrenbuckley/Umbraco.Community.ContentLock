@@ -1,7 +1,7 @@
 import { css, customElement, html, property, state } from "@umbraco-cms/backoffice/external/lit";
 import { UmbLitElement } from "@umbraco-cms/backoffice/lit-element";
 import { UmbUserItemRepository, UmbUserItemModel } from "@umbraco-cms/backoffice/user";
-import { CONTENTLOCK_WEBRTC_CONTEXT } from "./contentlock.webrtc.context";
+import { CONTENTLOCK_WEBRTC_CONTEXT } from "../globalContexts/contentlock.webrtc.context";
 
 interface IncomingCallData {
     callerKey: string;
@@ -153,10 +153,11 @@ export class ContentLockIncomingCallNotificationElement extends UmbLitElement {
         #caller-text {
             display: flex;
             flex-direction: column;
+            font-size: var(--uui-type-default-size);
         }
 
         #incoming-label {
-            font-size: var(--uui-type-small-size);
+            font-weight: var(--uui-type-)
         }
 
         #caller-name {

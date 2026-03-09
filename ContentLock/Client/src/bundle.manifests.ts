@@ -7,7 +7,6 @@ import { manifests as headerApps } from './headerApps/manifest';
 import { manifests as localizations } from './localizations/manifest';
 import { manifests as modals } from './modals/manifest';
 import { manifests as userPermissions } from './userpermissions/manifest';
-import { manifests as webrtc } from './webrtc/manifest';
 import { manifests as workspaceActions } from './workspaceActions/manifest';
 import { manifests as workspaceContexts } from './workspaceContexts/manifest';
 import { manifests as workspaceFooterApps } from './workspaceFooterApp/manifest';
@@ -25,7 +24,6 @@ export const manifests: Array<UmbExtensionManifest> = [
   ...localizations,
   ...modals,
   ...userPermissions,
-  ...webrtc,
   ...workspaceActions,
   ...workspaceContexts,
   ...workspaceFooterApps,

@@ -18,7 +18,7 @@ export const manifests: Array<UmbExtensionManifest> = [
       name: '[Content Lock] Active Call Header App',
       alias: 'ContentLock.HeaderApp.ActiveCall',
       type: 'headerApp',
-      js: () => import('../webrtc/contentlock-active-call.element'),
+      js: () => import('./contentlock.activeCall.headerApp'),
       weight: 1001, // sits adjacent to the online users button
       conditions: [
         {

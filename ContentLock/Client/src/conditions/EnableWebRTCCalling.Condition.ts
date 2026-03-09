@@ -9,8 +9,15 @@ export default class EnableWebRTCCallingCondition extends UmbConditionBase<UmbCo
         super(host, args);
 
         this.consumeContext(CONTENTLOCK_SIGNALR_CONTEXT, (signalrCtx) => {
-            this.observe(signalrCtx?.contentLockOptions, (options) => {
-                this.permitted = options?.webRTC?.enable ?? false;
+            this.observe(signalrCtx?.EnableWebRTC, (enableWebRTC) => {
+                if(enableWebRTC){
+                     // Setting enabled - enable/allow the calling features
+                    this.permitted = true;
+                }
+                else {
+                    // Otherwise we hide/remove them
+                    this.permitted = false;
+                }
             });
         });
     }

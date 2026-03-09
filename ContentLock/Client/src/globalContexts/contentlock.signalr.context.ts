@@ -52,6 +52,10 @@ export default class ContentLockSignalrContext extends UmbContextBase
                 ],
                 turnServers: [],
                 ringTimeoutSeconds: 20,
+                sounds: {
+                    ringbackSound: '/App_Plugins/ContentLock/sounds/login.mp3',
+                    ringSound: '/App_Plugins/ContentLock/sounds/login.mp3',
+                }
             }
         });
 
@@ -94,6 +98,7 @@ export default class ContentLockSignalrContext extends UmbContextBase
     public contentLockOptions = this.#contentLockOptions.asObservable();
 
     // The individual options as observables
+    public EnableWebRTC = this.#contentLockOptions.asObservablePart(options => options.webRTC.enable);
     public EnableOnlineUsers = this.#contentLockOptions.asObservablePart(options => options.onlineUsers.enable);
     public EnableSounds = this.#contentLockOptions.asObservablePart(options => options.onlineUsers.sounds.enable);
     public LoginSound = this.#contentLockOptions.asObservablePart(options => options.onlineUsers.sounds.loginSound);
