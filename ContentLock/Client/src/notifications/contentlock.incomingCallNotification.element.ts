@@ -34,6 +34,10 @@ export class ContentLockIncomingCallNotificationElement extends UmbLitElement {
     #userItemRepository = new UmbUserItemRepository(this);
     #webrtcCtx?: typeof CONTENTLOCK_WEBRTC_CONTEXT.TYPE;
     #ringingAudio?: HTMLAudioElement;
+    // Set to true when the user explicitly accepts or declines via the buttons.
+    // If disconnectedCallback fires without this set, the toast was dismissed
+    // externally (Esc / X) and we treat it as an implicit decline.
+    #handled = false;
 
     constructor() {
         super();
@@ -53,6 +57,11 @@ export class ContentLockIncomingCallNotificationElement extends UmbLitElement {
     override disconnectedCallback() {
         super.disconnectedCallback();
         this.#stopRinging();
+        // If dismissed without an explicit Accept/Decline (e.g. Esc key or X button),
+        // treat it as a decline so the caller is notified and the call state is cleaned up.
+        if (!this.#handled) {
+            this.#webrtcCtx?.declineCall();
+        }
     }
 
     async #resolveCallerUser() {
@@ -82,6 +91,7 @@ export class ContentLockIncomingCallNotificationElement extends UmbLitElement {
     }
 
     async #handleAccept() {
+        this.#handled = true;
         this._accepting = true;
         this.#stopRinging();
         await this.#webrtcCtx?.acceptCall();
@@ -89,6 +99,7 @@ export class ContentLockIncomingCallNotificationElement extends UmbLitElement {
     }
 
     async #handleDecline() {
+        this.#handled = true;
         this.#stopRinging();
         await this.#webrtcCtx?.declineCall();
         this.notificationHandler?.close();
