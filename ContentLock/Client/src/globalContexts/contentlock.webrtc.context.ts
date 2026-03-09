@@ -3,6 +3,7 @@ import { UmbContextToken } from "@umbraco-cms/backoffice/context-api";
 import { UmbControllerHost } from "@umbraco-cms/backoffice/controller-api";
 import { UmbObjectState } from "@umbraco-cms/backoffice/observable-api";
 import { UMB_NOTIFICATION_CONTEXT } from "@umbraco-cms/backoffice/notification";
+import { UmbUserItemRepository } from "@umbraco-cms/backoffice/user";
 import { CONTENTLOCK_SIGNALR_CONTEXT } from "../globalContexts/contentlock.signalr.context";
 import type { WebRTCOptions } from "../interfaces/ContentLockOptions";
 
@@ -33,6 +34,8 @@ export default class ContentLockWebRTCContext extends UmbContextBase {
     public isMuted = this.#isMuted.asObservable();
 
     // ── Private State ─────────────────────────────────────────────────────
+
+    #userItemRepository = new UmbUserItemRepository(this);
 
     #peerConnection?: RTCPeerConnection;
     #localStream?: MediaStream;
@@ -132,9 +135,15 @@ export default class ContentLockWebRTCContext extends UmbContextBase {
         this.#incomingCallNotificationHandler?.close();
         this.#incomingCallNotificationHandler = undefined;
 
-        // Set remote peer info from pending call (avatarUrls not available at this point,
-        // umb-user-avatar will render initials as fallback)
+        // Set remote peer info immediately so the UI can render initials as a fallback,
+        // then patch avatarUrls once the repository resolves them.
         this.#remotePeer.setValue({ key: callerKey, name: callerName, avatarUrls: [] });
+        this.#userItemRepository.requestItems([callerKey]).then((result) => {
+            const urls = result.data?.[0]?.avatarUrls ?? [];
+            if (urls.length) {
+                this.#remotePeer.setValue({ key: callerKey, name: callerName, avatarUrls: urls });
+            }
+        });
 
         try {
             this.#localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
