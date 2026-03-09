@@ -2,6 +2,8 @@ import { css, customElement, html, query, state } from "@umbraco-cms/backoffice/
 import { UmbHeaderAppButtonElement } from '@umbraco-cms/backoffice/components';
 import { CONTENTLOCK_WEBRTC_CONTEXT } from "../globalContexts/contentlock.webrtc.context";
 import type { CallState, RemotePeerInfo } from "../globalContexts/contentlock.webrtc.context";
+import '@warrenbuckley/audio-visualizer';
+import type { AudioVisualizer } from '@warrenbuckley/audio-visualizer';
 
 /**
  * Active call indicator rendered as a header app button.
@@ -28,6 +30,9 @@ export class ContentLockActiveCallHeaderApp extends UmbHeaderAppButtonElement {
     @query('#contentlock-call-popover')
     private _popoverEl?: HTMLElement;
 
+    @query('audio-visualizer')
+    private _vizEl?: AudioVisualizer;
+
     #webrtcCtx?: typeof CONTENTLOCK_WEBRTC_CONTEXT.TYPE;
     #timerInterval?: ReturnType<typeof setInterval>;
 
@@ -45,18 +50,32 @@ export class ContentLockActiveCallHeaderApp extends UmbHeaderAppButtonElement {
                 if (callState === 'connected' && prev !== 'connected') {
                     this.#startTimer();
                     this.#loadAudioDevices();
-                    // Auto-open the popover after the element re-renders with the connected template
+                    // Auto-open the popover and start the visualizer after the element
+                    // re-renders with the connected template (mic permission is already
+                    // granted by the WebRTC call, so no user gesture is needed here).
                     this.updateComplete.then(() => {
                         (this._popoverEl as HTMLElement & { showPopover?(): void })?.showPopover?.();
+                        this._vizEl?.startMicrophone(this._selectedMicId || undefined);
                     });
                 } else if (callState === 'idle') {
                     this.#stopTimer();
                     this._callDuration = '0:00';
+                    this._vizEl?.stopMicrophone();
                 }
             });
 
             this.observe(ctx.remotePeer, (peer) => { this._remotePeer = peer; });
-            this.observe(ctx.isMuted, (muted) => { this._isMuted = muted; });
+            this.observe(ctx.isMuted, (muted) => {
+                this._isMuted = muted;
+                // The visualizer holds its own getUserMedia stream, independent of the
+                // WebRTC sender track. Stop it when muted so the bars go idle (matching
+                // the user's expectation that no audio is being captured/shown).
+                if (muted) {
+                    this._vizEl?.stopMicrophone();
+                } else if (this._callState === 'connected') {
+                    this._vizEl?.startMicrophone(this._selectedMicId || undefined);
+                }
+            });
         });
     }
 
@@ -97,6 +116,7 @@ export class ContentLockActiveCallHeaderApp extends UmbHeaderAppButtonElement {
 
     #handleDeviceChange() {
         this.#webrtcCtx?.setAudioDevices(this._selectedMicId, this._selectedSpeakerId);
+        this._vizEl?.startMicrophone(this._selectedMicId || undefined);
     }
 
     // ── Rendering ──────────────────────────────────────────────────────
@@ -150,7 +170,7 @@ export class ContentLockActiveCallHeaderApp extends UmbHeaderAppButtonElement {
                 look="primary"
                 popovertarget="contentlock-call-popover"
                 label="${this.localize.term('contentLockCall_callButton')}">
-                <uui-icon name="icon-phone"></uui-icon>
+                <audio-visualizer size="icon"></audio-visualizer>
                 <span class="timer">${this._callDuration}</span>
             </uui-button>
             <uui-popover-container id="contentlock-call-popover" placement="bottom-end" margin="6">
@@ -242,6 +262,10 @@ export class ContentLockActiveCallHeaderApp extends UmbHeaderAppButtonElement {
     static override styles = [
         ...UmbHeaderAppButtonElement.styles,
         css`
+            audio-visualizer {
+                flex-shrink: 0;
+            }
+
             .timer {
                 font-size: var(--uui-type-small-size);
                 font-variant-numeric: tabular-nums;

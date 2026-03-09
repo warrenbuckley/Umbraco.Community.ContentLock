@@ -19,6 +19,7 @@
     "vite": "^7.2.4"
   },
   "dependencies": {
-    "@microsoft/signalr": "^10.0.0"
+    "@microsoft/signalr": "^10.0.0",
+    "@warrenbuckley/audio-visualizer": "^1.0.0"
   }
 }
