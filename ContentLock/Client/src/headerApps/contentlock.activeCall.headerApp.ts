@@ -110,7 +110,7 @@ export class ContentLockActiveCallHeaderApp extends UmbHeaderAppButtonElement {
             return html`
                 <uui-button
                     compact
-                    look="outline"
+                    look="primary"
                     popovertarget="contentlock-call-popover"
                     label="${this.localize.term('contentLockCall_callButton')}">
                     <uui-icon class="calling-icon" name="icon-phone"></uui-icon>
@@ -267,11 +267,16 @@ export class ContentLockActiveCallHeaderApp extends UmbHeaderAppButtonElement {
             #panel-content {
                 padding: var(--uui-size-4);
                 min-width: 240px;
-                /* UmbHeaderAppButtonElement sets --uui-button-background-color: transparent
-                   on :host, which cascades into all uui-buttons here and overrides their
-                   look="primary" color backgrounds. Reset to initial so each button's own
-                   color-based fallback in var(--uui-button-background-color, var(--color))
-                   takes effect. */
+            }
+
+            /* UmbHeaderAppButtonElement's stylesheet rule sets font-size: 18px and
+               --uui-button-background-color: transparent directly on every uui-button
+               in this shadow root. Setting variables on the parent div has no effect
+               because a direct element rule wins over inherited parent values.
+               Using a higher-specificity selector (#id + element > element alone)
+               lets us restore the UUI button defaults for controls inside the popover. */
+            #panel-content uui-button {
+                font-size: var(--uui-type-default-size);
                 --uui-button-background-color: initial;
                 --uui-button-background-color-hover: initial;
             }
