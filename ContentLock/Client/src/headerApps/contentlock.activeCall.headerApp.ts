@@ -170,7 +170,7 @@ export class ContentLockActiveCallHeaderApp extends UmbHeaderAppButtonElement {
                 look="primary"
                 popovertarget="contentlock-call-popover"
                 label="${this.localize.term('contentLockCall_callButton')}">
-                <audio-visualizer size="icon"></audio-visualizer>
+                <audio-visualizer size="icon" ?muted=${this._isMuted}></audio-visualizer>
                 <span class="timer">${this._callDuration}</span>
             </uui-button>
             <uui-popover-container id="contentlock-call-popover" placement="bottom-end" margin="6">
@@ -264,6 +264,11 @@ export class ContentLockActiveCallHeaderApp extends UmbHeaderAppButtonElement {
         css`
             audio-visualizer {
                 flex-shrink: 0;
+                --audio-visualizer-color: var(--uui-color-current);
+            }
+
+            audio-visualizer[muted] {
+                --audio-visualizer-color: currentColor;
             }
 
             .timer {
