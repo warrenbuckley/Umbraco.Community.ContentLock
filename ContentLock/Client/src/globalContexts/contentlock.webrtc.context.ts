@@ -6,6 +6,7 @@ import { UMB_NOTIFICATION_CONTEXT } from "@umbraco-cms/backoffice/notification";
 import { UmbUserItemRepository } from "@umbraco-cms/backoffice/user";
 import { CONTENTLOCK_SIGNALR_CONTEXT } from "../globalContexts/contentlock.signalr.context";
 import type { WebRTCOptions } from "../interfaces/ContentLockOptions";
+import { ContentLockService } from "../api/sdk.gen";
 
 export type CallState = 'idle' | 'calling' | 'incoming' | 'connected';
 
@@ -374,20 +375,11 @@ export default class ContentLockWebRTCContext extends UmbContextBase {
      */
     async #fetchFreshIceServers(): Promise<RTCIceServer[]> {
         try {
-            const response = await fetch('/umbraco/contentlock/api/v1/TurnCredentials', {
-                credentials: 'include',
-            });
+            const result = await ContentLockService.getTurnCredentials();
 
-            if (!response.ok) {
-                console.warn(`[ContentLock WebRTC] TURN credential fetch failed (${response.status}), falling back to STUN-only`);
-                return this.#iceServers;
-            }
-
-            const data: Array<{ urls: string[]; username?: string; credential?: string }> = await response.json();
-
-            if (data.length > 0) {
+            if (result.data && result.data.length > 0) {
                 const stunOnly = this.#iceServers.filter(s => !s.username);
-                const turn: RTCIceServer[] = data.map(s => ({
+                const turn: RTCIceServer[] = result.data.map(s => ({
                     urls: s.urls,
                     username: s.username ?? undefined,
                     credential: s.credential ?? undefined,

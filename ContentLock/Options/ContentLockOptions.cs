@@ -108,6 +108,7 @@ public class ContentLockOptions
 
             public CloudflareOptions Cloudflare { get; set; } = new();
             public TwilioOptions Twilio { get; set; } = new();
+            public MeteredOptions Metered { get; set; } = new();
 
             public class CloudflareOptions
             {
@@ -131,6 +132,27 @@ public class ContentLockOptions
 
                 /// <summary>Token lifetime in seconds.</summary>
                 public int Ttl { get; set; } = 86400;
+            }
+
+            public class MeteredOptions
+            {
+                /// <summary>
+                /// Your Metered app subdomain, e.g. "myapp" for myapp.metered.live.
+                /// For the free Open Relay service use "openrelay".
+                /// </summary>
+                public string AppName { get; set; } = "openrelay";
+
+                /// <summary>
+                /// API key from the Metered dashboard.
+                /// For the free Open Relay service use "openrelayproject".
+                /// </summary>
+                public string ApiKey { get; set; } = "";
+
+                /// <summary>
+                /// How long to cache the returned credentials in seconds.
+                /// Metered credentials are valid for 24 hours; default caches for 23 hours.
+                /// </summary>
+                public int CacheTtlSeconds { get; set; } = 82800; // 23 hours
             }
         }
 

@@ -19,6 +19,7 @@ public class ContentLockTurnComposer : IComposer
         builder.Services.AddMemoryCache();
         builder.Services.AddHttpClient("Cloudflare");
         builder.Services.AddHttpClient("Twilio");
+        builder.Services.AddHttpClient("Metered");
 
         var provider = builder.Config
             .GetSection("ContentLock:WebRTC:TurnServer:Provider").Value ?? "None";
@@ -30,6 +31,9 @@ public class ContentLockTurnComposer : IComposer
                 break;
             case "twilio":
                 builder.Services.AddScoped<ITurnCredentialProvider, TwilioTurnCredentialProvider>();
+                break;
+            case "metered":
+                builder.Services.AddScoped<ITurnCredentialProvider, MeteredTurnCredentialProvider>();
                 break;
             case "static":
                 builder.Services.AddScoped<ITurnCredentialProvider, StaticTurnCredentialProvider>();
