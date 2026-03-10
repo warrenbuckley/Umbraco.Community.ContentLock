@@ -195,7 +195,7 @@ export class ContentLockActiveCallHeaderApp extends UmbHeaderAppButtonElement {
                                     ? this.localize.term('contentLockCall_unmute')
                                     : this.localize.term('contentLockCall_mute')}"
                                 @click=${() => this.#webrtcCtx?.toggleMute()}>
-                                <uui-icon name="${this._isMuted ? 'icon-sound-off' : 'icon-audio-lines'}"></uui-icon>
+                                <uui-icon name="${this._isMuted ? 'mic-off' : 'mic'}"></uui-icon>
                                 ${this._isMuted
                                     ? html`<umb-localize key="contentLockCall_unmute">Unmute</umb-localize>`
                                     : html`<umb-localize key="contentLockCall_mute">Mute</umb-localize>`}
