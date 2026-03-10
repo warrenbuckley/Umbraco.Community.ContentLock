@@ -102,8 +102,12 @@ export default class ContentLockWebRTCContext extends UmbContextBase {
         this.#callState.setValue('calling');
 
         try {
-            this.#localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
-            this.#peerConnection = this.#createPeerConnection(targetUserKey);
+            const [localStream, iceServers] = await Promise.all([
+                navigator.mediaDevices.getUserMedia({ audio: true, video: false }),
+                this.#fetchFreshIceServers(),
+            ]);
+            this.#localStream = localStream;
+            this.#peerConnection = this.#createPeerConnection(targetUserKey, iceServers);
 
             for (const track of this.#localStream.getAudioTracks()) {
                 this.#peerConnection.addTrack(track, this.#localStream);
@@ -145,8 +149,12 @@ export default class ContentLockWebRTCContext extends UmbContextBase {
         });
 
         try {
-            this.#localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
-            this.#peerConnection = this.#createPeerConnection(callerKey);
+            const [localStream, iceServers] = await Promise.all([
+                navigator.mediaDevices.getUserMedia({ audio: true, video: false }),
+                this.#fetchFreshIceServers(),
+            ]);
+            this.#localStream = localStream;
+            this.#peerConnection = this.#createPeerConnection(callerKey, iceServers);
 
             for (const track of this.#localStream.getAudioTracks()) {
                 this.#peerConnection.addTrack(track, this.#localStream);
@@ -357,10 +365,45 @@ export default class ContentLockWebRTCContext extends UmbContextBase {
         });
     }
 
+    // ── Private: TURN Credentials ─────────────────────────────────────────
+
+    /**
+     * Fetches fresh ICE servers from the server-side TURN credential provider.
+     * Falls back to the options-based ICE servers (STUN + any static TURN) on error
+     * or when the provider returns an empty list (e.g. Provider = "None").
+     */
+    async #fetchFreshIceServers(): Promise<RTCIceServer[]> {
+        try {
+            const response = await fetch('/umbraco/contentlock/api/v1/TurnCredentials', {
+                credentials: 'include',
+            });
+
+            if (!response.ok) {
+                console.warn(`[ContentLock WebRTC] TURN credential fetch failed (${response.status}), falling back to STUN-only`);
+                return this.#iceServers;
+            }
+
+            const data: Array<{ urls: string[]; username?: string; credential?: string }> = await response.json();
+
+            if (data.length > 0) {
+                const stunOnly = this.#iceServers.filter(s => !s.username);
+                const turn: RTCIceServer[] = data.map(s => ({
+                    urls: s.urls,
+                    username: s.username ?? undefined,
+                    credential: s.credential ?? undefined,
+                }));
+                return [...stunOnly, ...turn];
+            }
+        } catch {
+            console.warn('[ContentLock WebRTC] TURN credential fetch failed, falling back to STUN-only');
+        }
+        return this.#iceServers;
+    }
+
     // ── Private: WebRTC Peer Connection ───────────────────────────────────
 
-    #createPeerConnection(peerUserKey: string): RTCPeerConnection {
-        const pc = new RTCPeerConnection({ iceServers: this.#iceServers });
+    #createPeerConnection(peerUserKey: string, iceServers: RTCIceServer[]): RTCPeerConnection {
+        const pc = new RTCPeerConnection({ iceServers });
 
         // Relay ICE candidates to the remote peer via SignalR as they are gathered
         pc.onicecandidate = (event) => {

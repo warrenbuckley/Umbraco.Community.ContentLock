@@ -85,8 +85,54 @@ public class ContentLockOptions
         /// Optional TURN relay servers for environments where peer-to-peer connections
         /// cannot be established directly (e.g. symmetric NAT, strict corporate firewalls).
         /// Leave empty to rely on STUN only.
+        /// Used by <see cref="TurnServerProviderOptions"/> when <c>Provider = "Static"</c>.
         /// </summary>
         public TurnServerOptions[] TurnServers { get; set; } = [];
+
+        /// <summary>
+        /// Dynamic TURN credential provider configuration.
+        /// Changing <c>Provider</c> requires an application restart.
+        /// Credential values (API keys) are reactive via <see cref="Microsoft.Extensions.Options.IOptionsMonitor{T}"/>.
+        /// </summary>
+        public TurnServerProviderOptions TurnServer { get; set; } = new();
+
+        public class TurnServerProviderOptions
+        {
+            /// <summary>
+            /// Which TURN credential provider to use.
+            /// "None" = STUN only (default). "Static" = use TurnServers array.
+            /// "Cloudflare" / "Twilio" = dynamic credentials via provider REST API.
+            /// Changing this value requires an application restart.
+            /// </summary>
+            public string Provider { get; set; } = "None";
+
+            public CloudflareOptions Cloudflare { get; set; } = new();
+            public TwilioOptions Twilio { get; set; } = new();
+
+            public class CloudflareOptions
+            {
+                /// <summary>TURN Key ID from Cloudflare Realtime dashboard.</summary>
+                public string KeyId { get; set; } = "";
+
+                /// <summary>API Token with TURN key permissions.</summary>
+                public string ApiToken { get; set; } = "";
+
+                /// <summary>Token lifetime in seconds. Maximum 86400 (24 hours).</summary>
+                public int Ttl { get; set; } = 86400;
+            }
+
+            public class TwilioOptions
+            {
+                /// <summary>Twilio Account SID.</summary>
+                public string AccountSid { get; set; } = "";
+
+                /// <summary>Twilio Auth Token.</summary>
+                public string AuthToken { get; set; } = "";
+
+                /// <summary>Token lifetime in seconds.</summary>
+                public int Ttl { get; set; } = 86400;
+            }
+        }
 
         /// <summary>
         /// Number of seconds to ring before automatically timing out.
