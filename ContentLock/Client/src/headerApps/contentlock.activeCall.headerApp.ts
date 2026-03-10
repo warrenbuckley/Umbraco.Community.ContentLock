@@ -222,7 +222,7 @@ export class ContentLockActiveCallHeaderApp extends UmbHeaderAppButtonElement {
         return html`
             <div id="device-settings">
                 <label for="mic-select">
-                    <uui-icon name="icon-audio-lines"></uui-icon>
+                    <uui-icon name="mic"></uui-icon>
                     <umb-localize key="contentLockCall_microphone">Microphone</umb-localize>
                 </label>
                 <select
