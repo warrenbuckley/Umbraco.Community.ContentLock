@@ -50,8 +50,7 @@ export default class ContentLockWebRTCContext extends UmbContextBase {
     #ringbackSound: string = '/App_Plugins/ContentLock/sounds/login.mp3';
     #iceServers: RTCIceServer[] = [
         { urls: 'stun:stun.l.google.com:19302' },
-        { urls: 'stun:stun1.l.google.com:19302' },
-        { urls: 'stun:stun2.l.google.com:19302' },
+        { urls: 'stun:stun.cloudflare.com:3478' },
     ];
 
     #signalrCtx?: typeof CONTENTLOCK_SIGNALR_CONTEXT.TYPE;

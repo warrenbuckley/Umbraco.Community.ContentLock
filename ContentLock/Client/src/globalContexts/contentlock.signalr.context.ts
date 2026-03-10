@@ -47,8 +47,7 @@ export default class ContentLockSignalrContext extends UmbContextBase
                 enable: true,
                 stunServers: [
                     'stun:stun.l.google.com:19302',
-                    'stun:stun1.l.google.com:19302',
-                    'stun:stun2.l.google.com:19302',
+                    'stun:stun.cloudflare.com:3478'
                 ],
                 turnServers: [],
                 ringTimeoutSeconds: 20,

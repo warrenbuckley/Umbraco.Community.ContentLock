@@ -72,13 +72,13 @@ public class ContentLockOptions
 
         /// <summary>
         /// STUN server URLs used for ICE candidate gathering.
-        /// Defaults to Google's free public STUN servers, which work for most network scenarios.
+        /// Defaults to one Google and one Cloudflare FREE public STUN servers for provider diversity
+        /// This should work for most network scenarios
         /// </summary>
         public string[] StunServers { get; set; } =
         [
             "stun:stun.l.google.com:19302",
-            "stun:stun1.l.google.com:19302",
-            "stun:stun2.l.google.com:19302",
+            "stun:stun.cloudflare.com:3478"
         ];
 
         /// <summary>
