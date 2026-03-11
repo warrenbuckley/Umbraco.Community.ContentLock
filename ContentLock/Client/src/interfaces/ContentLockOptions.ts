@@ -18,7 +18,6 @@ export interface OnlineUsersSoundsOptions {
 export interface WebRTCOptions {
     enable: boolean;
     stunServers: string[];
-    turnServers: WebRTCTurnServerOptions[];
     ringTimeoutSeconds: number;
     sounds: WebRTCSoundsOptions;
 }
@@ -26,10 +25,4 @@ export interface WebRTCOptions {
 export interface WebRTCSoundsOptions {
     ringSound: string;
     ringbackSound: string;
-}
-
-export interface WebRTCTurnServerOptions {
-    urls: string;
-    username: string;
-    credential: string;
 }

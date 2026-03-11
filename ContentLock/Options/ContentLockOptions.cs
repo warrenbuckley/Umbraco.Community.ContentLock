@@ -82,14 +82,6 @@ public class ContentLockOptions
         ];
 
         /// <summary>
-        /// Optional TURN relay servers for environments where peer-to-peer connections
-        /// cannot be established directly (e.g. symmetric NAT, strict corporate firewalls).
-        /// Leave empty to rely on STUN only.
-        /// Used by <see cref="TurnServerProviderOptions"/> when <c>Provider = "Static"</c>.
-        /// </summary>
-        public TurnServerOptions[] TurnServers { get; set; } = [];
-
-        /// <summary>
         /// Dynamic TURN credential provider configuration.
         /// Changing <c>Provider</c> requires an application restart.
         /// Credential values (API keys) are reactive via <see cref="Microsoft.Extensions.Options.IOptionsMonitor{T}"/>.
@@ -100,8 +92,8 @@ public class ContentLockOptions
         {
             /// <summary>
             /// Which TURN credential provider to use.
-            /// "None" = STUN only (default). "Static" = use TurnServers array.
-            /// "Cloudflare" / "Twilio" = dynamic credentials via provider REST API.
+            /// "None" = no TURN (STUN only, default).
+            /// "Cloudflare" / "Twilio" / "Metered" = dynamic credentials via provider REST API.
             /// Changing this value requires an application restart.
             /// </summary>
             public string Provider { get; set; } = "None";
@@ -138,13 +130,13 @@ public class ContentLockOptions
             {
                 /// <summary>
                 /// Your Metered app subdomain, e.g. "myapp" for myapp.metered.live.
-                /// For the free Open Relay service use "openrelay".
+                /// Sign up at https://www.metered.ca/tools/openrelay/ to get your app name.
                 /// </summary>
-                public string AppName { get; set; } = "openrelay";
+                public string AppName { get; set; } = "";
 
                 /// <summary>
                 /// API key from the Metered dashboard.
-                /// For the free Open Relay service use "openrelayproject".
+                /// Sign up at https://www.metered.ca/tools/openrelay/ to get your API key.
                 /// </summary>
                 public string ApiKey { get; set; } = "";
 
@@ -184,16 +176,5 @@ public class ContentLockOptions
             public string RingbackSound { get; set; } = "/App_Plugins/ContentLock/sounds/login.mp3";
         }
 
-        public class TurnServerOptions
-        {
-            /// <summary>TURN server URL, e.g. "turn:turn.example.com:3478"</summary>
-            public string Urls { get; set; } = "";
-
-            /// <summary>TURN server username credential</summary>
-            public string Username { get; set; } = "";
-
-            /// <summary>TURN server password credential</summary>
-            public string Credential { get; set; } = "";
-        }
     }
 }

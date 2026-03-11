@@ -395,7 +395,7 @@ export default class ContentLockWebRTCContext extends UmbContextBase {
     // ── Private: WebRTC Peer Connection ───────────────────────────────────
 
     #createPeerConnection(peerUserKey: string, iceServers: RTCIceServer[]): RTCPeerConnection {
-        const pc = new RTCPeerConnection({ iceServers });
+        const pc = new RTCPeerConnection({ iceServers, iceTransportPolicy: 'relay' }); // TODO: remove after TURN verification
 
         // Relay ICE candidates to the remote peer via SignalR as they are gathered
         pc.onicecandidate = (event) => {
@@ -518,14 +518,7 @@ export default class ContentLockWebRTCContext extends UmbContextBase {
     }
 
     #updateIceServers(webRTC: WebRTCOptions) {
-        this.#iceServers = [
-            ...webRTC.stunServers.map((url) => ({ urls: url } as RTCIceServer)),
-            ...webRTC.turnServers.map((t) => ({
-                urls: t.urls,
-                username: t.username,
-                credential: t.credential,
-            } as RTCIceServer)),
-        ];
+        this.#iceServers = webRTC.stunServers.map((url) => ({ urls: url } as RTCIceServer));
     }
 
     override async destroy(): Promise<void> {

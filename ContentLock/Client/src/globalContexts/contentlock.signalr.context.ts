@@ -49,7 +49,6 @@ export default class ContentLockSignalrContext extends UmbContextBase
                     'stun:stun.l.google.com:19302',
                     'stun:stun.cloudflare.com:3478'
                 ],
-                turnServers: [],
                 ringTimeoutSeconds: 20,
                 sounds: {
                     ringbackSound: '/App_Plugins/ContentLock/sounds/login.mp3',

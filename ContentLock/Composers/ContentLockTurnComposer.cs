@@ -35,12 +35,8 @@ public class ContentLockTurnComposer : IComposer
             case "metered":
                 builder.Services.AddScoped<ITurnCredentialProvider, MeteredTurnCredentialProvider>();
                 break;
-            case "static":
-                builder.Services.AddScoped<ITurnCredentialProvider, StaticTurnCredentialProvider>();
-                break;
-            default:
-                builder.Services.AddScoped<ITurnCredentialProvider, NoneTurnCredentialProvider>();
-                break;
+            // No registration for "None" or unrecognised values —
+            // the controller checks for the service via GetService<> and returns [] if absent.
         }
     }
 }

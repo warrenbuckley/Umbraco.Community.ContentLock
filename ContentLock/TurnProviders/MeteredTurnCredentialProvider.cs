@@ -16,10 +16,7 @@ namespace ContentLock.TurnProviders;
 /// <remarks>
 /// Metered returns a singular <c>urls</c> string per entry rather than an array.
 /// This provider wraps each entry in a single-element array for a consistent interface.
-/// <para>
-/// For the free Open Relay service, set <c>AppName = "openrelay"</c> and
-/// <c>ApiKey = "openrelayproject"</c>.
-/// </para>
+/// Sign up at https://www.metered.ca/tools/openrelay/ for a free account (20 GB/month).
 /// </remarks>
 public class MeteredTurnCredentialProvider : ITurnCredentialProvider
 {
