@@ -395,7 +395,7 @@ export default class ContentLockWebRTCContext extends UmbContextBase {
     // ── Private: WebRTC Peer Connection ───────────────────────────────────
 
     #createPeerConnection(peerUserKey: string, iceServers: RTCIceServer[]): RTCPeerConnection {
-        const pc = new RTCPeerConnection({ iceServers, iceTransportPolicy: 'relay' }); // TODO: remove after TURN verification
+        const pc = new RTCPeerConnection({ iceServers });
 
         // Relay ICE candidates to the remote peer via SignalR as they are gathered
         pc.onicecandidate = (event) => {
