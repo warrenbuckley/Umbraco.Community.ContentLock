@@ -166,14 +166,14 @@ public class ContentLockOptions
             /// This can be a relative path or an absolute URL.
             /// Changes are reactively applied without a server restart.
             /// </summary>
-            public string RingSound { get; set; } = "/App_Plugins/ContentLock/sounds/login.mp3";
+            public string RingSound { get; set; } = "/App_Plugins/ContentLock/sounds/ringtone.mp3";
 
             /// <summary>
             /// Path to the audio file played on the caller's device while waiting for the callee to answer.
             /// This can be a relative path or an absolute URL.
             /// Changes are reactively applied without a server restart.
             /// </summary>
-            public string RingbackSound { get; set; } = "/App_Plugins/ContentLock/sounds/login.mp3";
+            public string RingbackSound { get; set; } = "/App_Plugins/ContentLock/sounds/ringtone.mp3";
         }
 
     }

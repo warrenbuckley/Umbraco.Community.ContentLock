@@ -51,8 +51,8 @@ export default class ContentLockSignalrContext extends UmbContextBase
                 ],
                 ringTimeoutSeconds: 20,
                 sounds: {
-                    ringbackSound: '/App_Plugins/ContentLock/sounds/login.mp3',
-                    ringSound: '/App_Plugins/ContentLock/sounds/login.mp3',
+                    ringbackSound: '/App_Plugins/ContentLock/sounds/ringtone.mp3',
+                    ringSound: '/App_Plugins/ContentLock/sounds/ringtone.mp3',
                 }
             }
         });

@@ -71,7 +71,7 @@ export class ContentLockIncomingCallNotificationElement extends UmbLitElement {
     }
 
     #startRinging() {
-        const src = this.data?.ringSound ?? '/App_Plugins/ContentLock/sounds/login.mp3';
+        const src = this.data?.ringSound ?? '/App_Plugins/ContentLock/sounds/ringtone.mp3';
         try {
             this.#ringingAudio = Object.assign(new Audio(src), { loop: true });
             this.#ringingAudio.play().catch(() => {

@@ -47,8 +47,8 @@ export default class ContentLockWebRTCContext extends UmbContextBase {
     #pendingCallInfo?: PendingCallInfo;
     #pendingIceCandidates: RTCIceCandidateInit[] = [];
     #callStartTime?: Date;
-    #ringSound: string = '/App_Plugins/ContentLock/sounds/login.mp3';
-    #ringbackSound: string = '/App_Plugins/ContentLock/sounds/login.mp3';
+    #ringSound: string = '/App_Plugins/ContentLock/sounds/ringtone.mp3';
+    #ringbackSound: string = '/App_Plugins/ContentLock/sounds/ringtone.mp3';
     #iceServers: RTCIceServer[] = [
         { urls: 'stun:stun.l.google.com:19302' },
         { urls: 'stun:stun.cloudflare.com:3478' },
