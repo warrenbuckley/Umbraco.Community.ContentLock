@@ -27,13 +27,13 @@ public class ContentLockTurnComposer : IComposer
         switch (provider.ToLowerInvariant())
         {
             case "cloudflare":
-                builder.Services.AddScoped<ITurnCredentialProvider, CloudflareTurnCredentialProvider>();
+                builder.Services.AddSingleton<ITurnCredentialProvider, CloudflareTurnCredentialProvider>();
                 break;
             case "twilio":
-                builder.Services.AddScoped<ITurnCredentialProvider, TwilioTurnCredentialProvider>();
+                builder.Services.AddSingleton<ITurnCredentialProvider, TwilioTurnCredentialProvider>();
                 break;
             case "metered":
-                builder.Services.AddScoped<ITurnCredentialProvider, MeteredTurnCredentialProvider>();
+                builder.Services.AddSingleton<ITurnCredentialProvider, MeteredTurnCredentialProvider>();
                 break;
             // No registration for "None" or unrecognised values —
             // the controller checks for the service via GetService<> and returns [] if absent.
