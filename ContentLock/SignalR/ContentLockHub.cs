@@ -97,6 +97,16 @@ public class ContentLockHub : Hub<IContentLockHubEvents>
 
         if (!callerKey.HasValue) return;
 
+        // Check if the caller is already ringing or in an active call.
+        // If so, cancel and dispose the existing ring CTS before proceeding
+        // so the orphaned Task.Delay does not run until timeout and leak resources.
+        if (_pendingRings.ContainsKey(callerKey.Value) || ActiveCalls.ContainsKey(callerKey.Value))
+        {
+            CancelRingTimeout(callerKey.Value);
+            await Clients.Caller.CallBusy();
+            return;
+        }
+
         // Check if the target user is already in a call
         if (ActiveCalls.ContainsKey(targetUserKey))
         {
