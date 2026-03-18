@@ -2,6 +2,7 @@ using Asp.Versioning;
 using ContentLock.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 
 namespace ContentLock.Controllers;
 
@@ -10,9 +11,13 @@ namespace ContentLock.Controllers;
 public class ContentLockTurnCredentialsApiController : ContentLockApiControllerBase
 {
     private readonly ITurnCredentialProvider? _provider;
+    private readonly ILogger<ContentLockTurnCredentialsApiController> _logger;
 
-    public ContentLockTurnCredentialsApiController(ITurnCredentialProvider? provider = null)
+    public ContentLockTurnCredentialsApiController(
+        ILogger<ContentLockTurnCredentialsApiController> logger,
+        ITurnCredentialProvider? provider = null)
     {
+        _logger = logger;
         _provider = provider;
     }
 
@@ -31,8 +36,9 @@ public class ContentLockTurnCredentialsApiController : ContentLockApiControllerB
         }
         catch (HttpRequestException ex)
         {
+            _logger.LogError(ex, "TURN provider request failed.");
             return StatusCode(StatusCodes.Status502BadGateway,
-                $"TURN provider returned an error: {ex.Message}");
+                "Failed to retrieve TURN credentials from the configured provider.");
         }
     }
 }
