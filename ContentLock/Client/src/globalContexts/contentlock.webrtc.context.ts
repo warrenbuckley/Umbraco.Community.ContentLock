@@ -512,8 +512,13 @@ export default class ContentLockWebRTCContext extends UmbContextBase {
     }
 
     override async destroy(): Promise<void> {
-        // Ensure the call is ended if this context is destroyed (e.g. user navigates away)
-        if (this.#callState.getValue() !== 'idle') {
+        const state = this.#callState.getValue();
+        if (state === 'incoming') {
+            // In 'incoming' state #remotePeer is not yet set — the caller's key lives in
+            // #pendingCallInfo instead. Use declineCall() so the caller is notified and
+            // not left stuck waiting indefinitely with ringback audio playing.
+            await this.declineCall();
+        } else if (state !== 'idle') {
             await this.hangUp();
         }
         await super.destroy();
