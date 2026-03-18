@@ -56,7 +56,6 @@ export default class ContentLockWebRTCContext extends UmbContextBase {
 
     #signalrCtx?: typeof CONTENTLOCK_SIGNALR_CONTEXT.TYPE;
     #notificationCtx?: typeof UMB_NOTIFICATION_CONTEXT.TYPE;
-    #connectionPollInterval?: ReturnType<typeof setInterval>;
 
     constructor(host: UmbControllerHost) {
         super(host, CONTENTLOCK_WEBRTC_CONTEXT);
@@ -83,9 +82,10 @@ export default class ContentLockWebRTCContext extends UmbContextBase {
                 }
             });
 
-            // SignalR connection is established asynchronously after auth.
-            // Poll until the connection is ready, then attach WebRTC event listeners.
-            this.#waitForConnectionAndAttach(signalrCtx);
+            // Register WebRTC signaling handlers via the SignalR context.
+            // addSignalRHandler() queues them internally if the connection is not yet
+            // ready and flushes them once it is — no polling required.
+            this.#registerSignalRHandlers(signalrCtx);
         });
     }
 
@@ -275,28 +275,16 @@ export default class ContentLockWebRTCContext extends UmbContextBase {
 
     // ── Private: SignalR Signaling Handlers ───────────────────────────────
 
-    #waitForConnectionAndAttach(signalrCtx: typeof CONTENTLOCK_SIGNALR_CONTEXT.TYPE) {
-        this.#connectionPollInterval = setInterval(() => {
-            const conn = signalrCtx.signalrConnection;
-            if (conn) {
-                clearInterval(this.#connectionPollInterval);
-                this.#connectionPollInterval = undefined;
-                this.#attachSignalRListeners(conn);
-            }
-        }, 50);
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    #attachSignalRListeners(connection: any) {
+    #registerSignalRHandlers(signalrCtx: typeof CONTENTLOCK_SIGNALR_CONTEXT.TYPE) {
         // Incoming call offer from another user
-        connection.on('ReceiveCallOffer', async (callerKey: string, callerName: string, sdpOffer: string) => {
+        signalrCtx.addSignalRHandler('ReceiveCallOffer', async (callerKey: string, callerName: string, sdpOffer: string) => {
             this.#pendingCallInfo = { callerKey, callerName, sdpOffer };
             this.#callState.setValue('incoming');
             this.#showIncomingCallNotification(callerKey, callerName);
         });
 
         // Callee accepted — SDP answer received by the caller
-        connection.on('ReceiveCallAnswer', async (sdpAnswer: string) => {
+        signalrCtx.addSignalRHandler('ReceiveCallAnswer', async (sdpAnswer: string) => {
             if (!this.#peerConnection) return;
 
             this.#stopRingback();
@@ -311,7 +299,7 @@ export default class ContentLockWebRTCContext extends UmbContextBase {
         });
 
         // ICE candidate from the remote peer
-        connection.on('ReceiveIceCandidate', async (candidate: string, sdpMid: string | null, sdpMLineIndex: number | null) => {
+        signalrCtx.addSignalRHandler('ReceiveIceCandidate', async (candidate: string, sdpMid: string | null, sdpMLineIndex: number | null) => {
             const init: RTCIceCandidateInit = {
                 candidate,
                 sdpMid: sdpMid ?? undefined,
@@ -327,34 +315,34 @@ export default class ContentLockWebRTCContext extends UmbContextBase {
         });
 
         // Callee declined the call
-        connection.on('CallDeclined', () => {
+        signalrCtx.addSignalRHandler('CallDeclined', () => {
             const peerName = this.#remotePeer.getValue()?.name ?? 'User';
             this.#cleanUpCall();
             this.#showPeekNotification('default', `${peerName} declined the call`);
         });
 
         // Other party ended or dropped the call
-        connection.on('CallEnded', () => {
+        signalrCtx.addSignalRHandler('CallEnded', () => {
             this.#cleanUpCall();
             this.#showPeekNotification('default', 'Call ended');
         });
 
         // Target user is already in another call
-        connection.on('CallBusy', () => {
+        signalrCtx.addSignalRHandler('CallBusy', () => {
             const peerName = this.#remotePeer.getValue()?.name ?? 'User';
             this.#cleanUpCall();
             this.#showPeekNotification('warning', `${peerName} is currently on another call`);
         });
 
         // Ring timeout expired — callee never answered (received by the caller)
-        connection.on('CallNoAnswer', () => {
+        signalrCtx.addSignalRHandler('CallNoAnswer', () => {
             const peerName = this.#remotePeer.getValue()?.name ?? 'User';
             this.#cleanUpCall();
             this.#showPeekNotification('warning', `${peerName} didn't answer`);
         });
 
         // Ring timeout expired — this client was the callee who missed the call
-        connection.on('MissedCall', (_callerKey: string, callerName: string) => {
+        signalrCtx.addSignalRHandler('MissedCall', (_callerKey: string, callerName: string) => {
             this.#incomingCallNotificationHandler?.close();
             this.#incomingCallNotificationHandler = undefined;
             this.#pendingCallInfo = undefined;
@@ -524,10 +512,6 @@ export default class ContentLockWebRTCContext extends UmbContextBase {
     }
 
     override async destroy(): Promise<void> {
-        // Clear any pending connection poll so it doesn't fire on a destroyed context
-        clearInterval(this.#connectionPollInterval);
-        this.#connectionPollInterval = undefined;
-
         // Ensure the call is ended if this context is destroyed (e.g. user navigates away)
         if (this.#callState.getValue() !== 'idle') {
             await this.hangUp();

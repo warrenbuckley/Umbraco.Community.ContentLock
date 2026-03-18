@@ -17,9 +17,14 @@ export default class ContentLockSignalrContext extends UmbContextBase
     // SignalR Hub URL endpoint
     #CONTENT_LOCK_HUB_URL = '/umbraco/ContentLockHub';
 
-    // Currently made this public so that any place consuming the context
-    // Could stop the signalR connection or listen to any .On() events etc
+    // Exposed so consumers can invoke hub methods (e.g. SendCallOfferAsync).
+    // To subscribe to hub events, use addSignalRHandler() — do not call .on() directly.
     public signalrConnection? : signalR.HubConnection;
+
+    // Handlers registered via addSignalRHandler() before the connection was ready.
+    // Flushed at the start of #startHub() once signalrConnection is built.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    #pendingHandlers: Array<{ event: string; handler: (...args: any[]) => void }> = [];
 
     // Used to store the overview of locks
     #contentLocks = new UmbArrayState<ContentLockOverviewItem>([], (item) => item.key);
@@ -173,9 +178,31 @@ export default class ContentLockSignalrContext extends UmbContextBase
         
     }
 
+    /**
+     * Register a SignalR event handler through this context.
+     * If the connection is not yet established the handler is queued and applied
+     * automatically once the connection is ready.
+     * Never call signalrConnection.on() directly from outside this context.
+     */
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    public addSignalRHandler(event: string, handler: (...args: any[]) => void): void {
+        if (this.signalrConnection) {
+            this.signalrConnection.on(event, handler);
+        } else {
+            this.#pendingHandlers.push({ event, handler });
+        }
+    }
+
     // Start the engines...
     async #startHub() {
         if(this.signalrConnection) {
+            // Apply any handlers that were registered via addSignalRHandler() before
+            // the connection object was available (e.g. from ContentLockWebRTCContext).
+            for (const { event, handler } of this.#pendingHandlers) {
+                this.signalrConnection.on(event, handler);
+            }
+            this.#pendingHandlers = [];
+
             // Start the connection straight away
             await this.signalrConnection.start();
 
