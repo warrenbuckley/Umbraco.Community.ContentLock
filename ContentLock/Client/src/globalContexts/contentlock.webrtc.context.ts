@@ -248,6 +248,11 @@ export default class ContentLockWebRTCContext extends UmbContextBase {
                 if (this.#isMuted.getValue()) {
                     newTrack.enabled = false;
                 }
+            } else {
+                // No active call — stop the acquired stream immediately so the
+                // microphone is not left open with no reference left to close it.
+                newStream.getAudioTracks().forEach((t) => t.stop());
+                return;
             }
 
             // Change speaker output device if the browser supports setSinkId
