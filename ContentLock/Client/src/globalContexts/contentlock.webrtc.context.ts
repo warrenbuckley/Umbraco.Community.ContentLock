@@ -420,10 +420,16 @@ export default class ContentLockWebRTCContext extends UmbContextBase {
     async #flushPendingIceCandidates() {
         if (!this.#peerConnection || this.#pendingIceCandidates.length === 0) return;
 
-        for (const init of this.#pendingIceCandidates) {
+        // Snapshot and clear atomically before the async loop so that any
+        // ReceiveIceCandidate events arriving during the awaits are handled
+        // directly (remoteDescription is already set at this point) and cannot
+        // be iterated a second time by this flush.
+        const candidates = this.#pendingIceCandidates;
+        this.#pendingIceCandidates = [];
+
+        for (const init of candidates) {
             await this.#peerConnection.addIceCandidate(new RTCIceCandidate(init));
         }
-        this.#pendingIceCandidates = [];
     }
 
     // ── Private: Ringback Audio ───────────────────────────────────────────
