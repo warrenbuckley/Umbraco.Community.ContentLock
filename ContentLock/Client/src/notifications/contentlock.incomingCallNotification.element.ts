@@ -167,10 +167,6 @@ export class ContentLockIncomingCallNotificationElement extends UmbLitElement {
             font-size: var(--uui-type-default-size);
         }
 
-        #incoming-label {
-            font-weight: var(--uui-type-)
-        }
-
         #caller-name {
             font-size: var(--uui-type-default-size);
         }
