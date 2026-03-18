@@ -2,7 +2,6 @@ using Asp.Versioning;
 using ContentLock.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace ContentLock.Controllers;
 
@@ -10,18 +9,24 @@ namespace ContentLock.Controllers;
 [ApiExplorerSettings(GroupName = "Content Lock")]
 public class ContentLockTurnCredentialsApiController : ContentLockApiControllerBase
 {
+    private readonly ITurnCredentialProvider? _provider;
+
+    public ContentLockTurnCredentialsApiController(ITurnCredentialProvider? provider = null)
+    {
+        _provider = provider;
+    }
+
     [HttpGet("TurnCredentials")]
     [ProducesResponseType(typeof(IceServerResponse[]), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status502BadGateway)]
     public async Task<IActionResult> GetTurnCredentialsAsync(CancellationToken ct)
     {
-        var provider = HttpContext.RequestServices.GetService<ITurnCredentialProvider>();
-        if (provider is null)
+        if (_provider is null)
             return Ok(Array.Empty<IceServerResponse>());
 
         try
         {
-            var credentials = await provider.GetCredentialsAsync(ct);
+            var credentials = await _provider.GetCredentialsAsync(ct);
             return Ok(credentials.Select(c => new IceServerResponse(c.Urls, c.Username, c.Credential)));
         }
         catch (HttpRequestException ex)

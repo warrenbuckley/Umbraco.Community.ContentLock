@@ -56,6 +56,7 @@ export default class ContentLockWebRTCContext extends UmbContextBase {
 
     #signalrCtx?: typeof CONTENTLOCK_SIGNALR_CONTEXT.TYPE;
     #notificationCtx?: typeof UMB_NOTIFICATION_CONTEXT.TYPE;
+    #connectionPollInterval?: ReturnType<typeof setInterval>;
 
     constructor(host: UmbControllerHost) {
         super(host, CONTENTLOCK_WEBRTC_CONTEXT);
@@ -275,10 +276,11 @@ export default class ContentLockWebRTCContext extends UmbContextBase {
     // ── Private: SignalR Signaling Handlers ───────────────────────────────
 
     #waitForConnectionAndAttach(signalrCtx: typeof CONTENTLOCK_SIGNALR_CONTEXT.TYPE) {
-        const interval = setInterval(() => {
+        this.#connectionPollInterval = setInterval(() => {
             const conn = signalrCtx.signalrConnection;
             if (conn) {
-                clearInterval(interval);
+                clearInterval(this.#connectionPollInterval);
+                this.#connectionPollInterval = undefined;
                 this.#attachSignalRListeners(conn);
             }
         }, 50);
@@ -522,6 +524,10 @@ export default class ContentLockWebRTCContext extends UmbContextBase {
     }
 
     override async destroy(): Promise<void> {
+        // Clear any pending connection poll so it doesn't fire on a destroyed context
+        clearInterval(this.#connectionPollInterval);
+        this.#connectionPollInterval = undefined;
+
         // Ensure the call is ended if this context is destroyed (e.g. user navigates away)
         if (this.#callState.getValue() !== 'idle') {
             await this.hangUp();
