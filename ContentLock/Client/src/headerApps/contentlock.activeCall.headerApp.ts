@@ -143,7 +143,7 @@ export class ContentLockActiveCallHeaderApp extends UmbHeaderAppButtonElement {
                                 <div id="peer-info">
                                     <strong>${this._remotePeer?.name}</strong>
                                     <span class="calling-label">
-                                        <umb-localize key="contentLockCall_calling">Calling…</umb-localize>
+                                        <umb-localize key="contentLockCall_calling" .args=${[this._remotePeer?.name ?? '']}>Calling…</umb-localize>
                                     </span>
                                 </div>
                             </div>
