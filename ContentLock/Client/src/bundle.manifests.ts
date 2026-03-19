@@ -11,6 +11,7 @@ import { manifests as workspaceActions } from './workspaceActions/manifest';
 import { manifests as workspaceContexts } from './workspaceContexts/manifest';
 import { manifests as workspaceFooterApps } from './workspaceFooterApp/manifest';
 import { manifests as entitySigns } from './entitySigns/manifest';
+import { manifests as icons } from './icons/manifest';
 
 // Job of the bundle is to collate all the manifests from different parts of the extension and load other manifests
 // We load this bundle from umbraco-package.json
@@ -28,4 +29,5 @@ export const manifests: Array<UmbExtensionManifest> = [
   ...workspaceContexts,
   ...workspaceFooterApps,
   ...entitySigns,
+  ...icons
 ];

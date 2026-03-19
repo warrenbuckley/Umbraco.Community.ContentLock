@@ -31,6 +31,7 @@ jobs:
 
     - name: Run dotnet trust cert https --trust
       run: dotnet dev-certs https --trust
+      continue-on-error: true
 
     - name: Run dotnet trust cert https --check
       run: dotnet dev-certs https --check

@@ -16,6 +16,12 @@ export type ContentLockOverviewItem = {
 
 export type EventMessageTypeModel = 'Default' | 'Info' | 'Error' | 'Success' | 'Warning';
 
+export type IceServerResponse = {
+    urls: Array<string>;
+    username?: string | null;
+    credential?: string | null;
+};
+
 export type NotificationHeaderModel = {
     message: string;
     category: string;
@@ -88,6 +94,33 @@ export type LockContentResponses = {
 };
 
 export type LockContentResponse = LockContentResponses[keyof LockContentResponses];
+
+export type GetTurnCredentialsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/umbraco/contentlock/api/v1/TurnCredentials';
+};
+
+export type GetTurnCredentialsErrors = {
+    /**
+     * The resource is protected and requires an authentication token
+     */
+    401: unknown;
+    /**
+     * Bad Gateway
+     */
+    502: unknown;
+};
+
+export type GetTurnCredentialsResponses = {
+    /**
+     * OK
+     */
+    200: Array<IceServerResponse>;
+};
+
+export type GetTurnCredentialsResponse = GetTurnCredentialsResponses[keyof GetTurnCredentialsResponses];
 
 export type UnlockContentData = {
     body?: never;

@@ -1,4 +1,5 @@
 import { CONTENTLOCK_ENABLE_ONLINE_USERS_CONDITION_ALIAS } from '../conditions/EnableOnlineUsers.Condition';
+import { CONTENTLOCK_ENABLE_WEBRTC_CALLING_CONDITION_ALIAS } from '../conditions/EnableWebRTCCalling.Condition';
 
 export const manifests: Array<UmbExtensionManifest> = [
     {
@@ -10,6 +11,18 @@ export const manifests: Array<UmbExtensionManifest> = [
       conditions: [
         {
           alias: CONTENTLOCK_ENABLE_ONLINE_USERS_CONDITION_ALIAS
+        }
+      ]
+    },
+    {
+      name: '[Content Lock] Active Call Header App',
+      alias: 'ContentLock.HeaderApp.ActiveCall',
+      type: 'headerApp',
+      js: () => import('./contentlock.activeCall.headerApp'),
+      weight: 1001, // sits adjacent to the online users button
+      conditions: [
+        {
+          alias: CONTENTLOCK_ENABLE_WEBRTC_CALLING_CONDITION_ALIAS
         }
       ]
     }

@@ -2,7 +2,7 @@
 
 import type { Client, Options as Options2, TDataShape } from './client';
 import { client } from './client.gen';
-import type { BulkUnlockData, BulkUnlockErrors, BulkUnlockResponses, LockContentData, LockContentErrors, LockContentResponses, UnlockContentData, UnlockContentErrors, UnlockContentResponses } from './types.gen';
+import type { BulkUnlockData, BulkUnlockErrors, BulkUnlockResponses, GetTurnCredentialsData, GetTurnCredentialsErrors, GetTurnCredentialsResponses, LockContentData, LockContentErrors, LockContentResponses, UnlockContentData, UnlockContentErrors, UnlockContentResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean> = Options2<TData, ThrowOnError> & {
     /**
@@ -45,6 +45,19 @@ export class ContentLockService {
                 }
             ],
             url: '/umbraco/contentlock/api/v1/Lock/{key}',
+            ...options
+        });
+    }
+    
+    public static getTurnCredentials<ThrowOnError extends boolean = false>(options?: Options<GetTurnCredentialsData, ThrowOnError>) {
+        return (options?.client ?? client).get<GetTurnCredentialsResponses, GetTurnCredentialsErrors, ThrowOnError>({
+            security: [
+                {
+                    scheme: 'bearer',
+                    type: 'http'
+                }
+            ],
+            url: '/umbraco/contentlock/api/v1/TurnCredentials',
             ...options
         });
     }
