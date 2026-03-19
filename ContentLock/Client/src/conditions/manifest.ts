@@ -1,5 +1,6 @@
 import { CONTENTLOCK_CAN_SHOW_COMMON_ACTIONS_CONDITION_ALIAS } from "./CanShowCommonActions.Condition";
 import { CONTENTLOCK_ENABLE_ONLINE_USERS_CONDITION_ALIAS } from "./EnableOnlineUsers.Condition";
+import { CONTENTLOCK_ENABLE_WEBRTC_CALLING_CONDITION_ALIAS } from "./EnableWebRTCCalling.Condition";
 import { CONTENTLOCK_SHOW_LOCK_CONDITION_ALIAS } from "./ShowLock.Condition";
 import { CONTENTLOCK_SHOW_LOCKED_STATUS_CONDITION_ALIAS } from "./ShowLockedStatus.Condition";
 import { CONTENTLOCK_SHOW_PREVIEW_CONDITION_ALIAS } from "./ShowPreview.Condition";
@@ -41,5 +42,11 @@ export const manifests: Array<UmbExtensionManifest> = [
         alias: CONTENTLOCK_ENABLE_ONLINE_USERS_CONDITION_ALIAS,
         name: '[Content Lock] Enable Online Users Condition',
         js: () => import('./EnableOnlineUsers.Condition'),
+    },
+    {
+        type: 'condition',
+        alias: CONTENTLOCK_ENABLE_WEBRTC_CALLING_CONDITION_ALIAS,
+        name: '[Content Lock] Enable WebRTC Calling Condition',
+        js: () => import('./EnableWebRTCCalling.Condition'),
     },
 ];

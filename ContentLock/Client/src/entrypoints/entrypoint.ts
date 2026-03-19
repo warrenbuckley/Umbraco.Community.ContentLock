@@ -3,6 +3,10 @@ import { UMB_AUTH_CONTEXT } from '@umbraco-cms/backoffice/auth';
 import { client } from '../api/client.gen';
 import { CONTENTLOCK_CAN_SHOW_COMMON_ACTIONS_CONDITION_ALIAS } from '../conditions/CanShowCommonActions.Condition';
 
+// Custom WebComponent element that is used to display as a notification layout
+// So can be used with NotificationContext
+import '../notifications/contentlock.incomingCallNotification.element.js';
+
 // load up the manifests here
 export const onInit: UmbEntryPointOnInit = (_host, _extensionRegistry) => {
 

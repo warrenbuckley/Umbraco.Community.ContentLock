@@ -37,5 +37,28 @@ export default {
         modalHeader: 'Content Unlocked',
         modalContent: 'The content is now unlocked and available for editing, however it may have been modified by another user. Please reload the page to see the latest version',
         reload: 'Reload',
+    },
+    actionCategories: {
+        contentLock: "Content Lock"
+    },
+    contentLockCall: {
+        callButton: 'Call',
+        busyIndicator: 'On a call',
+        incoming: 'Incoming call',
+        accept: 'Accept',
+        decline: 'Decline',
+        hangUp: 'Hang Up',
+        mute: 'Mute',
+        unmute: 'Unmute',
+        deviceSettings: 'Audio devices',
+        microphone: 'Microphone',
+        speaker: 'Speaker',
+        callEnded: 'Call ended',
+        callDeclined: '{0} declined the call',
+        callBusy: '{0} is currently on another call',
+        callFailed: 'Call failed to connect',
+        calling: 'Calling',
+        missedCall: 'Missed call',
+        missedCallFrom: '{0} tried to call you',
     }
 };
