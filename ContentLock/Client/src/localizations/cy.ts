@@ -57,7 +57,7 @@
         callDeclined: '{0} declined the call',
         callBusy: '{0} is currently on another call',
         callFailed: 'Call failed to connect',
-        calling: 'Calling {0}...',
+        calling: 'Calling',
         missedCall: 'Missed call',
         missedCallFrom: '{0} tried to call you',
     }
