@@ -6,15 +6,37 @@ import starlight from '@astrojs/starlight';
 export default defineConfig({
 	integrations: [
 		starlight({
-			title: 'My Docs',
-			social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/withastro/starlight' }],
+			title: 'ContentLock Docs',
+			social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/warrenbuckley/Umbraco.Community.ContentLock' }],
 			sidebar: [
 				{
-					label: 'Guides',
+					label: 'Getting Started',
 					items: [
-						// Each item here is one entry in the navigation menu.
-						{ label: 'Example Guide', slug: 'guides/example' },
+						{ label: 'Introduction', slug: 'getting-started/introduction' },
+						{ label: 'Installation', slug: 'getting-started/installation' },
+						{ label: 'Quick Start', slug: 'getting-started/quick-start' },
 					],
+				},
+				{
+					label: 'Features',
+					items: [
+						{ label: 'Content Locking', slug: 'features/content-locking' },
+						{ label: 'Dashboard', slug: 'features/dashboard' },
+						{ label: 'Online Users', slug: 'features/online-users' },
+						{ label: 'Audio Calling', slug: 'features/audio-calling' },
+					],
+				},
+				{
+					label: 'Configuration',
+					items: [
+						{ label: 'Overview', slug: 'configuration/overview' },
+						{ label: 'Online Users', slug: 'configuration/online-users' },
+						{ label: 'WebRTC / Audio Calling', slug: 'configuration/webrtc' },
+					],
+				},
+				{
+					label: 'Permissions',
+					items: [{ label: 'Unlocker Permission', slug: 'permissions' }],
 				},
 				{
 					label: 'Reference',

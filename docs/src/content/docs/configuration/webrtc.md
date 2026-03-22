@@ -1,0 +1,206 @@
+---
+title: WebRTC / Audio Calling Configuration
+description: Configure peer-to-peer audio calling, STUN/TURN servers, ring timeout, and call sounds.
+---
+
+The `WebRTC` configuration section controls the peer-to-peer audio calling feature between backoffice editors.
+
+---
+
+## Minimum Configuration
+
+No configuration is required for same-network calls. ContentLock uses two public STUN servers by default (Google and Cloudflare) which handle most scenarios where editors are on the same local network.
+
+```json
+{
+  "ContentLock": {
+    "WebRTC": {
+      "Enable": true
+    }
+  }
+}
+```
+
+---
+
+## Full Configuration
+
+```json
+{
+  "ContentLock": {
+    "WebRTC": {
+      "Enable": true,
+      "StunServers": [
+        "stun:stun.l.google.com:19302",
+        "stun:stun.cloudflare.com:3478"
+      ],
+      "RingTimeoutSeconds": 20,
+      "Sounds": {
+        "RingSound": "/App_Plugins/ContentLock/sounds/ringtone.mp3",
+        "RingbackSound": "/App_Plugins/ContentLock/sounds/ringtone.mp3"
+      },
+      "TurnServer": {
+        "Provider": "None"
+      }
+    }
+  }
+}
+```
+
+---
+
+## Options
+
+### `WebRTC.Enable`
+
+**Type:** `bool` | **Default:** `true` | **Reactive:** ✅ Yes
+
+Enables or disables the Call button in the online users modal. When set to `false`, the calling feature is hidden from all editors without requiring a restart.
+
+---
+
+### `WebRTC.StunServers`
+
+**Type:** `string[]` | **Reactive:** ✅ Yes
+
+List of STUN server URLs used during ICE candidate gathering (WebRTC connection establishment). Defaults to one Google and one Cloudflare server for provider diversity.
+
+```json
+"StunServers": [
+  "stun:stun.l.google.com:19302",
+  "stun:stun.cloudflare.com:3478"
+]
+```
+
+You can replace or extend this list with your own STUN servers.
+
+---
+
+### `WebRTC.RingTimeoutSeconds`
+
+**Type:** `int` | **Default:** `20` | **Range:** `5–120` | **Reactive:** ✅ Yes
+
+How many seconds to ring before automatically ending the call as unanswered. The timeout is read at call-offer time, so changes take effect on the next call without a restart.
+
+---
+
+### `WebRTC.Sounds.RingSound`
+
+**Type:** `string` | **Default:** `"/App_Plugins/ContentLock/sounds/ringtone.mp3"` | **Reactive:** ✅ Yes
+
+Audio file played on the **recipient's** device when an incoming call is ringing.
+
+---
+
+### `WebRTC.Sounds.RingbackSound`
+
+**Type:** `string` | **Default:** `"/App_Plugins/ContentLock/sounds/ringtone.mp3"` | **Reactive:** ✅ Yes
+
+Audio file played on the **caller's** device while waiting for the recipient to answer.
+
+---
+
+## TURN Server Providers
+
+STUN alone works for editors on the same network. For **remote workers or different networks**, a TURN relay server is required. ContentLock supports three providers.
+
+:::caution[Provider change requires restart]
+Changing `TurnServer.Provider` requires an application restart. Credential values (API keys, tokens) are reactive and can be updated without a restart.
+:::
+
+---
+
+### None (default)
+
+```json
+"TurnServer": {
+  "Provider": "None"
+}
+```
+
+Uses STUN only. Free, no account required. Works for editors on the same network.
+
+---
+
+### Cloudflare Calls TURN
+
+[Cloudflare Calls](https://developers.cloudflare.com/calls/) offers pay-as-you-go TURN infrastructure.
+
+```json
+"TurnServer": {
+  "Provider": "Cloudflare",
+  "Cloudflare": {
+    "KeyId": "your-turn-key-id",
+    "ApiToken": "your-api-token",
+    "Ttl": 86400
+  }
+}
+```
+
+| Option | Description |
+|---|---|
+| `KeyId` | TURN Key ID from the Cloudflare Realtime dashboard |
+| `ApiToken` | API Token with TURN key read permissions |
+| `Ttl` | Credential lifetime in seconds (max `86400` = 24 hours) |
+
+**Setup:** Create a TURN key in the [Cloudflare dashboard](https://developers.cloudflare.com/calls/turn/) under Calls → TURN Keys.
+
+---
+
+### Twilio Network Traversal Service
+
+```json
+"TurnServer": {
+  "Provider": "Twilio",
+  "Twilio": {
+    "AccountSid": "ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "AuthToken": "your-auth-token",
+    "Ttl": 86400
+  }
+}
+```
+
+| Option | Description |
+|---|---|
+| `AccountSid` | Your Twilio Account SID (starts with `AC`) |
+| `AuthToken` | Your Twilio Auth Token |
+| `Ttl` | Token lifetime in seconds |
+
+**Setup:** Find your Account SID and Auth Token in the [Twilio Console](https://console.twilio.com/).
+
+---
+
+### Metered TURN
+
+[Metered](https://www.metered.ca/tools/openrelay/) offers a free-tier TURN service.
+
+```json
+"TurnServer": {
+  "Provider": "Metered",
+  "Metered": {
+    "AppName": "myapp",
+    "ApiKey": "your-api-key",
+    "CacheTtlSeconds": 82800
+  }
+}
+```
+
+| Option | Description |
+|---|---|
+| `AppName` | Your Metered app subdomain (e.g. `"myapp"` → `myapp.metered.live`) |
+| `ApiKey` | API key from the Metered dashboard |
+| `CacheTtlSeconds` | How long to cache TURN credentials server-side (default 82800 = 23 hours; credentials are valid for 24 hours) |
+
+**Setup:** Sign up at [metered.ca](https://www.metered.ca/tools/openrelay/) and create an app to get your `AppName` and `ApiKey`.
+
+---
+
+## Reactive Behaviour
+
+Most WebRTC settings are reactive via `IOptionsMonitor<ContentLockOptions>`:
+
+- Credential values (API keys, tokens, TTLs) — reactive ✅
+- STUN servers, ring timeout, sounds — reactive ✅
+- `Provider` (which TURN service to use) — requires restart ❌
+
+This means you can rotate API keys and update sound files without downtime.

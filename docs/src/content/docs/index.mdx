@@ -1,40 +1,40 @@
 ---
-title: Welcome to Starlight
-description: Get started building your docs site with Starlight.
-template: splash # Remove or comment out this line to display the site sidebar on this page.
+title: ContentLock Documentation
+description: Prevent content editing conflicts in your Umbraco CMS backoffice with real-time locking, online user presence, and audio calling.
+template: splash
 hero:
-  tagline: Congrats on setting up a new Starlight project!
-  image:
-    file: ../../assets/houston.webp
+  tagline: Prevent content conflicts in your Umbraco CMS backoffice
   actions:
-    - text: Example Guide
-      link: /guides/example/
+    - text: Get Started
+      link: /getting-started/introduction/
       icon: right-arrow
-    - text: Read the Starlight docs
-      link: https://starlight.astro.build
+    - text: GitHub
+      link: https://github.com/warrenbuckley/Umbraco.Community.ContentLock
       icon: external
       variant: minimal
 ---
 
 import { Card, CardGrid } from '@astrojs/starlight/components';
 
-## Next steps
+## Features
 
 <CardGrid stagger>
-	<Card title="Update content" icon="pencil">
-		Edit `src/content/docs/index.mdx` to see this page change.
+	<Card title="Content Locking" icon="lock">
+		Lock content nodes while editing to prevent conflicts. Locked nodes become read-only for all other editors, with publish/save/unpublish actions hidden.
 	</Card>
-	<Card title="Change page layout" icon="document">
-		Delete `template: splash` in `src/content/docs/index.mdx` to display a
-		sidebar on this page.
+	<Card title="Real-Time Updates" icon="random">
+		Lock state is broadcast instantly to all connected backoffice users via SignalR — no page refresh required.
 	</Card>
-	<Card title="Add new content" icon="add-document">
-		Add Markdown or MDX files to `src/content/docs` to create new pages.
+	<Card title="Online Users" icon="group">
+		See who else is active in the backoffice via the header app. Get notified with sounds when editors join or leave.
 	</Card>
-	<Card title="Configure your site" icon="setting">
-		Edit your `sidebar` and other config in `astro.config.mjs`.
+	<Card title="Audio Calling" icon="microphone">
+		Peer-to-peer WebRTC audio calls between backoffice editors — no external service needed for same-network calls.
 	</Card>
-	<Card title="Read the docs" icon="open-book">
-		Learn more in [the Starlight Docs](https://starlight.astro.build/).
+	<Card title="Dashboard" icon="list-format">
+		View all locked content in one place. Bulk unlock multiple nodes at once from the Content Lock dashboard.
+	</Card>
+	<Card title="Permissions" icon="approve-check">
+		Fine-grained `ContentLock.Unlocker` permission lets designated users unlock content locked by others.
 	</Card>
 </CardGrid>
