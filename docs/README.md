@@ -1,49 +1,98 @@
-# Starlight Starter Kit: Basics
+# Content Lock — Docs
 
-[![Built with Starlight](https://astro.badg.es/v2/built-with-starlight/tiny.svg)](https://starlight.astro.build)
+Documentation site for [Umbraco.Community.ContentLock](https://github.com/warrenbuckley/Umbraco.Community.ContentLock), built with [Astro Starlight](https://starlight.astro.build/).
 
-```
-npm create astro@latest -- --template starlight
-```
+The deployed site lives at:
+**https://warrenbuckley.github.io/Umbraco.Community.ContentLock/**
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+---
 
-## 🚀 Project Structure
+## Prerequisites
 
-Inside of your Astro + Starlight project, you'll see the following folders and files:
+- Node.js 20+
 
-```
-.
-├── public/
-├── src/
-│   ├── assets/
-│   ├── content/
-│   │   └── docs/
-│   └── content.config.ts
-├── astro.config.mjs
-├── package.json
-└── tsconfig.json
+---
+
+## Local development
+
+```bash
+cd docs
+npm install
+npm run dev
 ```
 
-Starlight looks for `.md` or `.mdx` files in the `src/content/docs/` directory. Each file is exposed as a route based on its file name.
+The dev server starts at `http://localhost:4321/Umbraco.Community.ContentLock/`.
 
-Images can be added to `src/assets/` and embedded in Markdown with a relative link.
+> **Note:** The `base` path (`/Umbraco.Community.ContentLock`) is always active — even locally — because it matches the deployed GitHub Pages URL. All internal links and assets are prefixed automatically by Astro.
 
-Static assets, like favicons, can be placed in the `public/` directory.
+---
 
-## 🧞 Commands
+## Commands
 
-All commands are run from the root of the project, from a terminal:
+| Command | Description |
+|---|---|
+| `npm run dev` | Start local dev server with hot reload |
+| `npm run build` | Production build to `dist/` |
+| `npm run preview` | Preview the production build locally |
 
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
+---
 
-## 👀 Want to learn more?
+## Content
 
-Check out [Starlight’s docs](https://starlight.astro.build/), read [the Astro documentation](https://docs.astro.build), or jump into the [Astro Discord server](https://astro.build/chat).
+Documentation pages live in `src/content/docs/` and are written in Markdown or MDX:
+
+```
+src/content/docs/
+├── index.mdx                   # Home page
+├── getting-started/
+│   ├── introduction.md
+│   ├── installation.md
+│   └── quick-start.md
+├── features/
+│   ├── content-locking.md
+│   ├── dashboard.md
+│   ├── online-users.md
+│   └── audio-calling.md
+├── configuration/
+│   ├── overview.md
+│   ├── online-users.md
+│   └── webrtc.md
+├── permissions.md
+└── reference/                  # Auto-generated sidebar section
+```
+
+To add a new page, create a `.md` or `.mdx` file in the relevant directory. The frontmatter `title` is required:
+
+```md
+---
+title: My New Page
+description: A short description shown in search results.
+---
+
+Content goes here.
+```
+
+Pages under `reference/` are picked up automatically by the sidebar. Pages in all other sections need a corresponding entry in the `sidebar` array inside `astro.config.mjs`.
+
+---
+
+## Theme
+
+The site uses the [Catppuccin Starlight](https://github.com/catppuccin/starlight) plugin:
+
+- Dark mode: **Mocha** with **Mauve** accent
+- Light mode: **Latte** with **Mauve** accent
+
+Configured in `astro.config.mjs`.
+
+---
+
+## Deployment
+
+The site deploys automatically to GitHub Pages via `.github/workflows/deploy-docs.yml`.
+
+**Trigger:** any push to `v17/dev` that touches a file under `docs/**`.
+
+You can also trigger a deploy manually from the **Actions** tab in GitHub.
+
+> **First-time setup:** Go to **GitHub repo → Settings → Pages → Source** and select **GitHub Actions**. This only needs to be done once.

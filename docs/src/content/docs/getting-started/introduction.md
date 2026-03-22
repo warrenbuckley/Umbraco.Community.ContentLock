@@ -8,7 +8,7 @@ description: What is ContentLock and why does it exist?
 When multiple editors work in the same Umbraco backoffice, it is easy for one editor to overwrite another's unsaved changes. ContentLock solves this by letting editors explicitly lock a content node while they are editing it. Locked nodes become read-only for everyone else, and core actions (Save, Publish, Unpublish, etc.) are hidden until the node is unlocked.
 
 :::note[Origin]
-ContentLock is inspired by and a spiritual successor to [CogWorks ContentGuard](https://github.com/CogworksLtd/Umbraco.CogWorks.ContentGuard) for older Umbraco versions.
+**ContentLock** is inspired by and a spiritual successor to [CogWorks ContentGuard](https://github.com/thecogworks/Cogworks.ContentGuard) for older Umbraco versions 8 & 9.
 :::
 
 ---
@@ -55,6 +55,8 @@ Every lock and unlock action is recorded in Umbraco's built-in audit log, visibl
 | Package Version | Umbraco Version | .NET Version |
 |---|---|---|
 | 17.x.x | 17.x | net10.0 |
+| 16.x.x | 16.x | net9.0 |
+| 15.x.x | 15.x | net9.0 |
 
 ---
 

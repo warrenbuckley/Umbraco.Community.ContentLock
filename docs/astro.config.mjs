@@ -5,6 +5,8 @@ import catppuccin from "@catppuccin/starlight";
 
 // https://astro.build/config
 export default defineConfig({
+	site: 'https://warrenbuckley.github.io/Umbraco.Community.ContentLock',
+	base: '/Umbraco.Community.ContentLock',
 	integrations: [
 		starlight({
 			plugins: [
@@ -49,6 +51,7 @@ export default defineConfig({
 					label: 'Reference',
 					autogenerate: { directory: 'reference' },
 				},
+				{ label: 'Changelog', slug: 'changelog' },
 			],
 		}),
 	],
