@@ -3,7 +3,7 @@ title: Introduction
 description: What is ContentLock and why does it exist?
 ---
 
-**Umbraco.Community.ContentLock** is an open-source NuGet package for **Umbraco CMS 17** (Bellissima backoffice) that prevents content editing conflicts in multi-editor environments.
+**Umbraco.Community.ContentLock** is an open-source NuGet package for **Umbraco CMS** that prevents content editing conflicts in multi-editor environments.
 
 When multiple editors work in the same Umbraco backoffice, it is easy for one editor to overwrite another's unsaved changes. ContentLock solves this by letting editors explicitly lock a content node while they are editing it. Locked nodes become read-only for everyone else, and core actions (Save, Publish, Unpublish, etc.) are hidden until the node is unlocked.
 
@@ -26,7 +26,7 @@ Editors lock a content node via the tree right-click menu or the top actions men
 
 ### Real-Time Lock State
 
-Lock and unlock events are broadcast to **all connected backoffice users** via SignalR the moment they happen — no page refresh needed. If you're looking at a node and another editor locks it, it becomes read-only immediately.
+Lock and unlock events are broadcast to **all connected backoffice users** via SignalR the moment they happen — no page refresh needed. If you're looking at a node and another editor locks it, it becomes read-only **immediately**.
 
 ### Dashboard
 
@@ -34,7 +34,7 @@ The Content Lock dashboard (Content section → Content Lock tab) shows a table 
 
 ### Online Users
 
-When enabled, a header app in the top bar shows how many other backoffice editors are currently active. Clicking it opens a modal listing each user by name. Optional audio notifications play when editors connect or disconnect.
+When enabled, a header app in the top bar shows how many other backoffice editors are currently active in the CMS. Clicking it opens a modal listing each user by name. Optional audio notifications play when editors connect or disconnect from the
 
 ### Audio Calling
 

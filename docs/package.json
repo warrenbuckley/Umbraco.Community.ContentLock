@@ -12,7 +12,9 @@
   "dependencies": {
     "@astrojs/starlight": "^0.38.2",
     "@catppuccin/starlight": "^2.0.1",
+    "@iconify/json": "^2.2.454",
     "astro": "^6.0.1",
-    "sharp": "^0.34.2"
+    "sharp": "^0.34.2",
+    "unplugin-icons": "^23.0.1"
   }
 }

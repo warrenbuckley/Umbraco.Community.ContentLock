@@ -3,7 +3,7 @@ title: Installation
 description: Install ContentLock via NuGet and run the first-time migration.
 ---
 
-ContentLock is distributed as a NuGet package and requires **Umbraco CMS 17.0.0** or later running on **.NET 10**.
+ContentLock is distributed as a NuGet package and requires **Umbraco CMS**.
 
 ---
 
@@ -18,12 +18,6 @@ dotnet add package Umbraco.Community.ContentLock
 ```powershell
 Install-Package Umbraco.Community.ContentLock
 ```
-
-## Install via Umbraco Marketplace
-
-1. In the Umbraco backoffice, navigate to **Packages** in the top navigation.
-2. Search for **ContentLock**.
-3. Click **Install** and follow the prompts.
 
 ---
 

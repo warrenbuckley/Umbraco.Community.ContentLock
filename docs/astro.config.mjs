@@ -2,6 +2,7 @@
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
 import catppuccin from "@catppuccin/starlight";
+import Icons from 'unplugin-icons/vite'
 
 // https://astro.build/config
 export default defineConfig({
@@ -9,6 +10,9 @@ export default defineConfig({
 	base: '/Umbraco.Community.ContentLock',
 	integrations: [
 		starlight({
+			components: {
+				SocialIcons: './src/components/SocialIcons.astro'
+			},
 			plugins: [
 				catppuccin({
 					dark: { flavor: "mocha", accent: "mauve" },
@@ -16,7 +20,12 @@ export default defineConfig({
 				}),
 			],
 			title: 'Content Lock',
-			social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/warrenbuckley/Umbraco.Community.ContentLock' }],
+			social: [
+				{ icon: 'heart', label: 'Sponsor', href: 'https://github.com/sponsors/warrenbuckley' },
+				{ icon: 'github', label: 'GitHub', href: 'https://github.com/warrenbuckley/Umbraco.Community.ContentLock' }
+			],
+			editLink: { baseUrl: 'https://github.com/warrenbuckley/Umbraco.Community.ContentLock/edit/main/docs/' },
+			credits: true,
 			sidebar: [
 				{
 					label: 'Getting Started',
@@ -32,7 +41,7 @@ export default defineConfig({
 						{ label: 'Content Locking', slug: 'features/content-locking' },
 						{ label: 'Dashboard', slug: 'features/dashboard' },
 						{ label: 'Online Users', slug: 'features/online-users' },
-						{ label: 'Audio Calling', slug: 'features/audio-calling' },
+						{ label: 'Audio Calling', slug: 'features/audio-calling', badge: { text: '17.1.0+', variant: 'default'} },
 					],
 				},
 				{
@@ -40,7 +49,7 @@ export default defineConfig({
 					items: [
 						{ label: 'Overview', slug: 'configuration/overview' },
 						{ label: 'Online Users', slug: 'configuration/online-users' },
-						{ label: 'WebRTC / Audio Calling', slug: 'configuration/webrtc' },
+						{ label: 'Audio Calling', slug: 'configuration/audio-calling', badge: { text: '17.1.0+', variant: 'default'} },
 					],
 				},
 				{
@@ -55,4 +64,7 @@ export default defineConfig({
 			],
 		}),
 	],
+	vite: {
+    	plugins: [Icons({ compiler: 'astro' })],
+  	},
 });
