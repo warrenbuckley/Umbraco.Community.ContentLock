@@ -18,7 +18,7 @@ export default {
     plugins: [
         esbuildPlugin({
             ts: true,
-            tsconfig: './tsconfig.json',
+            tsconfig: './tsconfig.test.json',
         }),
     ],
     // Serve mockServiceWorker.js from the root so MSW can register it
