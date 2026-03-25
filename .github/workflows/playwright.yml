@@ -1,15 +1,33 @@
 name: Playwright Tests
 on:
   push:
-    branches: 
+    branches:
       - v16/*
       - v17/*
   pull_request:
-    branches: 
+    branches:
       - v16/*
       - v17/*
 jobs:
-  test:
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '10.0.x'
+
+    - name: Build solution
+      run: dotnet build
+
+    - name: Run unit tests
+      run: dotnet test ContentLock.Tests/ContentLock.Tests.csproj --logger "github" --verbosity normal
+
+  e2e-tests:
+    name: Playwright E2E Tests
+    needs: unit-tests
     timeout-minutes: 60
     runs-on: ubuntu-latest
     steps:
@@ -57,7 +75,7 @@ jobs:
       working-directory: 'ContentLock.Playwright.Tests'
       env:
         DEBUG: 'pw:webserver'
-        
+
     - uses: actions/upload-artifact@v4
       if: ${{ !cancelled() }}
       with:

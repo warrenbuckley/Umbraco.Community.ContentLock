@@ -1,4 +1,5 @@
 ﻿using ContentLock.E2E.Migrations.v1;
+using ContentLock.E2E.Migrations.v2;
 using ContentLock.Migrations.v1;
 using Umbraco.Cms.Core.Packaging;
 
@@ -13,7 +14,8 @@ namespace ContentLock.E2E.Migrations
         protected override void DefinePlan()
         {
             From(InitialState)
-                .To<AddTestUsers>("ContentLock.E2£.AddTestUsers");
+                .To<AddTestUsers>("ContentLock.E2E.AddTestUsers")
+                .To<AddRestrictedTestUser>("ContentLock.E2E.AddRestrictedTestUser");
         }
     }
 }

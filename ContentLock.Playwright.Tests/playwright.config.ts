@@ -41,27 +41,38 @@ export default defineConfig({
 
   /* Configure projects for major browsers */
   projects: [
-    // Setup project
+    // Setup projects — must run before browser tests
     // https://playwright.dev/docs/auth#basic-shared-account-in-all-tests
-    { name: 'setup', testMatch: /.*\.setup\.ts/ },
+    { name: 'setup', testMatch: /auth\.setup\.ts/ },
+    { name: 'setup-restricted', testMatch: /auth\.restricted-user\.setup\.ts/, dependencies: ['setup'] },
 
-    {
-      name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
-      dependencies: ['setup'], // Must run setup test/s first (Login & storing auth)
-    },
-
-    {
-      name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
-      dependencies: ['setup'], // Must run setup test/s first (Login & storing auth)
-    },
-
-    {
-      name: 'webkit',
-      use: { ...devices['Desktop Safari'] },
-      dependencies: ['setup'], // Must run setup test/s first (Login & storing auth)
-    },
+    // On CI run only Chromium to keep the pipeline fast.
+    // All three browsers run locally for cross-browser coverage.
+    ...(process.env.CI
+      ? [
+          {
+            name: 'chromium',
+            use: { ...devices['Desktop Chrome'] },
+            dependencies: ['setup', 'setup-restricted'],
+          },
+        ]
+      : [
+          {
+            name: 'chromium',
+            use: { ...devices['Desktop Chrome'] },
+            dependencies: ['setup', 'setup-restricted'],
+          },
+          {
+            name: 'firefox',
+            use: { ...devices['Desktop Firefox'] },
+            dependencies: ['setup', 'setup-restricted'],
+          },
+          {
+            name: 'webkit',
+            use: { ...devices['Desktop Safari'] },
+            dependencies: ['setup', 'setup-restricted'],
+          },
+        ]),
 
     /* Test against mobile viewports. */
     // {
