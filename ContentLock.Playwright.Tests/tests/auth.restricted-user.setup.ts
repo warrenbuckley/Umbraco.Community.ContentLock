@@ -18,6 +18,8 @@ setup('authenticate as restricted user', async ({page, umbracoUi}) => {
   await umbracoUi.login.enterEmail("restricted@hackmakedo.com");
   await umbracoUi.login.enterPassword("password1234");
   await umbracoUi.login.clickLoginButton();
-  await umbracoUi.login.goToSection(ConstantHelper.sections.content);
+  // Pass false to skip checking all sections — restricted user only has Content + Media,
+  // not Settings, Packages, etc., so the default all-sections check would fail.
+  await umbracoUi.login.goToSection(ConstantHelper.sections.content, false);
   await page.context().storageState({path: STORAGE_STATE});
 });

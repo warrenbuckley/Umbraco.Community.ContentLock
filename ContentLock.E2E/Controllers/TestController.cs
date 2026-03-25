@@ -12,7 +12,7 @@ namespace ContentLock.E2E.Controllers
 {
     [ApiController]
     [BackOfficeRoute("contentlock-e2e/api")]
-    [Authorize(Policy = AuthorizationPolicies.BackOfficeAccess)]
+    [AllowAnonymous] // E2E-only endpoint — no auth needed; not shipped in the main package
     public class TestController : ControllerBase
     {
         private readonly IScopeProvider _scopeProvider;

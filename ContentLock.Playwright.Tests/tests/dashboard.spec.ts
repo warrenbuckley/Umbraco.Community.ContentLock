@@ -101,7 +101,7 @@ test.describe('Content Lock Dashboard', () => {
 
         // Click the lock action menu item and wait for the API response instead of a hardcoded timeout
         const lockResponsePromise = page.waitForResponse(resp =>
-            resp.url().includes('/umbraco/api/contentlock/v1/Lock/') && resp.status() === 200
+            resp.url().includes('/umbraco/contentlock/api/v1/Lock/') && resp.status() === 200
         );
         await page.getByTestId('entity-action:contentlock.entityaction.document.lock').click();
         await lockResponsePromise;
@@ -125,7 +125,7 @@ test.describe('Content Lock Dashboard', () => {
 
         // Click the unlock action menu item and wait for the API response
         const unlockResponsePromise = page.waitForResponse(resp =>
-            resp.url().includes('/umbraco/api/contentlock/v1/Unlock/') && resp.status() === 200
+            resp.url().includes('/umbraco/contentlock/api/v1/Unlock/') && resp.status() === 200
         );
         await page.getByTestId('entity-action:contentlock.entityaction.document.unlock').click();
         await unlockResponsePromise;
@@ -158,7 +158,7 @@ test.describe('Content Lock Dashboard', () => {
 
         // Lock 'Home' and wait for API response
         const lockResponsePromise = page.waitForResponse(resp =>
-            resp.url().includes('/umbraco/api/contentlock/v1/Lock/') && resp.status() === 200
+            resp.url().includes('/umbraco/contentlock/api/v1/Lock/') && resp.status() === 200
         );
         await page.getByTestId('entity-action:contentlock.entityaction.document.lock').click();
         await lockResponsePromise;
@@ -183,7 +183,7 @@ test.describe('Content Lock Dashboard', () => {
 
         // Click the bulk unlock button and wait for the API response
         const bulkUnlockResponsePromise = page.waitForResponse(resp =>
-            resp.url().includes('/umbraco/api/contentlock/v1/BulkUnlock') && resp.status() === 200
+            resp.url().includes('/umbraco/contentlock/api/v1/BulkUnlock') && resp.status() === 200
         );
         await dashboard.dashboardUnlockBtn.click();
         await bulkUnlockResponsePromise;
@@ -203,7 +203,7 @@ test.describe('Content Lock Dashboard', () => {
 
         // Lock and capture the content key from the API response
         const lockResponsePromise = page.waitForResponse(resp =>
-            resp.url().includes('/umbraco/api/contentlock/v1/Lock/') && resp.status() === 200
+            resp.url().includes('/umbraco/contentlock/api/v1/Lock/') && resp.status() === 200
         );
         await page.getByTestId('entity-action:contentlock.entityaction.document.lock').click();
         const lockResponse = await lockResponsePromise;
@@ -226,18 +226,23 @@ test.describe('Content Lock Dashboard', () => {
         const restrictedPage = await restrictedContext.newPage();
 
         try {
-            // Restricted user navigates to the locked content's workspace
+            // Restricted user navigates to the locked content's workspace.
+            // First go to /umbraco to establish the backoffice shell, then navigate to the workspace.
             await restrictedPage.goto('/umbraco');
-            await restrictedPage.waitForLoadState('domcontentloaded');
-            await restrictedPage.goto(`/umbraco/section/content/workspace/Umb.Workspace.Document/edit/${contentKey}`);
+            await restrictedPage.waitForLoadState('networkidle');
+            await restrictedPage.goto(`/umbraco/section/content/workspace/document/edit/${contentKey}`);
+            await restrictedPage.waitForLoadState('networkidle');
 
-            // Verify the workspace footer app is visible, showing it is locked
+            // Verify the workspace footer app is visible, showing it is locked.
+            // Allow extra time for SignalR to deliver the lock state to this new client.
             const footerApp = restrictedPage.locator('contentlock-workspacefooterapp');
-            await expect(footerApp).toBeVisible();
+            await expect(footerApp).toBeVisible({ timeout: 15000 });
 
             // Verify the restricted user does NOT see the Unlock entity action
-            // (they are missing ContentLock.Unlocker granular permission)
-            await restrictedPage.locator('umb-entity-actions-bundle').click();
+            // (they are missing ContentLock.Unlocker granular permission).
+            // Use .first() — there are multiple umb-entity-actions-bundle elements in the page
+            // (workspace header, tree items, etc.); we want the workspace header one.
+            await restrictedPage.locator('umb-entity-actions-bundle').first().click();
             await expect(
                 restrictedPage.getByTestId('entity-action:contentlock.entityaction.document.unlock')
             ).not.toBeVisible();

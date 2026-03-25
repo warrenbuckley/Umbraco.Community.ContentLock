@@ -1,3 +1,4 @@
+using Xunit;
 using ContentLock.Controllers;
 using ContentLock.Interfaces;
 using ContentLock.Models.Backoffice;
@@ -35,7 +36,7 @@ public class ContentLockApiControllerTests
         var localizedTextService = Substitute.For<ILocalizedTextService>();
         // Return a non-null string for any Localize call so ProblemDetailsBuilder doesn't receive nulls
         localizedTextService
-            .Localize(default, default)
+            .Localize(default, default, default, default)
             .ReturnsForAnyArgs("Localized error message");
 
         var hubAllClients = Substitute.For<IContentLockHubEvents>();
@@ -68,8 +69,8 @@ public class ContentLockApiControllerTests
         var group = Substitute.For<IReadOnlyUserGroup>();
         group.Permissions.Returns(
             hasUnlockerPermission
-                ? new[] { Constants.Permission }
-                : Array.Empty<string>()
+                ? (ISet<string>)new HashSet<string> { Constants.Permission }
+                : (ISet<string>)new HashSet<string>()
         );
         user.Groups.Returns(new[] { group });
 

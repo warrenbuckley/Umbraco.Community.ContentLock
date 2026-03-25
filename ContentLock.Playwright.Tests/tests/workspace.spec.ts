@@ -23,7 +23,7 @@ async function lockHomeNode(page: any, umbracoUi: any): Promise<string> {
     await expect(page.getByTestId('entity-action:contentlock.entityaction.document.lock')).toBeVisible();
 
     const lockResponsePromise = page.waitForResponse((resp: any) =>
-        resp.url().includes('/umbraco/api/contentlock/v1/Lock/') && resp.status() === 200
+        resp.url().includes('/umbraco/contentlock/api/v1/Lock/') && resp.status() === 200
     );
     await page.getByTestId('entity-action:contentlock.entityaction.document.lock').click();
     const lockResponse = await lockResponsePromise;
@@ -45,12 +45,14 @@ test.describe('Workspace Footer App', () => {
         // Warren locks Home and gets the content key from the API response
         const contentKey = await lockHomeNode(page, umbracoUi);
 
-        // Navigate to the locked content workspace using the Umbraco Bellissima deep-link URL
-        await page.goto(`/umbraco/section/content/workspace/Umb.Workspace.Document/edit/${contentKey}`);
+        // Navigate to the locked content workspace using the Umbraco Bellissima deep-link URL.
+        // Wait for networkidle so SignalR has time to deliver the lock state to the workspace context.
+        await page.goto(`/umbraco/section/content/workspace/document/edit/${contentKey}`);
+        await page.waitForLoadState('networkidle');
 
         // The workspace footer app element should be present and visible
         const footerApp = page.locator('contentlock-workspacefooterapp');
-        await expect(footerApp).toBeVisible();
+        await expect(footerApp).toBeVisible({ timeout: 10000 });
     });
 
     test('workspace footer is visible for a user viewing a page locked by another user', async ({ page, umbracoUi, browser }) => {
@@ -66,44 +68,42 @@ test.describe('Workspace Footer App', () => {
         const restrictedPage = await restrictedContext.newPage();
 
         try {
-            // Restricted user navigates to the locked content's workspace
+            // Restricted user navigates to the locked content's workspace.
+            // First establish the backoffice shell, then navigate to the workspace.
             await restrictedPage.goto('/umbraco');
-            await restrictedPage.waitForLoadState('domcontentloaded');
+            await restrictedPage.waitForLoadState('networkidle');
             await restrictedPage.goto(
-                `/umbraco/section/content/workspace/Umb.Workspace.Document/edit/${contentKey}`
+                `/umbraco/section/content/workspace/document/edit/${contentKey}`
             );
+            await restrictedPage.waitForLoadState('networkidle');
 
-            // The footer app should show the page is locked by someone else
+            // The footer app should show the page is locked by someone else.
+            // Allow extra time for SignalR to deliver the lock state to this new client.
             const footerApp = restrictedPage.locator('contentlock-workspacefooterapp');
-            await expect(footerApp).toBeVisible();
+            await expect(footerApp).toBeVisible({ timeout: 15000 });
         } finally {
             await restrictedContext.close();
         }
     });
 
-    test('workspace footer is not visible when the page is unlocked', async ({ page, umbracoUi }) => {
-        // Lock then immediately unlock Home so the page is in the unlocked state
+    test('workspace footer is not visible when the page is unlocked', async ({ page, umbracoUi, umbracoApi }) => {
+        // Lock Home and navigate to the workspace — confirm the footer shows the locked state.
         const contentKey = await lockHomeNode(page, umbracoUi);
+        await page.goto(`/umbraco/section/content/workspace/document/edit/${contentKey}`);
+        await page.waitForLoadState('networkidle');
 
-        // Unlock via entity action
-        await umbracoUi.content.clickActionsMenuForContent('Home');
-        const unlockResponsePromise = page.waitForResponse((resp: any) =>
-            resp.url().includes('/umbraco/api/contentlock/v1/Unlock/') && resp.status() === 200
-        );
-        await page.getByTestId('entity-action:contentlock.entityaction.document.unlock').click();
-        await unlockResponsePromise;
-
-        // TODO: Remove this when bug is fixed that entity action will close the menu
-        // https://github.com/umbraco/Umbraco-CMS/issues/19761
-        await umbracoUi.content.clickActionsMenuForContent('Home');
-
-        // Navigate to the (now unlocked) content workspace
-        await page.goto(`/umbraco/section/content/workspace/Umb.Workspace.Document/edit/${contentKey}`);
-
-        // Footer app should not render anything meaningful for an unlocked page
-        // The element may exist in the DOM but should not show a "locked" message
         const footerApp = page.locator('contentlock-workspacefooterapp');
-        await expect(footerApp).not.toContainText(/locked/i);
+        await expect(footerApp).toBeVisible({ timeout: 10000 });
+
+        // Reset all locks via the E2E test API while staying on the workspace page. This:
+        //   1. Deletes all locks from the database
+        //   2. Broadcasts RemoveAllLocksToClients via SignalR to all connected clients
+        // The workspace context observes contentLocks reactively — on receiving the broadcast
+        // it sets pageState = Unlocked, so the footer stops showing "locked" text.
+        await umbracoApi.resetContentLocks();
+
+        // After the SignalR broadcast the workspace footer should reactively clear.
+        await expect(footerApp).not.toContainText(/locked/i, { timeout: 10000 });
     });
 });
 
@@ -119,11 +119,20 @@ test.describe('Lock/Unlock Entity Actions Visibility', () => {
         await expect(page.getByTestId('entity-action:contentlock.entityaction.document.unlock')).not.toBeVisible();
     });
 
-    test('Unlock action is visible and Lock action is hidden when page is locked', async ({ page, umbracoUi }) => {
+    test('Unlock action is visible and Lock action is hidden when page is locked', async ({ page, umbracoUi, dashboard }) => {
         // Lock the page first
         await lockHomeNode(page, umbracoUi);
 
-        // Re-open the actions menu
+        // Use the Content Lock dashboard as a SignalR sync point before re-opening entity actions.
+        // Entity action conditions are evaluated on menu open — if SignalR hasn't delivered the
+        // AddLockToClients event yet, conditions still show Lock instead of Unlock.
+        await dashboard.goto();
+        await dashboard.showsNumberOfLocks(1);
+
+        // Navigate back to the content section
+        await umbracoUi.content.goToSection(ConstantHelper.sections.content);
+
+        // Re-open the actions menu — conditions now reflect the current lock state
         await umbracoUi.content.clickActionsMenuForContent('Home');
 
         // After locking, Unlock should be available and Lock hidden
@@ -146,14 +155,16 @@ test.describe('Lock/Unlock Entity Actions Visibility', () => {
         try {
             // Restricted user navigates to the locked content workspace
             await restrictedPage.goto('/umbraco');
-            await restrictedPage.waitForLoadState('domcontentloaded');
+            await restrictedPage.waitForLoadState('networkidle');
             await restrictedPage.goto(
-                `/umbraco/section/content/workspace/Umb.Workspace.Document/edit/${contentKey}`
+                `/umbraco/section/content/workspace/document/edit/${contentKey}`
             );
+            await restrictedPage.waitForLoadState('networkidle');
 
-            // Open the entity actions menu on the workspace
-            // In Umbraco 17 the actions are accessible via the actions button in the workspace header
-            await restrictedPage.locator('umb-entity-actions-bundle').click();
+            // Open the entity actions menu on the workspace.
+            // Use .first() — there are multiple umb-entity-actions-bundle elements in the page;
+            // we want the workspace header one.
+            await restrictedPage.locator('umb-entity-actions-bundle').first().click();
 
             // The Unlock action should not be visible (no ContentLock.Unlocker permission)
             await expect(

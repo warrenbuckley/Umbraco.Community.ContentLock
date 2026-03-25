@@ -20,8 +20,10 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   /* Retry on CI only */
   retries: process.env.CI ? 2 : 0,
-  /* Opt out of parallel tests on CI. */
-  workers: process.env.CI ? 1 : undefined,
+  /* Force serial execution everywhere — tests share the same Umbraco site and lock the same
+     content nodes, so parallel workers cause lock conflicts (Lock API returns 400 when a node
+     is already locked by a concurrent test, timing out the waitForResponse(status===200) call). */
+  workers: 1,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   // 'github' and HTML for GitHub Actions CI to generate annotations, plus a concise 'dot'
   // default to just 'html' when running locally

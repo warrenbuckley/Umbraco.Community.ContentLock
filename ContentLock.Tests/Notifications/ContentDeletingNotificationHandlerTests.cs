@@ -1,3 +1,4 @@
+using Xunit;
 using ContentLock.Interfaces;
 using ContentLock.Models.Backoffice;
 using ContentLock.Notifications;
@@ -155,7 +156,7 @@ public class ContentDeletingNotificationHandlerTests
         notification.Cancel.Should().BeTrue();
 
         // An error message must be appended to the notification
-        notification.Messages.Should().ContainSingle(m => m.MessageType == EventMessageType.Error);
+        notification.Messages.GetAll().Should().ContainSingle(m => m.MessageType == EventMessageType.Error);
 
         // The lock must NOT be removed
         await service.DidNotReceive().UnlockContentAsync(Arg.Any<Guid>(), Arg.Any<Guid>());
