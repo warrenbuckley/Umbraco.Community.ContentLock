@@ -82,6 +82,10 @@ jobs:
       working-directory: 'ContentLock.Playwright.Tests'
       env:
         DEBUG: 'pw:webserver'
+        # Load appsettings.Development.json so Umbraco gets the SQLite connection string
+        # and InstallUnattended: true — without this the DB is missing and Umbraco shows
+        # the install wizard instead of starting up.
+        ASPNETCORE_ENVIRONMENT: Development
 
     - uses: actions/upload-artifact@v4
       if: ${{ !cancelled() }}

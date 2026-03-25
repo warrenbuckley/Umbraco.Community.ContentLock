@@ -101,11 +101,13 @@ export default defineConfig({
   webServer: {
     cwd: path.join(__dirname, '../ContentLock.Website'),
     command: 'dotnet run --urls "https://localhost:5001;http://localhost:5000"',
-    url: 'https://localhost:5001/umbraco',
+    // Use HTTP for the health-check URL so Node's built-in checker doesn't trip over the
+    // self-signed cert (ignoreHTTPSErrors only applies at page level, not webServer polling).
+    url: 'http://localhost:5000/umbraco',
     stderr: 'pipe',
     stdout: 'pipe',
     ignoreHTTPSErrors: true,
     reuseExistingServer: !process.env.CI, // Don't reuse server on CI to ensure a fresh start
-    timeout: 120 * 1000, // Increase timeout to 120 seconds for the server to start - as we need to wait for SQLite DB etc to be created
+    timeout: 180 * 1000, // 180 s — unattended install creates the SQLite DB + runs migrations on first CI boot
   },
 });
