@@ -23,7 +23,14 @@ jobs:
       run: dotnet build
 
     - name: Run unit tests
-      run: dotnet test ContentLock.Tests/ContentLock.Tests.csproj --logger "github" --verbosity normal
+      run: dotnet test ContentLock.Tests/ContentLock.Tests.csproj --logger "trx;LogFileName=test-results.trx" --verbosity normal
+
+    - uses: actions/upload-artifact@v4
+      if: ${{ !cancelled() }}
+      with:
+        name: unit-test-results
+        path: ContentLock.Tests/TestResults/test-results.trx
+        retention-days: 30
 
   e2e-tests:
     name: Playwright E2E Tests
