@@ -11,9 +11,9 @@ The Online Users feature lets backoffice editors see who else is currently activ
 
 When Online Users is enabled, a **user count indicator** appears in the top bar of the Umbraco backoffice (the header app area, alongside any other header apps).
 
-- The count shows the number of **other** active editors (not counting yourself).
+- The count shows the total number of active backoffice editors, including yourself.
 - The indicator updates in real-time as editors connect or disconnect.
-- If no other editors are online, the indicator is hidden (or shows 0).
+- If you are the only editor online, the count shows **1**.
 
 ---
 
@@ -31,8 +31,13 @@ Clicking the header app opens the **"Who's online?"** modal, which lists every c
 
 When sound notifications are enabled, ContentLock plays audio cues when editors connect or disconnect:
 
-- **Login sound** — plays when a new editor connects to the backoffice.
-- **Logout sound** — plays when an editor disconnects (closes the tab or logs out).
+**Login sound** — plays when a new editor connects to the backoffice.
+
+<audio controls src="/Umbraco.Community.ContentLock/sounds/login.mp3" />
+
+**Logout sound** — plays when an editor disconnects (closes the tab or logs out).
+
+<audio controls src="/Umbraco.Community.ContentLock/sounds/logout.mp3" />
 
 The default sounds are bundled with the package. You can replace them with your own files via configuration — see [Online Users Configuration](/configuration/online-users/).
 
@@ -53,6 +58,10 @@ Online Users can be toggled on or off **without restarting the application**. Wh
 ```
 
 When disabled, the header app count and the online users modal are hidden for all editors.
+
+:::caution
+Disabling Online Users also disables [Audio Calling](/features/audio-calling/). Calls can only be initiated from the Online Users modal, so if the modal is hidden there is no way to start a call.
+:::
 
 ---
 

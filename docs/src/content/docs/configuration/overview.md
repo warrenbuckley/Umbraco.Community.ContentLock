@@ -33,22 +33,7 @@ All ContentLock settings live under the `ContentLock` key in `appsettings.json`.
         "RingbackSound": "/App_Plugins/ContentLock/sounds/ringtone.mp3"
       },
       "TurnServer": {
-        "Provider": "None",
-        "Cloudflare": {
-          "KeyId": "",
-          "ApiToken": "",
-          "Ttl": 86400
-        },
-        "Twilio": {
-          "AccountSid": "",
-          "AuthToken": "",
-          "Ttl": 86400
-        },
-        "Metered": {
-          "AppName": "",
-          "ApiKey": "",
-          "CacheTtlSeconds": 82800
-        }
+        "Provider": "None"
       }
     }
   }
