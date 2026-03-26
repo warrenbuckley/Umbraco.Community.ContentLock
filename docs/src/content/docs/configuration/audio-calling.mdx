@@ -9,7 +9,7 @@ The `WebRTC` configuration section controls the peer-to-peer audio calling featu
 
 ## Minimum Configuration
 
-No configuration is required for same-network calls. ContentLock uses two public STUN servers by default (Google and Cloudflare) which handle most scenarios where editors are on the same local network.
+No configuration is required for most calls. ContentLock uses two public STUN servers by default (Google and Cloudflare) which successfully establish direct peer-to-peer connections in approximately 80% of cases. **Try without a TURN server first** — only configure one if editors report failed or unreliable calls.
 
 ```json
 {
@@ -102,7 +102,11 @@ Audio file played on the **caller's** device while waiting for the recipient to 
 
 ## TURN Server Providers
 
-STUN alone works for editors on the same network. For **remote workers or different networks**, a TURN relay server is required. ContentLock supports three providers.
+STUN alone handles ~80% of WebRTC connections. A TURN relay server is needed when direct peer-to-peer connections fail — typically behind strict firewalls, symmetric NATs, or restrictive corporate network policies. This affects approximately 20% of cases and is not limited to remote workers.
+
+:::tip[Start without TURN]
+Deploy without a TURN server first. If editors report calls that fail to connect or drop unexpectedly, configure one of the providers below.
+:::
 
 :::caution[Provider change requires restart]
 Changing `TurnServer.Provider` requires an application restart. Credential values (API keys, tokens) are reactive and can be updated without a restart.
@@ -118,13 +122,13 @@ Changing `TurnServer.Provider` requires an application restart. Credential value
 }
 ```
 
-Uses STUN only. Free, no account required. Works for editors on the same network.
+Uses STUN only. Free, no account required. Works for approximately 80% of connections.
 
 ---
 
-### Cloudflare Calls TURN
+### Cloudflare Calls TURN ⭐ Recommended
 
-[Cloudflare Calls](https://developers.cloudflare.com/calls/) offers pay-as-you-go TURN infrastructure.
+[Cloudflare Calls](https://developers.cloudflare.com/calls/) offers **1 TB of TURN relay free per month** (a payment method must be on file in your Cloudflare account — you are only charged if you exceed the free tier). For most teams this is effectively free. [Sign up for a Cloudflare account](https://dash.cloudflare.com/sign-up).
 
 ```json
 "TurnServer": {
@@ -149,6 +153,8 @@ Uses STUN only. Free, no account required. Works for editors on the same network
 
 ### Twilio Network Traversal Service
 
+[Twilio's Network Traversal Service](https://www.twilio.com/en-us/stun-turn) is a pay-as-you-go TURN service. [Sign up for a Twilio account](https://www.twilio.com/try-twilio).
+
 ```json
 "TurnServer": {
   "Provider": "Twilio",
@@ -172,7 +178,7 @@ Uses STUN only. Free, no account required. Works for editors on the same network
 
 ### Metered TURN
 
-[Metered](https://www.metered.ca/tools/openrelay/) offers a free-tier TURN service.
+[Metered](https://www.metered.ca/stun-turn) offers a free-tier TURN service (20 GB/month). [Sign up for a Metered account](https://dashboard.metered.ca/signup).
 
 ```json
 "TurnServer": {
@@ -191,7 +197,7 @@ Uses STUN only. Free, no account required. Works for editors on the same network
 | `ApiKey` | API key from the Metered dashboard |
 | `CacheTtlSeconds` | How long to cache TURN credentials server-side (default 82800 = 23 hours; credentials are valid for 24 hours) |
 
-**Setup:** Sign up at [metered.ca](https://www.metered.ca/tools/openrelay/) and create an app to get your `AppName` and `ApiKey`.
+**Setup:** Sign up at [metered.ca](https://www.metered.ca/stun-turn) and create an app to get your `AppName` and `ApiKey`.
 
 ---
 

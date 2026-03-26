@@ -3,7 +3,7 @@ title: Audio Calling
 description: Peer-to-peer WebRTC audio calls between backoffice editors.
 ---
 
-ContentLock includes a built-in peer-to-peer audio calling feature so backoffice editors can talk to each other without leaving Umbraco. Calls use **WebRTC** — a browser-native technology — meaning no external meeting software or server is required for editors on the same network.
+ContentLock includes a built-in peer-to-peer audio calling feature so backoffice editors can talk to each other without leaving Umbraco. Calls use **WebRTC** — a browser-native technology — meaning no external meeting software is required. Most connections work with no server configuration at all.
 
 :::note[Prerequisite]
 Audio Calling requires the [Online Users](/features/online-users/) feature to be enabled.
@@ -61,26 +61,31 @@ Once connected:
 
 ---
 
-## Cross-Network Calls (TURN Servers)
+## TURN Servers
 
-WebRTC works well for editors on the **same local network** using only STUN servers (included by default). For editors on **different networks** (e.g., remote workers), a **TURN relay server** is required.
+WebRTC uses STUN servers (included by default) to establish direct peer-to-peer connections. This works in approximately **80% of cases** across most office and home networks.
+
+A TURN relay server is needed in the remaining ~20% of cases, typically when editors are behind:
+- **Strict firewalls** that block direct peer connections
+- **Symmetric NATs** (common on corporate and managed networks)
+- **Aggressive security policies** that prevent direct IP communication
+
+:::tip[Try without TURN first]
+Deploy without a TURN server and see if calls work for your team. Only configure a provider if editors report calls that fail to connect or drop unexpectedly.
+:::
 
 ContentLock supports three TURN server providers:
 
 | Provider | Description |
 |---|---|
-| **None** (default) | STUN only — works on same network, free |
-| **Cloudflare** | Cloudflare Calls TURN — pay-as-you-go |
-| **Twilio** | Twilio Network Traversal Service |
-| **Metered** | Metered TURN — free tier available |
+| **None** (default) | STUN only — works for ~80% of connections, no account required |
+| **Cloudflare** ⭐ | [Cloudflare Calls TURN](https://developers.cloudflare.com/calls/turn/) — 1 TB free/month (payment method required). Recommended. |
+| **Twilio** | [Twilio Network Traversal Service](https://www.twilio.com/en-us/stun-turn) — pay-as-you-go |
+| **Metered** | [Metered TURN](https://www.metered.ca/stun-turn) — free tier (20 GB/month) |
 
-See [WebRTC Configuration](/configuration/webrtc/) for setup instructions.
+See [Audio Calling Configuration](/configuration/audio-calling/) for setup instructions.
 
 ---
-
-## Screenshot
-
-![Audio call UI showing calling and connected states](../../../assets/screenshots/audio-call-ui.webp)
 
 ---
 
