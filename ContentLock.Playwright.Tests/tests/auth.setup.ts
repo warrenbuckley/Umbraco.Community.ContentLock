@@ -15,6 +15,11 @@ setup('authenticate', async ({page, umbracoUi}) => {
   await umbracoUi.login.enterEmail("warren@hackmakedo.com");
   await umbracoUi.login.enterPassword("password1234");
   await umbracoUi.login.clickLoginButton();
-  await umbracoUi.login.goToSection(ConstantHelper.sections.settings);
+  // Wait for the SPA to settle after login before saving auth state.
+  // Use checkSections=false to skip the all-sections visibility check —
+  // on a fresh CI install the backoffice can be slow to render all tabs
+  // and waiting up to 30 s per section (× 7 sections) causes timeouts.
+  await page.waitForLoadState('networkidle');
+  await umbracoUi.login.goToSection(ConstantHelper.sections.content, false);
   await page.context().storageState({path: STORAGE_STATE});
 });
