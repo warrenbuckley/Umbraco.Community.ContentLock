@@ -34,9 +34,10 @@ export default defineConfig({
     /* Base URL to use in actions like `await page.goto('/')`. */
     baseURL: process.env.CI ? 'http://localhost:5000' : 'https://localhost:5001',
 
-    /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
-    trace: 'on-first-retry',
+    /* Collect trace for all failing tests (not just on retry) so CI artifacts always have trace data. */
+    trace: 'retain-on-failure',
     screenshot: 'on',
+    video: 'retain-on-failure',
     testIdAttribute: 'data-mark', // Uses data-mark attribute same as Umbraco UI test helpers
     ignoreHTTPSErrors: true, // Ignore HTTPS errors for .NET self-signed certs in dev/test environments
   },
@@ -108,6 +109,11 @@ export default defineConfig({
     stdout: 'pipe',
     ignoreHTTPSErrors: true,
     reuseExistingServer: !process.env.CI, // Don't reuse server on CI to ensure a fresh start
-    timeout: 180 * 1000, // 180 s — unattended install creates the SQLite DB + runs migrations on first CI boot
+    timeout: 300 * 1000, // 300 s — unattended install creates the SQLite DB + runs migrations on first CI boot
+    // Explicitly set ASPNETCORE_ENVIRONMENT=Development so Umbraco loads appsettings.Development.json
+    // (SQLite connection string + InstallUnattended:true) even when the outer process doesn't pass it.
+    env: {
+      ASPNETCORE_ENVIRONMENT: 'Development',
+    },
   },
 });
