@@ -1,0 +1,10 @@
+---
+import type { Props } from '@astrojs/starlight/components/Icon.astro';
+import Default from '@astrojs/starlight/components/Icon.astro';
+import UsersIcon from '~icons/lucide/users';
+---
+
+{Astro.props.name === 'group'
+	? <UsersIcon aria-hidden="true" style={Astro.props.size ? `font-size: ${Astro.props.size}` : undefined} />
+	: <Default {...Astro.props} />
+}

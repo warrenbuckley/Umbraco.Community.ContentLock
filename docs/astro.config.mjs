@@ -11,7 +11,8 @@ export default defineConfig({
 	integrations: [
 		starlight({
 			components: {
-				SocialIcons: './src/components/SocialIcons.astro'
+				SocialIcons: './src/components/SocialIcons.astro',
+			Icon: './src/components/Icon.astro',
 			},
 			plugins: [
 				catppuccin({
