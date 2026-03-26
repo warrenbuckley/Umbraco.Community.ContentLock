@@ -15,6 +15,7 @@
         "webrtc",
         "collaboration"
     ],
+    "DocumentationUrl": "https://warrenbuckley.github.io/Umbraco.Community.ContentLock/",
     "Category": "Editor Tools",
     "LicenseTypes": [
         "Free"

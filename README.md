@@ -47,7 +47,7 @@ Content Lock has the following options available to configure.
 | OnlineUsers.Sounds.LoginSound | Path to the audio file played when a user logs in | `"/App_Plugins/ContentLock/sounds/login.mp3"` |
 | OnlineUsers.Sounds.LogoutSound | Path to the audio file played when a user logs out | `"/App_Plugins/ContentLock/sounds/logout.mp3"` |
 | WebRTC.Enable | Enable or disable the peer-to-peer audio calling feature. Reactive — no restart needed | `true` |
-| WebRTC.RingTimeoutSeconds | Seconds to ring before automatically ending an unanswered call (5–120) | `20` |
+| WebRTC.RingTimeoutSeconds | Seconds to ring before automatically ending an unanswered call  | `20` |
 | WebRTC.StunServers | STUN server URLs used for WebRTC ICE negotiation | Google + Cloudflare public servers |
 | WebRTC.Sounds.RingSound | Audio file played on the recipient's device for incoming calls | `"/App_Plugins/ContentLock/sounds/ringtone.mp3"` |
 | WebRTC.Sounds.RingbackSound | Audio file played on the caller's device while waiting for an answer | `"/App_Plugins/ContentLock/sounds/ringtone.mp3"` |

@@ -1,6 +1,11 @@
-# Content Lock
+# Umbraco Community ContentLock
 
-**Content Lock** is a real-time collaboration package for Umbraco that prevents content editing conflicts. Editors can lock a content node while editing — locked nodes become read-only for everyone else, with all publish, save, and unpublish actions hidden until the lock is released.
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![NuGet version](https://img.shields.io/nuget/v/Umbraco.Community.ContentLock.svg)](https://www.nuget.org/packages/Umbraco.Community.ContentLock)
+[![Downloads](https://img.shields.io/nuget/dt/Umbraco.Community.ContentLock.svg)](https://www.nuget.org/packages/Umbraco.Community.ContentLock)
+![Contributors](https://img.shields.io/github/contributors/warrenbuckley/Umbraco.Community.ContentLock)
+
+**Umbraco Community ContentLock** is a real-time collaboration package for Umbraco that prevents content editing conflicts. Editors can lock a content node while editing — locked nodes become read-only for everyone else, with all publish, save, and unpublish actions hidden until the lock is released.
 
 ---
 
@@ -13,7 +18,7 @@ Lock or unlock content nodes directly from the node actions menu (top right) or 
 Lock state is broadcast instantly to all connected backoffice users via **SignalR**. When someone locks or unlocks a node, every editor sees it update in real time — no page refresh needed.
 
 ### Visual Lock Indicators
-A lock icon appears on content tree nodes and collection views so editors can see at a glance which nodes are locked and by whom.
+A lock icon appears on content tree nodes so editors can see at a glance which nodes are locked and by whom.
 
 ### Workspace Footer Banner
 A clear banner is displayed at the bottom of any locked node, showing the name of the editor who has the lock.
@@ -35,6 +40,12 @@ Editors can start a peer-to-peer **WebRTC voice call** directly from the Online 
 
 ---
 
+## Documentation
+
+Full documentation is available at **[warrenbuckley.github.io/Umbraco.Community.ContentLock](https://warrenbuckley.github.io/Umbraco.Community.ContentLock/)**.
+
+---
+
 ## Configuration
 
 Most settings are **reactive** — changes apply instantly without an application restart.
@@ -51,19 +62,6 @@ Full configuration reference and TURN server setup guides are available in the [
 
 ---
 
-## Requirements
-
-- Umbraco CMS 17.0.0 or later
-- .NET 10
-
----
-
-## Documentation
-
-Full documentation is available at **[warrenbuckley.github.io/Umbraco.Community.ContentLock](https://warrenbuckley.github.io/Umbraco.Community.ContentLock/)**.
-
----
-
 ## Support & Issues
 
 Found a bug or have a feature request? Please open an issue on [GitHub](https://github.com/warrenbuckley/Umbraco.Community.ContentLock/issues).
@@ -71,3 +69,5 @@ Found a bug or have a feature request? Please open an issue on [GitHub](https://
 ---
 
 _Lovingly crafted for you by [Warren Buckley](https://github.com/sponsors/warrenbuckley) ❤️_
+
+_[Available for hire](https://hackmakedo.com/)_
