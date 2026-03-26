@@ -69,9 +69,17 @@ Content Lock has the following options available to configure.
   },
   "WebRTC": {
     "Enable": true,
+    "StunServers": [
+      "stun:stun.l.google.com:19302",
+      "stun:stun.cloudflare.com:3478"
+    ],
     "RingTimeoutSeconds": 20,
     "TurnServer": {
       "Provider": "None"
+    },
+    "Sounds": {
+      "RingSound": "/App_Plugins/ContentLock/sounds/ringtone.mp3",
+      "RingbackSound": "/App_Plugins/ContentLock/sounds/ringtone.mp3"
     }
   }
 }
@@ -87,6 +95,8 @@ ContentLock__OnlineUsers__Sounds__LogoutSound=/App_Plugins/SomePlace/logout.mp3
 ContentLock__WebRTC__Enable=true
 ContentLock__WebRTC__RingTimeoutSeconds=20
 ContentLock__WebRTC__TurnServer__Provider=None
+ContentLock__WebRTC__TurnServer__Sounds__RingSound=/App_Plugins/ContentLock/sounds/ringtone.mp3
+ContentLock__WebRTC__TurnServer__Sounds__RingbackSound=/App_Plugins/ContentLock/sounds/ringtone.mp3
 ```
 
 ### Reactive Options
