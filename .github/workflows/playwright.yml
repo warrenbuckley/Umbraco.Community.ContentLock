@@ -77,6 +77,9 @@ jobs:
       run: npx playwright install --with-deps
       working-directory: 'ContentLock.Playwright.Tests'
 
+    - name: Create media directory
+      run: mkdir -p ContentLock.Website/wwwroot/media
+
     - name: Run Playwright tests
       run: npx playwright test
       working-directory: 'ContentLock.Playwright.Tests'
