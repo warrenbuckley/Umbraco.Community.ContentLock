@@ -32,7 +32,12 @@ export default defineConfig({
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
-    baseURL: process.env.CI ? 'http://localhost:5000' : 'https://localhost:5001',
+    // Always use HTTPS — OpenIddict (Umbraco 17 auth) enforces HTTPS strictly
+    // and returns ID2083 if any part of the auth flow goes over HTTP.
+    // The webServer health check below uses http://localhost:5000 separately
+    // (Node's built-in TCP checker can't handle self-signed certs), but the
+    // actual browser tests must use HTTPS throughout.
+    baseURL: 'https://localhost:5001',
 
     /* Collect trace for all failing tests (not just on retry) so CI artifacts always have trace data. */
     trace: 'retain-on-failure',
