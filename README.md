@@ -29,19 +29,29 @@
 - **Read-Only Mode for Locked Nodes:**  
   - Locked nodes display all content (across all variants) as read-only.
   
-- **Action Restrictions:**  
+- **Action Restrictions:**
   - Prevents actions like publish, unpublish, and save for nodes that are currently locked.
+
+- **Audio Calling** _(17.1.0+)_**:**
+  - Peer-to-peer WebRTC voice calls between backoffice editors directly from the Online Users modal.
+  - No external software required for editors on the same network; TURN server support available for remote workers.
 
 ## Options
 Content Lock has the following options available to configure. 
 
 | Setting | Description | Default Value |
 | -- | -- | -- |
-| SignalRClientLogLevel | The SignalR log level of printing messages to the browser console can be set as one of the following values. `Trace`, `Debug`, `Information` or `Info`, `Warning` or `Warn`, `Error`, `Critical` and `None` | `"Info"` |
-| OnlineUsers.Enable | A boolean flag to decide if to displays a header app in the top right with the number of active users connected to the Umbraco backoffice | true
-| OnlineUsers.Sounds.Enable | A boolean flag to decide if to play audio notifications when a user logs in or out of the backoffice | true
-| OnlineUsers.Sounds.LoginSound | A path to an audio file that a browser can play when a new user logins to the Umbraco backoffice | `"/App_Plugins/ContentLock/sounds/login.mp3"`
-| OnlineUsers.Sounds.LogoutSound | A path to an audio file that a browser can play when a user logs out of the Umbraco backoffice | `"/App_Plugins/ContentLock/sounds/logout.mp3"`
+| SignalRClientLogLevel | The SignalR log level for browser console output. One of: `Trace`, `Debug`, `Information`/`Info`, `Warning`/`Warn`, `Error`, `Critical`, `None` | `"Info"` |
+| OnlineUsers.Enable | Displays a header app showing the number of active backoffice users | `true` |
+| OnlineUsers.Sounds.Enable | Play audio notifications when a user logs in or out of the backoffice | `true` |
+| OnlineUsers.Sounds.LoginSound | Path to the audio file played when a user logs in | `"/App_Plugins/ContentLock/sounds/login.mp3"` |
+| OnlineUsers.Sounds.LogoutSound | Path to the audio file played when a user logs out | `"/App_Plugins/ContentLock/sounds/logout.mp3"` |
+| WebRTC.Enable | Enable or disable the peer-to-peer audio calling feature. Reactive — no restart needed | `true` |
+| WebRTC.RingTimeoutSeconds | Seconds to ring before automatically ending an unanswered call  | `20` |
+| WebRTC.StunServers | STUN server URLs used for WebRTC ICE negotiation | Google + Cloudflare public servers |
+| WebRTC.Sounds.RingSound | Audio file played on the recipient's device for incoming calls | `"/App_Plugins/ContentLock/sounds/ringtone.mp3"` |
+| WebRTC.Sounds.RingbackSound | Audio file played on the caller's device while waiting for an answer | `"/App_Plugins/ContentLock/sounds/ringtone.mp3"` |
+| WebRTC.TurnServer.Provider | TURN provider for cross-network calls. One of: `None`, `Cloudflare`, `Twilio`, `Metered` | `"None"` |
 
 ### AppSettings
 
@@ -53,8 +63,23 @@ Content Lock has the following options available to configure.
     "Enable": true,
     "Sounds": {
       "Enable": true,
-      "LoginSound":"/App_Plugins/ContentLock/sounds/login.mp3",
-      "LogoutSound":"/App_Plugins/ContentLock/sounds/logout.mp3"
+      "LoginSound": "/App_Plugins/ContentLock/sounds/login.mp3",
+      "LogoutSound": "/App_Plugins/ContentLock/sounds/logout.mp3"
+    }
+  },
+  "WebRTC": {
+    "Enable": true,
+    "StunServers": [
+      "stun:stun.l.google.com:19302",
+      "stun:stun.cloudflare.com:3478"
+    ],
+    "RingTimeoutSeconds": 20,
+    "TurnServer": {
+      "Provider": "None"
+    },
+    "Sounds": {
+      "RingSound": "/App_Plugins/ContentLock/sounds/ringtone.mp3",
+      "RingbackSound": "/App_Plugins/ContentLock/sounds/ringtone.mp3"
     }
   }
 }
@@ -67,6 +92,11 @@ ContentLock__OnlineUsers__Enable=true
 ContentLock__OnlineUsers__Sounds__Enable=true
 ContentLock__OnlineUsers__Sounds__LoginSound=https://some-snazzy-sound.com/sfx-login.mp3
 ContentLock__OnlineUsers__Sounds__LogoutSound=/App_Plugins/SomePlace/logout.mp3
+ContentLock__WebRTC__Enable=true
+ContentLock__WebRTC__RingTimeoutSeconds=20
+ContentLock__WebRTC__TurnServer__Provider=None
+ContentLock__WebRTC__TurnServer__Sounds__RingSound=/App_Plugins/ContentLock/sounds/ringtone.mp3
+ContentLock__WebRTC__TurnServer__Sounds__RingbackSound=/App_Plugins/ContentLock/sounds/ringtone.mp3
 ```
 
 ### Reactive Options
