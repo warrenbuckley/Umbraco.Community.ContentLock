@@ -1,0 +1,26 @@
+---
+import Default from '@astrojs/starlight/components/SocialIcons.astro';
+import UmbracoIcon from '~icons/simple-icons/umbraco';
+---
+
+<Default {...Astro.props}><slot /></Default>
+<a href="https://marketplace.umbraco.com/package/umbraco.community.contentlock"
+	class="sl-flex"
+	target="_blank"
+	rel="noopener noreferrer"
+	aria-label="Umbraco Marketplace">
+	<UmbracoIcon aria-hidden="true" />
+</a>
+
+<style>
+	@layer starlight.core {
+		a {
+			color: var(--sl-color-text-accent);
+			padding: 0.5em;
+			margin: -0.5em;
+		}
+		a:hover {
+			color: var(--sl-color-white);
+		}
+	}
+</style>

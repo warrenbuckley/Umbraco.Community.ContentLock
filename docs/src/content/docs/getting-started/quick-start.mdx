@@ -1,0 +1,61 @@
+---
+title: Quick Start
+description: Lock your first content node in three steps.
+---
+
+import { Steps } from '@astrojs/starlight/components';
+
+This guide walks you through the core ContentLock workflow in under two minutes. You'll lock a node, see the read-only state from another user's perspective, and then unlock it.
+
+---
+
+## Prerequisites
+
+- ContentLock [installed and running](/getting-started/installation/)
+- Two browser sessions (or two different browsers) logged in as different Umbraco users
+
+---
+
+## Step 1 — Lock a Node
+
+1. Log in to the Umbraco backoffice.
+2. Open the **Content** section.
+3. Right-click any content node in the tree (or click the **⋮** actions menu at the top of the workspace).
+4. Click **Lock**.
+
+You should see:
+- A **lock icon** appear on the node in the content tree.
+- A **footer banner** at the bottom of the workspace saying *"This page is locked by you"*.
+- A toast notification confirming the lock.
+
+## Step 2 — Verify Read-Only State
+
+In your second browser session (logged in as a different user):
+
+1. Navigate to the same content node.
+2. All content properties should be **read-only** — inputs are disabled and cannot be edited.
+3. The **Save**, **Save and Publish**, and **Publish** buttons are **hidden** from the top actions bar.
+4. The footer banner shows: *"This page is locked by [first user's name]"*.
+
+This is ContentLock in action — the second editor is protected from accidentally overwriting the first editor's in-progress changes.
+
+## Step 3 — Unlock
+
+Back in your first session:
+
+1. Right-click the locked node in the tree (or use the **⋮** actions menu).
+2. Click **Unlock**.
+
+The lock is released. The second editor can now edit, save, and publish the node.
+
+:::tip
+If the second user has the `ContentLock.Unlocker` permission, they can also unlock the node themselves without waiting for the original editor. See [Permissions](/permissions/index/) for details.
+:::
+
+---
+
+## What's Next?
+
+- [Content Locking](/features/content-locking/) — detailed locking behaviour
+- [Dashboard](/features/dashboard/) — manage all locks from one place
+- [Online Users](/features/online-users/) — see who's active in the backoffice
