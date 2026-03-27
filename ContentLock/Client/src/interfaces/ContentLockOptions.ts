@@ -20,6 +20,11 @@ export interface WebRTCOptions {
     stunServers: string[];
     ringTimeoutSeconds: number;
     sounds: WebRTCSoundsOptions;
+    screenSharing: WebRTCScreenSharingOptions;
+}
+
+export interface WebRTCScreenSharingOptions {
+    enable: boolean;
 }
 
 export interface WebRTCSoundsOptions {

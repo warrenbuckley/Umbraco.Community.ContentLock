@@ -155,6 +155,21 @@ public class ContentLockOptions
         public int RingTimeoutSeconds { get; set; } = 20;
 
         /// <summary>
+        /// Settings related to the screen sharing feature.
+        /// </summary>
+        public ScreenSharingOptions ScreenSharing { get; set; } = new();
+
+        public class ScreenSharingOptions
+        {
+            /// <summary>
+            /// Enable or disable the screen sharing feature.
+            /// When disabled, the Share Screen button is hidden from the active call popover.
+            /// This setting is reactively applied without restart.
+            /// </summary>
+            public bool Enable { get; set; } = true;
+        }
+
+        /// <summary>
         /// Settings to control the sounds played during WebRTC calls.
         /// </summary>
         public SoundsOptions Sounds { get; set; } = new();

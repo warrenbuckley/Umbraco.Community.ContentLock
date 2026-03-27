@@ -1,7 +1,8 @@
 import { css, customElement, html, query, state } from "@umbraco-cms/backoffice/external/lit";
 import { UmbHeaderAppButtonElement } from '@umbraco-cms/backoffice/components';
 import { CONTENTLOCK_WEBRTC_CONTEXT } from "../globalContexts/contentlock.webrtc.context";
-import type { CallState, RemotePeerInfo } from "../globalContexts/contentlock.webrtc.context";
+import type { CallState, RemotePeerInfo, ScreenShareState } from "../globalContexts/contentlock.webrtc.context";
+import { CONTENTLOCK_SIGNALR_CONTEXT } from "../globalContexts/contentlock.signalr.context";
 import '@warrenbuckley/audio-visualizer';
 import type { AudioVisualizer } from '@warrenbuckley/audio-visualizer';
 
@@ -26,6 +27,8 @@ export class ContentLockActiveCallHeaderApp extends UmbHeaderAppButtonElement {
     @state() private _speakerDevices: MediaDeviceInfo[] = [];
     @state() private _selectedMicId = '';
     @state() private _selectedSpeakerId = '';
+    @state() private _screenShareState: ScreenShareState = 'idle';
+    @state() private _screenShareEnabled = true;
 
     @query('#contentlock-call-popover')
     private _popoverEl?: HTMLElement;
@@ -38,6 +41,13 @@ export class ContentLockActiveCallHeaderApp extends UmbHeaderAppButtonElement {
 
     constructor() {
         super();
+
+        this.consumeContext(CONTENTLOCK_SIGNALR_CONTEXT, (ctx) => {
+            if (!ctx) return;
+            this.observe(ctx.EnableScreenSharing, (enabled) => {
+                this._screenShareEnabled = enabled ?? true;
+            });
+        });
 
         this.consumeContext(CONTENTLOCK_WEBRTC_CONTEXT, (ctx) => {
             if (!ctx) return;
@@ -65,6 +75,7 @@ export class ContentLockActiveCallHeaderApp extends UmbHeaderAppButtonElement {
             });
 
             this.observe(ctx.remotePeer, (peer) => { this._remotePeer = peer; });
+            this.observe(ctx.screenShareState, (s) => { this._screenShareState = s; });
             this.observe(ctx.isMuted, (muted) => {
                 this._isMuted = muted;
                 // The visualizer holds its own getUserMedia stream, independent of the
@@ -169,9 +180,11 @@ export class ContentLockActiveCallHeaderApp extends UmbHeaderAppButtonElement {
                 compact
                 look="primary"
                 popovertarget="contentlock-call-popover"
-                label="${this.localize.term('contentLockCall_callButton')}">
+                label="${this.localize.term('contentLockCall_callButton')}"
+                class="${this._screenShareState === 'sharing' ? 'is-sharing' : ''}">
                 <audio-visualizer size="icon" ?muted=${this._isMuted}></audio-visualizer>
                 <span class="timer">${this._callDuration}</span>
+                ${this._screenShareState === 'sharing' ? html`<span class="share-dot"></span>` : ''}
             </uui-button>
             <uui-popover-container id="contentlock-call-popover" placement="bottom-end" margin="6">
                 <umb-popover-layout>
@@ -211,10 +224,34 @@ export class ContentLockActiveCallHeaderApp extends UmbHeaderAppButtonElement {
                             </uui-button>
                         </div>
 
+                        ${this._screenShareEnabled ? this.#renderScreenShareButton() : ''}
+
                         ${this.#renderDeviceSettings()}
                     </div>
                 </umb-popover-layout>
             </uui-popover-container>
+        `;
+    }
+
+    #renderScreenShareButton() {
+        const isSharing = this._screenShareState === 'sharing';
+        return html`
+            <div id="screenshare-control">
+                <uui-button
+                    look="${isSharing ? 'primary' : 'outline'}"
+                    color="${isSharing ? 'danger' : 'default'}"
+                    label="${isSharing
+                        ? this.localize.term('contentLockCall_stopSharing')
+                        : this.localize.term('contentLockCall_shareScreen')}"
+                    @click=${() => isSharing
+                        ? this.#webrtcCtx?.stopScreenShare()
+                        : this.#webrtcCtx?.startScreenShare()}>
+                    <uui-icon name="${isSharing ? 'icon-wrong' : 'icon-screen'}"></uui-icon>
+                    ${isSharing
+                        ? html`<umb-localize key="contentLockCall_stopSharing">Stop Sharing</umb-localize>`
+                        : html`<umb-localize key="contentLockCall_shareScreen">Share Screen</umb-localize>`}
+                </uui-button>
+            </div>
         `;
     }
 
@@ -368,6 +405,34 @@ export class ContentLockActiveCallHeaderApp extends UmbHeaderAppButtonElement {
                 padding: 2px 4px;
                 width: 100%;
                 min-width: 0;
+            }
+
+            /* Red dot on header button when screen sharing is active */
+            .share-dot {
+                position: absolute;
+                top: 2px;
+                right: 2px;
+                width: 8px;
+                height: 8px;
+                border-radius: 50%;
+                background: #e53935;
+                border: 1px solid var(--uui-color-surface);
+                pointer-events: none;
+            }
+
+            uui-button {
+                position: relative;
+            }
+
+            /* Screen share control row */
+            #screenshare-control {
+                border-top: 1px solid var(--uui-color-border);
+                padding-top: var(--uui-size-3);
+                margin-bottom: var(--uui-size-3);
+            }
+
+            #screenshare-control uui-button {
+                width: 100%;
             }
         `
     ];

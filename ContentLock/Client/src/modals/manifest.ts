@@ -4,5 +4,11 @@ export const manifests: Array<UmbExtensionManifest> = [
         name: '[Content Lock] Modal - Online Users',
         type: 'modal',
         js: () => import('./onlineusers.modal'),
+    },
+    {
+        alias: 'contentlock.modal.screenshare',
+        name: '[Content Lock] Modal - Screen Share',
+        type: 'modal',
+        js: () => import('./screenshare.modal'),
     }
 ]

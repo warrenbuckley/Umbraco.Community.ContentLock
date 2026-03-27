@@ -58,6 +58,9 @@ export default class ContentLockSignalrContext extends UmbContextBase
                 sounds: {
                     ringbackSound: '/App_Plugins/ContentLock/sounds/ringtone.mp3',
                     ringSound: '/App_Plugins/ContentLock/sounds/ringtone.mp3',
+                },
+                screenSharing: {
+                    enable: true,
                 }
             }
         });
@@ -102,6 +105,7 @@ export default class ContentLockSignalrContext extends UmbContextBase
 
     // The individual options as observables
     public EnableWebRTC = this.#contentLockOptions.asObservablePart(options => options.webRTC.enable);
+    public EnableScreenSharing = this.#contentLockOptions.asObservablePart(options => options.webRTC.enable && (options.webRTC.screenSharing?.enable ?? true));
     public EnableOnlineUsers = this.#contentLockOptions.asObservablePart(options => options.onlineUsers.enable);
     public EnableSounds = this.#contentLockOptions.asObservablePart(options => options.onlineUsers.sounds.enable);
     public LoginSound = this.#contentLockOptions.asObservablePart(options => options.onlineUsers.sounds.loginSound);

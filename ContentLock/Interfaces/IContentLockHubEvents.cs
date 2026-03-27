@@ -87,4 +87,27 @@ public interface IContentLockHubEvents
 
     /// <summary>Sent to the CALLEE when the ring timeout expires. They missed the call.</summary>
     public Task MissedCall(Guid callerKey, string callerName);
+
+    // ── WebRTC Screen Sharing ────────────────────────────────────────────────
+
+    /// <summary>
+    /// Sent to the peer when the sharer adds a screen-share video track and starts WebRTC
+    /// renegotiation. Contains the new SDP offer so the peer can create an answer.
+    /// </summary>
+    public Task ReceiveScreenShareOffer(Guid sharerKey, string sharerName, string sdpOffer);
+
+    /// <summary>
+    /// Sent back to the sharer with the peer's SDP answer to complete renegotiation.
+    /// </summary>
+    public Task ReceiveScreenShareAnswer(string sdpAnswer);
+
+    /// <summary>
+    /// Sent to the peer after renegotiation completes to trigger the "View Screen" toast.
+    /// </summary>
+    public Task ScreenShareStarted(Guid sharerKey, string sharerName);
+
+    /// <summary>
+    /// Sent to the peer when the sharer stops sharing, causing the viewer modal to close.
+    /// </summary>
+    public Task ScreenShareEnded();
 }

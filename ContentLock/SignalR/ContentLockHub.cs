@@ -209,6 +209,65 @@ public class ContentLockHub : Hub<IContentLockHubEvents>
         await BroadcastInCallUsersAsync();
     }
 
+    // ── WebRTC Screen Sharing Hub Methods (client → server) ───────────────
+
+    /// <summary>
+    /// Relays a WebRTC renegotiation SDP offer from the sharer to the viewing peer.
+    /// Called when a screen-share video track is added to the existing peer connection.
+    /// </summary>
+    public async Task SendScreenShareOfferAsync(Guid peerUserKey, string sdpOffer)
+    {
+        var currentUmbUser = this.Context.User?.GetUmbracoIdentity();
+        var sharerKey = currentUmbUser?.GetUserKey();
+        var sharerName = currentUmbUser?.Name ?? "Unknown";
+
+        if (!sharerKey.HasValue) return;
+
+        var peerConnections = GetConnectionsForUser(peerUserKey);
+        if (peerConnections.Length == 0) return;
+
+        await Clients.Clients(peerConnections).ReceiveScreenShareOffer(sharerKey.Value, sharerName, sdpOffer);
+    }
+
+    /// <summary>
+    /// Relays the peer's SDP answer back to the sharer to complete renegotiation.
+    /// </summary>
+    public async Task SendScreenShareAnswerAsync(Guid sharerUserKey, string sdpAnswer)
+    {
+        var sharerConnections = GetConnectionsForUser(sharerUserKey);
+        if (sharerConnections.Length == 0) return;
+
+        await Clients.Clients(sharerConnections).ReceiveScreenShareAnswer(sdpAnswer);
+    }
+
+    /// <summary>
+    /// Notifies the peer that a screen share has started, triggering the "View Screen" toast.
+    /// </summary>
+    public async Task SendScreenShareStartedAsync(Guid peerUserKey)
+    {
+        var currentUmbUser = this.Context.User?.GetUmbracoIdentity();
+        var sharerKey = currentUmbUser?.GetUserKey();
+        var sharerName = currentUmbUser?.Name ?? "Unknown";
+
+        if (!sharerKey.HasValue) return;
+
+        var peerConnections = GetConnectionsForUser(peerUserKey);
+        if (peerConnections.Length == 0) return;
+
+        await Clients.Clients(peerConnections).ScreenShareStarted(sharerKey.Value, sharerName);
+    }
+
+    /// <summary>
+    /// Notifies the peer that the screen share has ended, causing the viewer modal to close.
+    /// </summary>
+    public async Task SendScreenShareEndedAsync(Guid peerUserKey)
+    {
+        var peerConnections = GetConnectionsForUser(peerUserKey);
+        if (peerConnections.Length == 0) return;
+
+        await Clients.Clients(peerConnections).ScreenShareEnded();
+    }
+
     // ── Private Helpers ───────────────────────────────────────────────────
 
     private static string[] GetConnectionsForUser(Guid userKey)

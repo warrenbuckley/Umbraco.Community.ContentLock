@@ -60,5 +60,12 @@
         calling: 'Calling',
         missedCall: 'Missed call',
         missedCallFrom: '{0} tried to call you',
+        shareScreen: 'Share Screen',
+        stopSharing: 'Stop Sharing',
+        sharingScreen: '{0} is sharing their screen',
+        viewScreen: 'View Screen',
+        screenShareEnded: 'Screen share ended',
+        draw: 'Draw',
+        stopDraw: 'Stop Drawing',
     }
 };

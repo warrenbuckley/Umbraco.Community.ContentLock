@@ -9,6 +9,7 @@ import type { WebRTCOptions } from "../interfaces/ContentLockOptions";
 import { ContentLockService } from "../api/sdk.gen";
 
 export type CallState = 'idle' | 'calling' | 'incoming' | 'connected';
+export type ScreenShareState = 'idle' | 'sharing' | 'viewing';
 
 export interface RemotePeerInfo {
     key: string;
@@ -22,6 +23,19 @@ interface PendingCallInfo {
     sdpOffer: string;
 }
 
+interface AnnotationSegment {
+    x: number;
+    y: number;
+    ts: number;
+    type: 'start' | 'move' | 'end';
+}
+
+export interface AnnotationStroke {
+    t: 'start' | 'move' | 'end';
+    x: number;
+    y: number;
+}
+
 export default class ContentLockWebRTCContext extends UmbContextBase {
 
     // ── Observable State ──────────────────────────────────────────────────
@@ -29,10 +43,16 @@ export default class ContentLockWebRTCContext extends UmbContextBase {
     #callState = new UmbObjectState<CallState>('idle');
     #remotePeer = new UmbObjectState<RemotePeerInfo | undefined>(undefined);
     #isMuted = new UmbObjectState<boolean>(false);
+    #screenShareState = new UmbObjectState<ScreenShareState>('idle');
+    #remoteScreenStream = new UmbObjectState<MediaStream | null>(null);
 
     public callState = this.#callState.asObservable();
     public remotePeer = this.#remotePeer.asObservable();
     public isMuted = this.#isMuted.asObservable();
+    public screenShareState = this.#screenShareState.asObservable();
+    public isScreenSharing = this.#screenShareState.asObservablePart(s => s === 'sharing');
+    public isViewingScreenShare = this.#screenShareState.asObservablePart(s => s === 'viewing');
+    public remoteScreenStream = this.#remoteScreenStream.asObservable();
 
     // ── Private State ─────────────────────────────────────────────────────
 
@@ -53,6 +73,15 @@ export default class ContentLockWebRTCContext extends UmbContextBase {
         { urls: 'stun:stun.l.google.com:19302' },
         { urls: 'stun:stun.cloudflare.com:3478' },
     ];
+
+    // ── Screen Share Private State ────────────────────────────────────────
+    #screenShareSender?: RTCRtpSender;
+    #screenShareStream?: MediaStream;
+    #annotationChannel?: RTCDataChannel;
+    #annotationCanvas?: HTMLCanvasElement;
+    #annotationRafId?: number;
+    #annotationStrokes: AnnotationSegment[] = [];
+    #resizeHandler?: () => void;
 
     #signalrCtx?: typeof CONTENTLOCK_SIGNALR_CONTEXT.TYPE;
     #notificationCtx?: typeof UMB_NOTIFICATION_CONTEXT.TYPE;
@@ -114,6 +143,11 @@ export default class ContentLockWebRTCContext extends UmbContextBase {
             for (const track of this.#localStream.getAudioTracks()) {
                 this.#peerConnection.addTrack(track, this.#localStream);
             }
+
+            // Create the annotation DataChannel as part of the initial offer
+            // so it is included in the SDP and ready to use if screen sharing starts.
+            const channel = this.#peerConnection.createDataChannel('annotations');
+            this.#setupAnnotationChannel(channel);
 
             const offer = await this.#peerConnection.createOffer();
             await this.#peerConnection.setLocalDescription(offer);
@@ -359,6 +393,51 @@ export default class ContentLockWebRTCContext extends UmbContextBase {
                 },
             });
         });
+
+        // ── Screen Share Signaling ────────────────────────────────────────
+
+        // Sharer added video track — renegotiation offer received by the viewer
+        signalrCtx.addSignalRHandler('ReceiveScreenShareOffer', async (sharerKey: string, _sharerName: string, sdpOffer: string) => {
+            if (!this.#peerConnection) return;
+            try {
+                await this.#peerConnection.setRemoteDescription(
+                    new RTCSessionDescription({ type: 'offer', sdp: sdpOffer })
+                );
+                const answer = await this.#peerConnection.createAnswer();
+                await this.#peerConnection.setLocalDescription(answer);
+                await this.#signalrCtx?.signalrConnection?.invoke(
+                    'SendScreenShareAnswerAsync',
+                    sharerKey,
+                    answer.sdp
+                );
+            } catch (err) {
+                console.error('[ContentLock WebRTC] Failed to handle screen share renegotiation:', err);
+            }
+        });
+
+        // Viewer's renegotiation answer received by the sharer
+        signalrCtx.addSignalRHandler('ReceiveScreenShareAnswer', async (sdpAnswer: string) => {
+            if (!this.#peerConnection) return;
+            try {
+                await this.#peerConnection.setRemoteDescription(
+                    new RTCSessionDescription({ type: 'answer', sdp: sdpAnswer })
+                );
+            } catch (err) {
+                console.error('[ContentLock WebRTC] Failed to set screen share answer:', err);
+            }
+        });
+
+        // Sharer notified us that sharing has started — show the viewer toast
+        signalrCtx.addSignalRHandler('ScreenShareStarted', (sharerKey: string, sharerName: string) => {
+            this.#screenShareState.setValue('viewing');
+            this.#showScreenShareNotification(sharerKey, sharerName);
+        });
+
+        // Sharer stopped sharing — clean up viewer state
+        signalrCtx.addSignalRHandler('ScreenShareEnded', () => {
+            this.#remoteScreenStream.setValue(null);
+            this.#screenShareState.setValue('idle');
+        });
     }
 
     // ── Private: TURN Credentials ─────────────────────────────────────────
@@ -405,13 +484,44 @@ export default class ContentLockWebRTCContext extends UmbContextBase {
             }
         };
 
-        // Play remote audio track when it arrives from the peer
+        // Handle incoming tracks from the remote peer
         pc.ontrack = (event) => {
-            if (!this.#remoteAudioEl) {
-                this.#remoteAudioEl = Object.assign(document.createElement('audio'), { autoplay: true });
-                document.body.appendChild(this.#remoteAudioEl);
+            if (event.track.kind === 'audio') {
+                // Remote audio — attach to an <audio> element for playback
+                if (!this.#remoteAudioEl) {
+                    this.#remoteAudioEl = Object.assign(document.createElement('audio'), { autoplay: true });
+                    document.body.appendChild(this.#remoteAudioEl);
+                }
+                this.#remoteAudioEl.srcObject = event.streams[0];
+            } else if (event.track.kind === 'video') {
+                // Remote screen share video track
+                this.#remoteScreenStream.setValue(event.streams[0]);
             }
-            this.#remoteAudioEl.srcObject = event.streams[0];
+        };
+
+        // Renegotiation handler — fires when a screen share video track is added/removed.
+        // Only handle it after the initial call is fully connected so that initial
+        // offer/answer setup is not intercepted here.
+        pc.onnegotiationneeded = async () => {
+            if (this.#callState.getValue() !== 'connected') return;
+            try {
+                const offer = await pc.createOffer();
+                await pc.setLocalDescription(offer);
+                await this.#signalrCtx?.signalrConnection?.invoke(
+                    'SendScreenShareOfferAsync',
+                    peerUserKey,
+                    offer.sdp
+                );
+            } catch (err) {
+                console.error('[ContentLock WebRTC] Renegotiation failed:', err);
+            }
+        };
+
+        // Capture the annotation DataChannel when the callee side receives it
+        pc.ondatachannel = (event) => {
+            if (event.channel.label === 'annotations') {
+                this.#setupAnnotationChannel(event.channel);
+            }
         };
 
         return pc;
@@ -486,9 +596,220 @@ export default class ContentLockWebRTCContext extends UmbContextBase {
         return 'Failed to start call. Please check your microphone and try again.';
     }
 
+    // ── Public: Screen Share ──────────────────────────────────────────────
+
+    /**
+     * Start sharing the current browser tab with the call peer.
+     * Uses preferCurrentTab to skip the full OS screen picker on Chrome/Edge.
+     */
+    async startScreenShare() {
+        if (this.#screenShareState.getValue() !== 'idle') return;
+        if (!this.#peerConnection) return;
+
+        try {
+            // preferCurrentTab skips the full OS picker on Chrome 107+ and shows
+            // a minimal "Share this tab?" prompt instead. Falls back gracefully on Firefox/Safari.
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const displayStream = await (navigator.mediaDevices as any).getDisplayMedia({
+                video: { displaySurface: 'browser' },
+                audio: false,
+                preferCurrentTab: true,
+                selfBrowserSurface: 'include',
+            });
+
+            const videoTrack = displayStream.getVideoTracks()[0];
+
+            // Handle the user clicking "Stop Sharing" in the browser's built-in UI
+            videoTrack.addEventListener('ended', () => this.stopScreenShare());
+
+            // Adding a track triggers onnegotiationneeded which sends the renegotiation offer
+            this.#screenShareSender = this.#peerConnection.addTrack(videoTrack, displayStream);
+            this.#screenShareStream = displayStream;
+            this.#screenShareState.setValue('sharing');
+
+            // Inject the transparent annotation canvas over the sharer's Umbraco view
+            this.#injectAnnotationCanvas();
+
+            // Notify the peer to show the "View Screen" toast
+            const peerKey = this.#remotePeer.getValue()?.key;
+            if (peerKey) {
+                await this.#signalrCtx?.signalrConnection?.invoke('SendScreenShareStartedAsync', peerKey);
+            }
+        } catch (err) {
+            if (err instanceof DOMException && err.name === 'NotAllowedError') {
+                // User cancelled the screen picker — not an error, call continues
+                return;
+            }
+            console.error('[ContentLock WebRTC] Failed to start screen share:', err);
+        }
+    }
+
+    /**
+     * Stop screen sharing and notify the peer to close the viewer modal.
+     */
+    async stopScreenShare() {
+        if (this.#screenShareState.getValue() === 'idle') return;
+
+        const peerKey = this.#remotePeer.getValue()?.key;
+
+        // Clean up local screen share resources
+        this.#cleanUpScreenShare();
+
+        // Notify the peer that sharing has ended
+        if (peerKey) {
+            await this.#signalrCtx?.signalrConnection?.invoke('SendScreenShareEndedAsync', peerKey);
+        }
+    }
+
+    /**
+     * Send an annotation stroke over the DataChannel to the sharer.
+     * Called by the viewer's screen share modal canvas.
+     */
+    sendAnnotationStroke(stroke: AnnotationStroke) {
+        if (this.#annotationChannel?.readyState === 'open') {
+            this.#annotationChannel.send(JSON.stringify(stroke));
+        }
+    }
+
+    // ── Private: Screen Share Helpers ─────────────────────────────────────
+
+    #setupAnnotationChannel(channel: RTCDataChannel) {
+        this.#annotationChannel = channel;
+        channel.onmessage = (event) => {
+            try {
+                const stroke = JSON.parse(event.data) as AnnotationStroke;
+                this.#annotationStrokes.push({
+                    x: stroke.x,
+                    y: stroke.y,
+                    ts: Date.now(),
+                    type: stroke.t,
+                });
+            } catch {
+                // Invalid stroke data — ignore
+            }
+        };
+    }
+
+    #injectAnnotationCanvas() {
+        if (this.#annotationCanvas) return;
+
+        const canvas = document.createElement('canvas');
+        canvas.id = 'contentlock-annotation-overlay';
+        canvas.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;pointer-events:none;z-index:10000;background:transparent;';
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        document.body.appendChild(canvas);
+        this.#annotationCanvas = canvas;
+
+        this.#resizeHandler = () => {
+            if (this.#annotationCanvas) {
+                this.#annotationCanvas.width = window.innerWidth;
+                this.#annotationCanvas.height = window.innerHeight;
+            }
+        };
+        window.addEventListener('resize', this.#resizeHandler);
+
+        this.#startAnnotationRenderLoop();
+    }
+
+    #removeAnnotationCanvas() {
+        if (this.#annotationCanvas) {
+            document.body.removeChild(this.#annotationCanvas);
+            this.#annotationCanvas = undefined;
+        }
+        if (this.#resizeHandler) {
+            window.removeEventListener('resize', this.#resizeHandler);
+            this.#resizeHandler = undefined;
+        }
+        this.#stopAnnotationRenderLoop();
+        this.#annotationStrokes = [];
+    }
+
+    #startAnnotationRenderLoop() {
+        const FADE_MS = 3000;
+        const COLOR = '#e53935';
+        const WIDTH = 4;
+
+        const loop = () => {
+            const canvas = this.#annotationCanvas;
+            if (!canvas) return;
+            const ctx2d = canvas.getContext('2d');
+            if (!ctx2d) { this.#annotationRafId = requestAnimationFrame(loop); return; }
+
+            const now = Date.now();
+            this.#annotationStrokes = this.#annotationStrokes.filter(s => now - s.ts < FADE_MS);
+
+            ctx2d.clearRect(0, 0, canvas.width, canvas.height);
+            ctx2d.lineWidth = WIDTH;
+            ctx2d.lineCap = 'round';
+            ctx2d.lineJoin = 'round';
+            ctx2d.strokeStyle = COLOR;
+
+            let pathOpen = false;
+            for (const seg of this.#annotationStrokes) {
+                const alpha = Math.max(0, 1 - (now - seg.ts) / FADE_MS);
+                ctx2d.globalAlpha = alpha;
+                if (seg.type === 'start') {
+                    if (pathOpen) ctx2d.stroke();
+                    ctx2d.beginPath();
+                    ctx2d.moveTo(seg.x * canvas.width, seg.y * canvas.height);
+                    pathOpen = true;
+                } else if (seg.type === 'move' && pathOpen) {
+                    ctx2d.lineTo(seg.x * canvas.width, seg.y * canvas.height);
+                    ctx2d.stroke();
+                    ctx2d.beginPath();
+                    ctx2d.moveTo(seg.x * canvas.width, seg.y * canvas.height);
+                } else if (seg.type === 'end' && pathOpen) {
+                    ctx2d.stroke();
+                    pathOpen = false;
+                }
+            }
+            if (pathOpen) ctx2d.stroke();
+            ctx2d.globalAlpha = 1;
+
+            this.#annotationRafId = requestAnimationFrame(loop);
+        };
+        this.#annotationRafId = requestAnimationFrame(loop);
+    }
+
+    #stopAnnotationRenderLoop() {
+        if (this.#annotationRafId !== undefined) {
+            cancelAnimationFrame(this.#annotationRafId);
+            this.#annotationRafId = undefined;
+        }
+    }
+
+    #cleanUpScreenShare() {
+        if (this.#screenShareSender && this.#peerConnection) {
+            try { this.#peerConnection.removeTrack(this.#screenShareSender); } catch { /* pc may already be closing */ }
+        }
+        this.#screenShareSender = undefined;
+        this.#screenShareStream?.getTracks().forEach(t => t.stop());
+        this.#screenShareStream = undefined;
+        this.#removeAnnotationCanvas();
+        this.#remoteScreenStream.setValue(null);
+        this.#screenShareState.setValue('idle');
+        if (this.#annotationChannel) {
+            try { this.#annotationChannel.close(); } catch { /* channel may already be closed */ }
+            this.#annotationChannel = undefined;
+        }
+    }
+
+    #showScreenShareNotification(sharerKey: string, sharerName: string) {
+        if (!this.#notificationCtx) return;
+        this.#notificationCtx.stay('default', {
+            elementName: 'contentlock-screenshare-notification',
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            data: { sharerKey, sharerName } as any,
+        });
+    }
+
     #cleanUpCall() {
         // Stop ringback tone (caller side)
         this.#stopRingback();
+
+        // Clean up any active screen share (locally — peer was already notified or is gone)
+        this.#cleanUpScreenShare();
 
         // Stop local microphone tracks
         this.#localStream?.getAudioTracks().forEach((t) => t.stop());
