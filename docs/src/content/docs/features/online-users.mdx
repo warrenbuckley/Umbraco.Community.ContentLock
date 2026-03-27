@@ -29,7 +29,7 @@ Clicking the header app opens the **"Who's online?"** modal, which lists every c
 
 ## Sound Notifications
 
-When sound notifications are enabled, ContentLock plays audio cues when editors connect or disconnect:
+Sound notifications are **enabled by default** and require no configuration. When enabled, ContentLock plays audio cues when editors connect or disconnect:
 
 **Login sound** — plays when a new editor connects to the backoffice.
 
@@ -45,7 +45,7 @@ The default sounds are bundled with the package. You can replace them with your 
 
 ## Enabling / Disabling
 
-Online Users can be toggled on or off **without restarting the application**. When you change `OnlineUsers.Enable` in `appsettings.json`, the setting is pushed to all connected clients via SignalR and takes effect immediately.
+Online Users is **enabled by default** and requires no configuration. It can be toggled on or off **without restarting the application**. When you change `OnlineUsers.Enable` in `appsettings.json`, the setting is pushed to all connected clients via SignalR and takes effect immediately.
 
 ```json
 {

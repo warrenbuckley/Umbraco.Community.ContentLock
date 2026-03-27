@@ -84,6 +84,40 @@ See [WebRTC Configuration](/configuration/webrtc/) for setup instructions.
 
 ---
 
+## Sound Notifications
+
+ContentLock plays audio cues during calls so editors are alerted even if they are focused on another tab:
+
+**Ringback tone** — plays on the **caller's** device, looping while waiting for the recipient to answer. It stops automatically when the call connects or ends.
+
+**Ring tone** — plays on the **recipient's** device when an incoming call arrives, prompting them to accept or decline.
+
+Both sounds use the same bundled ringtone by default:
+
+<audio controls src="/Umbraco.Community.ContentLock/sounds/ringtone.mp3" />
+
+Unlike the [Online Users sound notifications](/features/online-users/#sound-notifications), there is no separate enable/disable toggle for call sounds — they play whenever a call event occurs. To silence them, point the paths to a silent audio file via `WebRTC.Sounds.RingSound` and `WebRTC.Sounds.RingbackSound`. See [WebRTC Configuration](/configuration/webrtc/) for details.
+
+---
+
+## Enabling / Disabling
+
+Audio Calling is **enabled by default** and requires no configuration. To disable it, set `WebRTC.Enable` to `false` in `appsettings.json`:
+
+```json
+{
+  "ContentLock": {
+    "WebRTC": {
+      "Enable": false
+    }
+  }
+}
+```
+
+This change is applied **without restarting the application** — it is pushed to all connected clients via SignalR immediately. When disabled, the call button is hidden in the Online Users modal and no calls can be initiated.
+
+---
+
 ## Related
 
 - [WebRTC Configuration](/configuration/webrtc/) — TURN servers, ring timeout, custom sounds
