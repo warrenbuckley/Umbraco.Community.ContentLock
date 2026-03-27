@@ -38,7 +38,7 @@ When enabled, a header app in the top bar shows how many other backoffice editor
 
 ### Audio Calling
 
-Editors can start a peer-to-peer WebRTC audio call directly from the online users modal. No external conferencing service is required for same-network calls. For calls across different networks, a TURN server can be configured via Cloudflare, Twilio, or Metered.
+Editors can start a peer-to-peer WebRTC audio call directly from the online users modal. No external conferencing service is required — most connections work without any server configuration. A TURN server (Cloudflare, Twilio, or Metered) can optionally be configured for environments with strict firewalls or NAT restrictions.
 
 ### Permissions
 
