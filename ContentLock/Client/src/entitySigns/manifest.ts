@@ -5,14 +5,10 @@ export const manifests: Array<UmbExtensionManifest> = [
         name: '[Content Lock] Is Locked Document Entity Sign',
         alias: 'ContentLock.EntitySign.Document.IsLocked',
 		type: 'entitySign',
-		kind: 'icon',
+		element: () => import('./contentlock.entitysign.element.js'),
 		forEntityTypes: [UMB_DOCUMENT_ENTITY_TYPE],
 		forEntityFlags: ['Umb.ContentLock.Locked'],
         weight: 2000,
-		meta: { 
-            iconName: 'icon-lock',
-			label: 'Content is Locked',
-			iconColorAlias: 'red',
-        },
+		meta: {},
 	},
 ];
