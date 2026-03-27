@@ -107,9 +107,13 @@ export default defineConfig({
   webServer: {
     cwd: path.join(__dirname, '../ContentLock.Website'),
     command: 'dotnet run --urls "https://localhost:5001;http://localhost:5000"',
-    // Use HTTP for the health-check URL so Node's built-in checker doesn't trip over the
-    // self-signed cert (ignoreHTTPSErrors only applies at page level, not webServer polling).
-    url: 'http://localhost:5000/umbraco',
+    // Use the Umbraco readiness probe (added in 17.3.0-rc3, Umbraco-CMS PR #22020).
+    // Returns HTTP 503 while unattended install / migrations are running, then HTTP 200
+    // when RuntimeLevel.Run — so Playwright only proceeds once Umbraco is fully booted.
+    // The endpoint bypasses the maintenance-page rerouting middleware and is reachable
+    // over plain HTTP (no TLS redirect), which is required because Node's built-in TCP
+    // poller cannot validate the self-signed dev cert on the HTTPS port.
+    url: 'http://localhost:5000/umbraco/api/health/ready',
     stderr: 'pipe',
     stdout: 'pipe',
     ignoreHTTPSErrors: true,
