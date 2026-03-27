@@ -15,6 +15,7 @@ const STORAGE_STATE = path.join(__dirname, '../playwright/.auth/restricted-user.
 setup('authenticate as restricted user', async ({page, umbracoUi}) => {
 
   await page.goto("/umbraco");
+  await page.waitForSelector('[name="username"]', { timeout: 60000 });
   await umbracoUi.login.enterEmail("restricted@hackmakedo.com");
   await umbracoUi.login.enterPassword("password1234");
   await umbracoUi.login.clickLoginButton();

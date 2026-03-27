@@ -12,6 +12,10 @@ const STORAGE_STATE = path.join(__dirname, '../playwright/.auth/user.json');
 setup('authenticate', async ({page, umbracoUi}) => {
 
   await page.goto("/umbraco");
+  // Wait explicitly for the login form's username input to be visible.
+  // On a fresh CI install the Lit SPA bundle can take several seconds to execute
+  // and render the login form after the page loads.
+  await page.waitForSelector('[name="username"]', { timeout: 60000 });
   await umbracoUi.login.enterEmail("warren@hackmakedo.com");
   await umbracoUi.login.enterPassword("password1234");
   await umbracoUi.login.clickLoginButton();

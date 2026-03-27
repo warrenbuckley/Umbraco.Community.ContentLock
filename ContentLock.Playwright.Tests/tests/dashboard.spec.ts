@@ -64,8 +64,12 @@ test.describe('Content Lock Dashboard', () => {
         // entity-action:contentlock.entityaction.document.lock
         await expect(page.getByTestId('entity-action:contentlock.entityaction.document.lock')).toBeVisible();
 
-        // Click the lock action menu item
+        // Click the lock action menu item and wait for the API response
+        const lockResponsePromise = page.waitForResponse(resp =>
+            resp.url().includes('/umbraco/contentlock/api/v1/Lock/') && resp.status() === 200
+        );
         await page.getByTestId('entity-action:contentlock.entityaction.document.lock').click();
+        await lockResponsePromise;
 
         // Verify the dashboard updated/changed
         await dashboard.showsNumberOfLocks(1);

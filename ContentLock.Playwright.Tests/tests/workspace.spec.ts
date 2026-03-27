@@ -102,8 +102,8 @@ test.describe('Workspace Footer App', () => {
         // it sets pageState = Unlocked, so the footer stops showing "locked" text.
         await umbracoApi.resetContentLocks();
 
-        // After the SignalR broadcast the workspace footer should reactively clear.
-        await expect(footerApp).not.toContainText(/locked/i, { timeout: 10000 });
+        // After the SignalR broadcast the workspace footer should disappear or no longer be visible.
+        await expect(footerApp).not.toBeVisible({ timeout: 10000 });
     });
 });
 
