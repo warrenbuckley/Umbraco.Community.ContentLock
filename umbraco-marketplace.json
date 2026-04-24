@@ -1,7 +1,7 @@
 {
     "$schema": "https://marketplace.umbraco.com/umbraco-marketplace-schema.json",
     "Title": "Content Lock",
-    "Description": "Enhance your content editing experience with Content Lock! This real-time tool allows you to lock and unlock content in Umbraco, preventing accidental edits and ensuring smooth collaboration across your team.",
+    "Description": "Enhance your content editing experience with Content Lock! This real-time tool allows you to lock and unlock content in Umbraco, preventing accidental edits and ensuring smooth collaboration across your team. Editors can also make peer-to-peer audio calls directly from the backoffice using WebRTC — no external software required.",
     "Tags": [
         "content lock",
         "content guard",
@@ -9,8 +9,13 @@
         "check out",
         "lock",
         "unlock",
-        "realtime"
+        "realtime",
+        "audio",
+        "calling",
+        "webrtc",
+        "collaboration"
     ],
+    "DocumentationUrl": "https://warrenbuckley.github.io/Umbraco.Community.ContentLock/",
     "Category": "Editor Tools",
     "LicenseTypes": [
         "Free"

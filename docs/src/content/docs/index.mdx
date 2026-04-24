@@ -1,0 +1,49 @@
+---
+title: Content Lock
+description: Prevent content editing conflicts in your Umbraco CMS backoffice with real-time locking, online user presence, and audio calling.
+template: splash
+editUrl: false
+hero:
+  tagline: Prevent content conflicts in your Umbraco CMS backoffice
+  image:
+    html: |
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round">
+        <path stroke="currentColor" d="M4 9.8V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.706.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2h-3"/>
+        <path stroke="currentColor" d="M14 2v5a1 1 0 0 0 1 1h5"/>
+        <path stroke="var(--sl-color-bg-accent)" d="M9 17v-2a2 2 0 0 0-4 0v2"/>
+        <rect stroke="var(--sl-color-bg-accent)" width="8" height="5" x="3" y="17" rx="1"/>
+      </svg>
+  actions:
+    - text: Get Started
+      link: getting-started/introduction/
+      icon: right-arrow
+    - text: View on GitHub
+      link: https://github.com/warrenbuckley/Umbraco.Community.ContentLock
+      icon: external
+      variant: minimal
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+## Features
+
+<CardGrid stagger>
+	<Card title="Content Locking" icon="seti:lock">
+		Lock content nodes while editing to prevent conflicts. Locked nodes become read-only for all other editors, with publish/save/unpublish actions hidden.
+	</Card>
+	<Card title="Real-Time Updates" icon="random">
+		Lock state is broadcast instantly to all connected backoffice users via SignalR — no page refresh required.
+	</Card>
+	<Card title="Online Users" icon="group">
+		See who else is active in the backoffice via the header app. Get notified with sounds when editors join or leave.
+	</Card>
+	<Card title="Audio Calling" icon="phone">
+		Peer-to-peer WebRTC audio calls between backoffice editors — no external service needed for most networks.
+	</Card>
+	<Card title="Dashboard" icon="list-format">
+		View all locked content in one place. Bulk unlock multiple nodes at once from the Content Lock dashboard.
+	</Card>
+	<Card title="Permissions" icon="approve-check">
+		Fine-grained `ContentLock.Unlocker` permission lets designated users unlock content locked by others.
+	</Card>
+</CardGrid>

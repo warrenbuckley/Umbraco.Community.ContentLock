@@ -1,0 +1,97 @@
+---
+title: Changelog
+description: Release history for Umbraco.Community.ContentLock.
+---
+
+import { Badge } from '@astrojs/starlight/components';
+
+Full release history for `Umbraco.Community.ContentLock`. For full diff details see the [GitHub repository](https://github.com/warrenbuckley/Umbraco.Community.ContentLock).
+
+---
+
+## Umbraco 17
+
+### 17.1.0 <Badge text="26 Mar 2026" variant="note" size="small" />
+
+- **Audio Calling** — peer-to-peer WebRTC voice calls between backoffice editors directly from the Online Users modal
+- **TURN server support** — Cloudflare, Twilio, and Metered providers for editors on different networks
+- Configurable ring timeout, ringtone, and ringback sounds
+
+### 17.0.0 <Badge text="27 Nov 2025" variant="note" size="small" />
+
+Initial release targeting **Umbraco 17** (net10.0).
+
+- Migrated package and test site to .NET 10 / Umbraco 17
+- **Entity Signs** — lock icon on content tree nodes via the new Umbraco Flag Provider API
+- Tree structure reloads automatically when a node is unlocked (`UmbRequestReloadStructureForEntityEvent`)
+- Lock/unlock entity actions now verify lock state via `ContentLockService`
+- Added bulk-key lock check method to `IContentLockService`
+- Migrated audit service call to `AddAsync` (ahead of `Add()` deprecation in v19)
+- Fixed translation label for the Permission Group
+- Dependency updates (Umbraco 17.0.0 final, NPM packages)
+
+---
+
+## Umbraco 16
+
+### 16.0.1 <Badge text="15 Oct 2025" variant="note" size="small" />
+
+- Fixed a race condition where the entity context was not yet ready when the ContentLock SignalR context was consumed, causing lock/unlock actions to silently fail on first load
+
+### 16.0.0 <Badge text="31 Jul 2025" variant="note" size="small" />
+
+Initial release targeting **Umbraco 16** (net9.0).
+
+- **Read-only enforcement** — locked nodes use Umbraco's `propertyWriteGuard` to disable all property editors for non-lock-holders
+- **Auto-unlock on delete** — added `ContentDeletingNotificationHandler`; locked nodes are unlocked before deletion
+- **Auto-unlock on trash** — `ContentMovingToRecycleBinHandler` now prevents non-lock-holders from trashing a locked node, and auto-unlocks when the lock holder moves it to the bin
+- **Confirm dialog** — editors see a confirmation dialog when a locked node becomes available for them to edit
+- **E2E Playwright tests** — initial test infrastructure for dashboard and lock/unlock flows
+- Lock/unlock entity actions are hidden for nodes already in the Recycle Bin
+- Both entity actions share the same weight to prevent UI jumping in the actions popover
+- Ported migration to `AsyncPackageMigrationBase`
+- Replaced `IPublishedContentQuery` with `IEntityService` so lock state works correctly with unpublished content
+- Introduced a dedicated `ContentLockException` class
+- Dependency updates (Umbraco 16.x, NPM packages)
+
+---
+
+## Umbraco 15
+
+### 15.2.0 <Badge text="28 May 2025" variant="note" size="small" />
+
+- **(You)** label in the Online Users modal to distinguish your own user from others
+- Localisation updates: Turkish, Norwegian, Dutch, French, Danish additions and corrections
+- Improved empty state message on the dashboard
+- Custom SignalR client logger with a configurable log level (`SignalRClientLogLevel` setting)
+- Dependency updates (Umbraco 15.4.1, NPM packages)
+
+### 15.1.0 <Badge text="6 May 2025" variant="note" size="small" />
+
+- **Online Users modal** now resolves display names and avatars via the Umbraco repository pattern (fixed: GUIDs were shown instead of names in 15.0.x)
+- User display name is no longer sent over the SignalR hub (privacy improvement); resolved server-side instead
+- **Reactive settings** — `OnlineUsers.Enable` and sound paths can be toggled in `appsettings.json` without an application restart
+- `appsettings` JSON schema is now bundled inside the NuGet package
+- Configurable custom sound file paths via `OnlineUsers.Sounds`
+- Upgraded to Umbraco 15.4.0 / 15.4.1
+- Security: Vite bumped to address CVE
+
+### 15.0.1 <Badge text="6 May 2025" variant="note" size="small" />
+
+- Added Welsh (`cy`) translations
+- Added Turkish (`tr`) translations
+- Bundled audio notification files locally (previously loaded from a CDN)
+- Security: Vite bump
+
+### 15.0.0 <Badge text="6 May 2025" variant="note" size="small" />
+
+Initial release targeting **Umbraco 15** (net9.0), re-versioned to align with Umbraco's package versioning convention.
+
+- Content locking — lock/unlock nodes via tree context menu or workspace actions menu
+- Real-time lock state broadcast to all editors via SignalR
+- Visual lock indicators — tree icon and workspace footer banner
+- Dashboard — overview of all locked nodes with single and bulk unlock
+- Online Users — header app showing active editor count, with audio notifications
+- `ContentLock.Unlocker` granular permission (auto-granted to Administrators on install)
+- Audit log entries for all lock and unlock events
+- Localisations: English, Welsh, Danish, French, Italian, Dutch, Norwegian, Turkish

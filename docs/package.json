@@ -1,0 +1,20 @@
+{
+  "name": "docs",
+  "type": "module",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/starlight": "^0.38.2",
+    "@catppuccin/starlight": "^2.0.1",
+    "@iconify/json": "^2.2.454",
+    "astro": "^6.0.1",
+    "sharp": "^0.34.2",
+    "unplugin-icons": "^23.0.1"
+  }
+}
