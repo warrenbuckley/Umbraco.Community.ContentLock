@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "experimentalDecorators": true,
+    "useDefineForClassFields": false,
+    "types": [ "@umbraco-cms/backoffice/extension-types", "mocha" ]
+  },
+  "include": [ "src" ],
+  "exclude": []
+}

@@ -6,14 +6,23 @@
   "scripts": {
     "watch": "tsc && vite build --watch",
     "build": "tsc && vite build",
-    "generate-client": "node scripts/generate-openapi.js https://localhost:44378/umbraco/swagger/contentlock/swagger.json"
+    "generate-client": "node scripts/generate-openapi.js https://localhost:44378/umbraco/swagger/contentlock/swagger.json",
+    "test": "wtr --config web-test-runner.config.mjs",
+    "test:watch": "wtr --config web-test-runner.config.mjs --watch",
+    "postinstall": "msw init . --no-save"
   },
   "devDependencies": {
-    "@hey-api/openapi-ts": "^0.95.0",
+    "@hey-api/openapi-ts": "^0.85.0",
+    "@open-wc/testing": "^4.0.0",
     "@playwright/cli": "^0.1.1",
-    "@umbraco-cms/backoffice": "^17.3.1",
+    "@types/mocha": "^10.0.10",
+    "@umbraco-cms/backoffice": "^17.0.0",
+    "@web/dev-server-esbuild": "^1.0.5",
+    "@web/test-runner": "^0.20.2",
+    "@web/test-runner-playwright": "^0.11.1",
     "chalk": "^5.6.2",
     "cross-env": "^10.1.0",
+    "msw": "^2.12.14",
     "node-fetch": "^3.3.2",
     "typescript": "^6.0.2",
     "vite": "^8.0.5"

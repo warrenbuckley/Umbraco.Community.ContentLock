@@ -7,22 +7,21 @@ import * as path from "path";
 import { test as setup } from "../code/base";
 import { ConstantHelper } from '@umbraco/playwright-testhelpers';
 
-const STORAGE_STATE = path.join(__dirname, '../playwright/.auth/user.json');
+const STORAGE_STATE = path.join(__dirname, '../playwright/.auth/restricted-user.json');
 
-setup('authenticate', async ({page, umbracoUi}) => {
+// The restricted user is created by ContentLock.E2E AddRestrictedTestUser migration.
+// This user is in the Editors group only — they do NOT have the ContentLock.Unlocker
+// granular permission, so they cannot unlock content locked by other users.
+setup('authenticate as restricted user', async ({page, umbracoUi}) => {
 
   await page.goto("/umbraco");
-  // Wait explicitly for the login form's username input to be visible.
-  // On a fresh CI install the Lit SPA bundle can take several seconds to execute
-  // and render the login form after the page loads.
   await page.waitForSelector('[name="username"]', { timeout: 60000 });
-  await umbracoUi.login.enterEmail("warren@hackmakedo.com");
+  await umbracoUi.login.enterEmail("restricted@hackmakedo.com");
   await umbracoUi.login.enterPassword("password1234");
   await umbracoUi.login.clickLoginButton();
-  // Wait for the SPA to settle after login before saving auth state.
-  // Use checkSections=false to skip the all-sections visibility check —
-  // on a fresh CI install the backoffice can be slow to render all tabs
-  // and waiting up to 30 s per section (× 7 sections) causes timeouts.
+  // Wait for the SPA to settle after login, then navigate to content.
+  // checkSections=false — restricted user only has Content + Media sections,
+  // so the default all-sections check (7 tabs) would always fail.
   await page.waitForLoadState('networkidle');
   await umbracoUi.login.goToSection(ConstantHelper.sections.content, false);
   await page.context().storageState({path: STORAGE_STATE});

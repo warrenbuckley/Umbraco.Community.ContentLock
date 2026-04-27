@@ -1,15 +1,42 @@
 name: Playwright Tests
+permissions:
+  contents: read
 on:
   push:
-    branches: 
+    branches:
       - v16/*
       - v17/*
   pull_request:
-    branches: 
+    branches:
       - v16/*
       - v17/*
 jobs:
-  test:
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '10.0.x'
+
+    - name: Build solution
+      run: dotnet build
+
+    - name: Run unit tests
+      run: dotnet test ContentLock.Tests/ContentLock.Tests.csproj --logger "trx;LogFileName=test-results.trx" --verbosity normal
+
+    - uses: actions/upload-artifact@v4
+      if: ${{ !cancelled() }}
+      with:
+        name: unit-test-results
+        path: ContentLock.Tests/TestResults/test-results.trx
+        retention-days: 30
+
+  e2e-tests:
+    name: Playwright E2E Tests
+    needs: unit-tests
     timeout-minutes: 60
     runs-on: ubuntu-latest
     steps:
@@ -49,18 +76,32 @@ jobs:
       working-directory: 'ContentLock.Playwright.Tests'
 
     - name: Install Playwright Browsers
-      run: npx playwright install --with-deps
+      run: npx playwright install --with-deps chromium
       working-directory: 'ContentLock.Playwright.Tests'
+
+    - name: Create media directory
+      run: mkdir -p ContentLock.Website/wwwroot/media
 
     - name: Run Playwright tests
       run: npx playwright test
       working-directory: 'ContentLock.Playwright.Tests'
       env:
         DEBUG: 'pw:webserver'
-        
+        # Load appsettings.Development.json so Umbraco gets the SQLite connection string
+        # and InstallUnattended: true — without this the DB is missing and Umbraco shows
+        # the install wizard instead of starting up.
+        ASPNETCORE_ENVIRONMENT: Development
+
     - uses: actions/upload-artifact@v4
       if: ${{ !cancelled() }}
       with:
         name: playwright-report
         path: ContentLock.Playwright.Tests/playwright-report/
+        retention-days: 30
+
+    - uses: actions/upload-artifact@v4
+      if: ${{ !cancelled() }}
+      with:
+        name: playwright-test-results
+        path: ContentLock.Playwright.Tests/test-results/
         retention-days: 30

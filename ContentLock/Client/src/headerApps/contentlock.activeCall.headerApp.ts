@@ -134,6 +134,7 @@ export class ContentLockActiveCallHeaderApp extends UmbHeaderAppButtonElement {
                     popovertarget="contentlock-call-popover"
                     label="${this.localize.term('contentLockCall_callButton')}">
                     <uui-icon class="calling-icon" name="icon-phone"></uui-icon>
+                    <uui-badge color="danger" look="primary"></uui-badge>
                 </uui-button>
                 <uui-popover-container id="contentlock-call-popover" placement="bottom-end" margin="6">
                     <umb-popover-layout>

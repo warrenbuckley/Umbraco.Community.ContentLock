@@ -12,7 +12,7 @@ namespace ContentLock.E2E.Controllers
 {
     [ApiController]
     [BackOfficeRoute("contentlock-e2e/api")]
-    [Authorize(Policy = AuthorizationPolicies.BackOfficeAccess)]
+    [AllowAnonymous] // E2E-only endpoint — no auth needed; not shipped in the main package
     public class TestController : ControllerBase
     {
         private readonly IScopeProvider _scopeProvider;
@@ -28,16 +28,9 @@ namespace ContentLock.E2E.Controllers
         [HttpGet("reset")]
         public async Task<IActionResult> ResetContentLocksAsync()
         {
-            try
+            using (var scope = _scopeProvider.CreateScope(autoComplete: true))
             {
-                using (var scope = _scopeProvider.CreateScope(autoComplete: true))
-                {
-                    var result = await scope.Database.DeleteMany<ContentLocks>().ExecuteAsync();
-                }
-            }
-            catch (Exception ex)
-            {
-                throw;
+                await scope.Database.DeleteMany<ContentLocks>().ExecuteAsync();
             }
 
             // Use SignalR to send out to ALL clients so they can remove all locks
