@@ -1,5 +1,5 @@
-import { Page } from "@playwright/test";
-import { ApiHelpers } from "@umbraco/playwright-testhelpers";
+import { Page } from '@playwright/test';
+import { ApiHelpers } from '@umbraco-cms/acceptance-test-helpers';
 
 export class Api extends ApiHelpers {
 

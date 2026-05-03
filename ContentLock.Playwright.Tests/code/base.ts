@@ -1,6 +1,6 @@
-import { test as base } from "@umbraco/playwright-testhelpers";
-import { Dashboard } from "./PageObjectModels/Dashboard";
-import { Api } from "./api";
+import { test as base } from '@umbraco-cms/acceptance-test-helpers';
+import { Dashboard } from './PageObjectModels/Dashboard';
+import { Api } from './api';
 
 export type TestOptions = {
     dashboard: Dashboard;

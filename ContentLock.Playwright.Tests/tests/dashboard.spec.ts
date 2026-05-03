@@ -1,5 +1,5 @@
 import * as path from 'path';
-import { ConstantHelper } from '@umbraco/playwright-testhelpers';
+import { ConstantHelper } from '@umbraco-cms/acceptance-test-helpers';
 import { test } from '../code/base';
 import { expect } from '@playwright/test';
 

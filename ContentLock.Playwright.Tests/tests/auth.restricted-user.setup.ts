@@ -5,7 +5,7 @@
 
 import * as path from "path";
 import { test as setup } from "../code/base";
-import { ConstantHelper } from '@umbraco/playwright-testhelpers';
+import { ConstantHelper } from '@umbraco-cms/acceptance-test-helpers';
 
 const STORAGE_STATE = path.join(__dirname, '../playwright/.auth/restricted-user.json');
 
