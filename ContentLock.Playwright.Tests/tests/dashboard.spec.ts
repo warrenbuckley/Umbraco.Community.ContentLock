@@ -1,8 +1,9 @@
+import * as path from 'path';
 import { ConstantHelper } from '@umbraco/playwright-testhelpers';
 import { test } from '../code/base';
 import { expect } from '@playwright/test';
 
-const userAuthFile = 'playwright/.auth/user.json';
+const userAuthFile = path.join(__dirname, '../playwright/.auth/user.json');
 test.use({
     storageState: userAuthFile,
 
@@ -199,7 +200,7 @@ test.describe('Content Lock Dashboard', () => {
     });
 
     test('user without permissions cannot override a locked page', async ({ page, umbracoUi, browser }) => {
-        const restrictedAuthFile = 'playwright/.auth/restricted-user.json';
+        const restrictedAuthFile = path.join(__dirname, '../playwright/.auth/restricted-user.json');
 
         // Warren locks 'Home' via entity action
         await umbracoUi.content.clickActionsMenuForContent('Home');
