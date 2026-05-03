@@ -203,10 +203,6 @@ export default class ContentLockSignalrContext extends UmbContextBase
             }
             this.#pendingHandlers = [];
 
-            // Start the connection straight away
-            await this.signalrConnection.start();
-
-            // Listen to the server sending us events/data
             this.signalrConnection.on('ReceiveLatestContentLocks', (locks:Array<ContentLockOverviewItem>) => {
                 // Update the observable with our data from the server
                 this.#contentLocks.setValue(locks);
@@ -289,6 +285,9 @@ export default class ContentLockSignalrContext extends UmbContextBase
             this.signalrConnection.on('ConnectedUsersInCallUpdated', (inCallUserKeys: string[]) => {
                 this.#inCallUserKeys.setValue(inCallUserKeys);
             });
+
+            // Start the connection — all handlers above are now registered and ready to receive messages from the server
+            await this.signalrConnection.start();
         }
     }
 
