@@ -21,7 +21,9 @@ export default {
         unlockedHeader: 'Contenu déverrouillé',
         unlockedMessage: 'Le document a été déverrouillé pour permettre à d’autres utilisateurs de le modifier.',
         bulkUnlockHeader: 'Contenu déverrouillé',
-        bulkUnlockMessage: 'Le contenu sélectionné a été déverrouillé avec succès'
+        bulkUnlockMessage: 'Le contenu sélectionné a été déverrouillé avec succès',
+        unlockedByOtherHeader: 'Verrou supprimé',
+        unlockedByOtherMessage: '{0} a déverrouillé cette page. Vos modifications ne sont plus protégées.'
     },
     contentLockPermission: {
         group: 'Content Lock', // TODO: Currently not used in Umbraco but added for future use

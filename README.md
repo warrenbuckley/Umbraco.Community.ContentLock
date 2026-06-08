@@ -11,6 +11,10 @@
 
 - **Intuitive Lock/Unlock Actions:**  
   - Lock or unlock content nodes directly from the node actions (top right) or the tree view.
+
+- **Auto Lock (opt-in):**  
+  - Automatically locks a node as soon as an editor changes it, releasing it on save, leaving the node, disconnect, or after a configurable inactivity timeout.
+  - Warns an editor (by name) if another user removes the lock while they are still editing.
   
 - **Comprehensive Audit Trail:**  
   - Every lock and unlock action is logged in the node history for complete traceability.
@@ -42,6 +46,9 @@ Content Lock has the following options available to configure.
 | Setting | Description | Default Value |
 | -- | -- | -- |
 | SignalRClientLogLevel | The SignalR log level for browser console output. One of: `Trace`, `Debug`, `Information`/`Info`, `Warning`/`Warn`, `Error`, `Critical`, `None` | `"Info"` |
+| AutoLock.Enable | Automatically lock a node when an editor first changes it (released on save/leave/disconnect/inactivity). Reactive — no restart needed | `false` |
+| AutoLock.InactivityTimeoutSeconds | Seconds of editing inactivity after which an auto-lock is released. Resets on each edit | `300` |
+| AutoLock.HeartbeatSeconds | How often the browser refreshes its auto-lock while editing. Should be less than the inactivity timeout | `60` |
 | OnlineUsers.Enable | Displays a header app showing the number of active backoffice users | `true` |
 | OnlineUsers.Sounds.Enable | Play audio notifications when a user logs in or out of the backoffice | `true` |
 | OnlineUsers.Sounds.LoginSound | Path to the audio file played when a user logs in | `"/App_Plugins/ContentLock/sounds/login.mp3"` |
@@ -59,6 +66,11 @@ Content Lock has the following options available to configure.
 ...
 "ContentLock": {
   "SignalRClientLogLevel": "Info",
+  "AutoLock": {
+    "Enable": false,
+    "InactivityTimeoutSeconds": 300,
+    "HeartbeatSeconds": 60
+  },
   "OnlineUsers": {
     "Enable": true,
     "Sounds": {
@@ -88,6 +100,9 @@ Content Lock has the following options available to configure.
 ### Environment Variables
 ```
 ContentLock__SignalRClientLogLevel=Info
+ContentLock__AutoLock__Enable=false
+ContentLock__AutoLock__InactivityTimeoutSeconds=300
+ContentLock__AutoLock__HeartbeatSeconds=60
 ContentLock__OnlineUsers__Enable=true
 ContentLock__OnlineUsers__Sounds__Enable=true
 ContentLock__OnlineUsers__Sounds__LoginSound=https://some-snazzy-sound.com/sfx-login.mp3

@@ -15,7 +15,10 @@ ContentLock uses a SignalR hub (`ContentLockHub`) mounted at `/umbraco/ContentLo
 | `AddLockToClients` | When any editor locks a node | `ContentLockOverviewItem` — the new lock |
 | `RemoveLockToClients` | When a single node is unlocked | `Guid` — the content key of the unlocked node |
 | `RemoveLocksToClients` | When bulk unlock is performed | `Guid[]` — the content keys of unlocked nodes |
+| `ReceiveLockUnlockedByUser` | When a user explicitly unlocks a node (single or bulk), sent just before the removal | `contentKey: Guid`, `unlockedByName: string`, `unlockedByKey: Guid` |
 | `RemoveAllLocksToClients` | E2E test cleanup only | *(no payload)* — instructs all clients to clear all locks |
+
+`ReceiveLockUnlockedByUser` lets a client holding an [auto-lock](/features/auto-lock/) on the node warn the editor who removed it. Auto-lock acquire/release reuse `AddLockToClients` / `RemoveLockToClients`.
 
 ---
 
@@ -56,6 +59,20 @@ These events handle WebRTC signalling between peers (offer/answer/ICE) and call 
 | `CallNoAnswer` | Sent to the caller when the ring timeout expires | *(no payload)* |
 | `MissedCall` | Sent to the recipient when the ring timeout expires | `callerKey: Guid`, `callerName: string` |
 | `ConnectedUsersInCallUpdated` | Broadcast to all clients when call participants change | `Guid[]` — keys of users currently in a call |
+
+---
+
+## Auto Lock Hub Methods (client → server)
+
+When [Auto Lock](/features/auto-lock/) is enabled, the browser invokes these hub methods (these are calls *to* the server, not broadcast events):
+
+| Method | Purpose |
+|---|---|
+| `AcquireAutoLock(contentKey)` | Acquire an auto-lock on first edit (no-op if already locked or Auto Lock is disabled). |
+| `AutoLockHeartbeat(contentKey)` | Reset the server-side inactivity timer while the editor keeps changing the node. |
+| `ReleaseAutoLock(contentKey)` | Release the auto-lock on save or when leaving the node. |
+
+The server also releases auto-locks automatically on disconnect (`OnDisconnectedAsync`) and when the inactivity timer expires. Only auto-locks are affected — manual locks are left untouched.
 
 ---
 

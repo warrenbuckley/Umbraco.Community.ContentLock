@@ -1,4 +1,5 @@
 ﻿using ContentLock.Migrations.v1;
+using ContentLock.Migrations.v2;
 using Umbraco.Cms.Core.Packaging;
 
 namespace ContentLock.Migrations
@@ -13,7 +14,8 @@ namespace ContentLock.Migrations
         {
             From(InitialState)
                 .To<InitDatabaseTable>("ContentLock.InitDbTables")
-                .To<AddUserPermissionToAdmins>("ContentLock.AddUserPermissionToAdmins");
+                .To<AddUserPermissionToAdmins>("ContentLock.AddUserPermissionToAdmins")
+                .To<AddIsAutoLockColumn>("ContentLock.AddIsAutoLockColumn");
         }
     }
 }

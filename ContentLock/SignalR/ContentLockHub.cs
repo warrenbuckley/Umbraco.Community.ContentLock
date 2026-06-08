@@ -13,7 +13,7 @@ using Umbraco.Extensions;
 namespace ContentLock.SignalR;
 
 [Authorize(Policy = AuthorizationPolicies.BackOfficeAccess)]
-public class ContentLockHub : Hub<IContentLockHubEvents>
+public partial class ContentLockHub : Hub<IContentLockHubEvents>
 {
     private readonly IContentLockService _contentLockService;
     private readonly IOptionsMonitor<ContentLockOptions> _options;
@@ -76,6 +76,8 @@ public class ContentLockHub : Hub<IContentLockHubEvents>
             // If this user was in an active call, notify the peer and clean up
             await CleanUpCallOnDisconnectAsync(currentUserKey.Value);
         }
+
+        await CleanUpAutoLocksOnDisconnectAsync(currentUserKey, this.Context.ConnectionId);
 
         // Removes the user who is disconnecting
         await RemoveUserFromListOfConnectedUsersAsync();

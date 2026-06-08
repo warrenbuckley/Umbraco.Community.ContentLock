@@ -121,7 +121,7 @@ namespace ContentLock.Services
             }
         }
 
-        public async Task<ContentLockOverviewItem> LockContentAsync(Guid contentKey, Guid userKey)
+        public async Task<ContentLockOverviewItem> LockContentAsync(Guid contentKey, Guid userKey, bool isAutoLock = false)
         {
             _logger.LogInformation("Locking content {contentKey} for user {userKey}", contentKey, userKey);
 
@@ -130,10 +130,11 @@ namespace ContentLock.Services
             {
                 using (var scope = _scopeProvider.CreateScope(autoComplete: true))
                 {
-                    await scope.Database.SaveAsync(new ContentLocks { 
+                    await scope.Database.SaveAsync(new ContentLocks {
                         ContentKey = contentKey,
                         UserKey = userKey,
-                        LockedAtDate = now
+                        LockedAtDate = now,
+                        IsAutoLock = isAutoLock
                     });
                 }
 
@@ -193,6 +194,33 @@ namespace ContentLock.Services
             {
                 _logger.LogError(ex, "Error unlocking content {contentKey} for user {userKey}", contentKey, userKey);
                 throw new ContentLockException($"Error unlocking content {contentKey} for user {userKey}", ex);
+            }
+        }
+
+        public async Task<bool> ReleaseAutoLockAsync(Guid contentKey, Guid userKey)
+        {
+            try
+            {
+                using (var scope = _scopeProvider.CreateScope(autoComplete: true))
+                {
+                    var existing = scope.Database.SingleOrDefaultById<ContentLocks>(contentKey);
+                    if (existing is null || existing.UserKey != userKey || existing.IsAutoLock is false)
+                    {
+                        return false;
+                    }
+
+                    await scope.Database.DeleteAsync(existing);
+                }
+
+                var contentNodeAsAnId = _idKeyMap.GetIdForKey(contentKey, UmbracoObjectTypes.Document).Result;
+                await _auditService.AddAsync(AuditType.Custom, userKey, contentNodeAsAnId, Umbraco.Cms.Core.Constants.ObjectTypes.Strings.Document, "Page Unlocked", "Page Unlocked");
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error releasing auto-lock for content {contentKey} for user {userKey}", contentKey, userKey);
+                throw new ContentLockException($"Error releasing auto-lock for content {contentKey} for user {userKey}", ex);
             }
         }
 

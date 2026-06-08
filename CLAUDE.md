@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-**Umbraco Community ContentLock** is an open-source NuGet package for **Umbraco CMS 17** (Bellissima backoffice) that prevents content editing conflicts. Editors can lock a content node while editing; locked nodes become read-only for everyone else, and publish/save/unpublish actions are hidden for other users. Real-time lock state is pushed to all connected backoffice users via **SignalR**.
+**Umbraco Community ContentLock** is an open-source NuGet package for **Umbraco CMS 17** (Bellissima backoffice) that prevents content editing conflicts. Editors can lock a content node while editing; locked nodes become read-only for everyone else, and publish/save/unpublish actions are hidden for other users. Real-time lock state is pushed to all connected backoffice users via **SignalR**. An optional **Auto Lock** mode (opt-in) locks a node automatically when an editor first changes it, and releases it on save, leaving the node, disconnect, or after an inactivity timeout.
 
 - NuGet package ID: `Umbraco.Community.ContentLock`
 - Current version: `17.0.0`
@@ -18,6 +18,7 @@
 │   ├── Client/                   # TypeScript frontend (Vite, Lit web components)
 │   │   ├── src/                  # Frontend source
 │   │   │   ├── api/              # Auto-generated OpenAPI TypeScript client (hey-api)
+│   │   │   ├── autoLock/         # Auto Lock workspace context (lock-on-edit + heartbeat)
 │   │   │   ├── bundle.manifests.ts  # Root manifest bundle
 │   │   │   ├── conditions/       # Umbraco extension conditions
 │   │   │   ├── dashboards/       # Content Lock dashboard (overview of all locks)
@@ -58,12 +59,13 @@
 
 ### Backend (C#)
 
-- **`ContentLockService`** — Core service for lock/unlock/overview operations. Uses Umbraco's `IScopeProvider` / `NPoco` ORM to read/write the `ContentLocks` database table. Logs audit entries via `IAuditService`.
-- **`ContentLockApiController`** — Versioned Umbraco backoffice API (`/umbraco/api/contentlock/v1/`). Endpoints: `GET Lock/{key}`, `GET Unlock/{key}`, `POST BulkUnlock`. After each operation, broadcasts the change via SignalR to all connected clients.
+- **`ContentLockService`** — Core service for lock/unlock/overview operations. Uses Umbraco's `IScopeProvider` / `NPoco` ORM to read/write the `ContentLocks` database table. Logs audit entries via `IAuditService`. `LockContentAsync` takes an `isAutoLock` flag, and `ReleaseAutoLockAsync` removes a lock only when it is an auto-lock held by that user (so manual locks are never auto-removed).
+- **`ContentLockApiController`** — Versioned Umbraco backoffice API (`/umbraco/api/contentlock/v1/`). Endpoints: `GET Lock/{key}`, `GET Unlock/{key}`, `POST BulkUnlock`. After each operation, broadcasts the change via SignalR to all connected clients. The unlock endpoints also broadcast `ReceiveLockUnlockedByUser` so an auto-lock holder can be told who removed it.
 - **`ContentLockHub`** — SignalR hub (route: `/umbraco/ContentLockHub`). Tracks connected users with a `ConcurrentDictionary<Guid, ConcurrentHashSet<string>>` (one user can have multiple tabs/connections). On connect, sends the caller the current lock list, connected user list, and current options. Uses `IOptionsMonitor` to reactively push option changes to all clients.
+- **`ContentLockHub.AutoLock.cs`** (partial) — Auto Lock hub methods `AcquireAutoLock` / `ReleaseAutoLock` / `AutoLockHeartbeat`. Tracks auto-locks per connection so `OnDisconnectedAsync` releases them, and runs a per-lock in-memory inactivity timer (mirrors the WebRTC ring-timeout pattern) that releases the lock server-side; the heartbeat resets it.
 - **`IsLockedFlagProvider`** — Implements `IFlagProvider` to attach a `Umbraco.ContentLock.Locked` flag to `DocumentTreeItemResponseModel`, `DocumentCollectionResponseModel`, and `DocumentItemResponseModel`. Used by the frontend to show visual lock indicators.
 - **Notification Handlers** — `ContentDeletingNotificationHandler` and `ContentMovingToRecycleBinHandler` auto-unlock items when they are deleted or moved to the recycle bin (cancels the operation if a different user tries to delete a locked item).
-- **`ContentLockMigrationPlan`** — `PackageMigrationPlan` with two steps: create the DB table, add the `ContentLock.Unlocker` permission to the Administrators user group.
+- **`ContentLockMigrationPlan`** — `PackageMigrationPlan`: create the DB table, add the `ContentLock.Unlocker` permission to the Administrators user group, and add the `IsAutoLock` column to `ContentLocks` (distinguishes auto-locks from manual ones).
 - **`ContentLockOptions`** — Bound to the `ContentLock` appsettings section. Supports reactive updates via `IOptionsMonitor`.
 
 ### Frontend (TypeScript / Lit / Umbraco Bellissima)
@@ -72,6 +74,7 @@ All frontend extensions are registered as Umbraco extension manifests (loaded fr
 
 - **Entry point** — On init, appends a `CanShowCommonActions` condition to core Umbraco actions (SaveAndPublish, Save, Publish, Unpublish, RecycleBin.Trash, Rollback, MoveTo, Delete, DuplicateTo) so they are hidden when a node is locked by someone else.
 - **`ContentLockSignalrContext`** — Global Umbraco context that manages the SignalR connection. Maintains observable state for `contentLocks`, `connectedUserKeys`, and `contentLockOptions`. All UI components observe from this context.
+- **Auto Lock workspace context** (`autoLock/`) — Per-document workspace context (opt-in via `AutoLock.Enable`). Observes the document workspace's `data` + `getHasUnpersistedChanges()` to acquire on first edit, sends a throttled heartbeat while editing, releases on save/leave, and shows a notification (naming the user) when another user removes the lock.
 - **Conditions** — `ShowLock`, `ShowUnlock`, `ShowLockedStatus`, `ShowPreview`, `EnableOnlineUsers`, `CanShowCommonActions`
 - **Dashboard** — Shows a table of all locked nodes with bulk unlock capability.
 - **Header App** — Shows the number of other online backoffice users; clicking opens a modal listing them. Only shown when `OnlineUsers.Enable` is true.
@@ -153,17 +156,25 @@ SignalR events (server → client):
 | `AddLockToClients` | When a node is locked | `ContentLockOverviewItem` |
 | `RemoveLockToClients` | When a single node is unlocked | `Guid` (content key) |
 | `RemoveLocksToClients` | Bulk unlock | `Guid[]` |
+| `ReceiveLockUnlockedByUser` | A user explicitly unlocks a node (sent before the removal) | `Guid` key, `string` name, `Guid` userKey |
 | `RemoveAllLocksToClients` | E2E test cleanup only | (none) |
 | `UserConnected` | New user connects | `Guid` (user key) |
 | `UserDisconnected` | User disconnects (all tabs) | `Guid` (user key) |
 | `ReceiveListOfConnectedUsers` | On client connect | `Guid[]` |
 | `ReceiveLatestOptions` | On connect or options change | `ContentLockOptions` |
 
+Auto Lock also uses three client → server hub methods: `AcquireAutoLock`, `ReleaseAutoLock`, `AutoLockHeartbeat`.
+
 ## Configuration (appsettings.json)
 
 ```json
 "ContentLock": {
   "SignalRClientLogLevel": "Info",
+  "AutoLock": {
+    "Enable": false,
+    "InactivityTimeoutSeconds": 300,
+    "HeartbeatSeconds": 60
+  },
   "OnlineUsers": {
     "Enable": true,
     "Sounds": {
@@ -175,7 +186,7 @@ SignalR events (server → client):
 }
 ```
 
-`OnlineUsers.Enable` and `OnlineUsers.Sounds.*` are **reactively applied** without a restart (via `IOptionsMonitor` → SignalR push). `SignalRClientLogLevel` requires a page reload since the SignalR JS client is already initialized.
+`OnlineUsers.Enable`, `OnlineUsers.Sounds.*`, and all `AutoLock.*` options are **reactively applied** without a restart (via `IOptionsMonitor` → SignalR push). `SignalRClientLogLevel` requires a page reload since the SignalR JS client is already initialized.
 
 ## Permissions
 

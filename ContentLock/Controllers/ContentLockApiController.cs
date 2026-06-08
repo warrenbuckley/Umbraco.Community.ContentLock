@@ -92,6 +92,9 @@ namespace ContentLock.Controllers
 
             await _contentLockService.UnlockContentAsync(key, userKey.Value);
 
+            // Sent before the removal below so an auto-lock holder's client still knows it held the lock
+            await _contentLockHubContext.Clients.All.ReceiveLockUnlockedByUser(key, currentUser?.Name ?? "Unknown", userKey.Value);
+
             // Use SignalR to send out to ALL clients that a single node has been unlocked
             // Then the underlying observable object with the count & array can be updated
             await _contentLockHubContext.Clients.All.RemoveLockToClients(key);
@@ -117,13 +120,18 @@ namespace ContentLock.Controllers
                     .Build());
             }
 
-            var userKey = _backOfficeSecurityAccessor.BackOfficeSecurity?.CurrentUser?.Key;
+            var currentUser = _backOfficeSecurityAccessor.BackOfficeSecurity?.CurrentUser;
+            var userKey = currentUser?.Key;
+            var userName = currentUser?.Name ?? "Unknown";
 
             // For each item posted to bulk unlock
             foreach (var contentKey in keys)
             {
                 // Call unlock on service
                 await _contentLockService.UnlockContentAsync(contentKey, userKey.Value);
+
+                // Sent before the removal below so an auto-lock holder's client still knows it held the lock
+                await _contentLockHubContext.Clients.All.ReceiveLockUnlockedByUser(contentKey, userName, userKey.Value);
             }
 
             // Use SignalR to send out to ALL clients that many node/s has been unlocked

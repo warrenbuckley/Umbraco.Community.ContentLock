@@ -21,7 +21,9 @@ export default {
         unlockedHeader: 'Innhold låst opp',
         unlockedMessage: 'Dette dokumentet er låst opp slik at andre brukere kan redigere det.',
         bulkUnlockHeader: 'Innhold låst opp',
-        bulkUnlockMessage: 'Valgt innhold er låst opp'
+        bulkUnlockMessage: 'Valgt innhold er låst opp',
+        unlockedByOtherHeader: 'Lås fjernet',
+        unlockedByOtherMessage: '{0} har låst opp denne siden. Endringene dine er ikke lenger beskyttet.'
     },
     contentLockPermission: {
         group: 'Innholdslås', // TODO: Currently not used in Umbraco but added for future use

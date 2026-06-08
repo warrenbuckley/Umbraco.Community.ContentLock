@@ -1,0 +1,52 @@
+---
+title: Auto Lock
+description: Automatically lock a node while an editor is making changes, and release it automatically.
+---
+
+Auto Lock removes the need to manually lock a node before editing. When enabled, a node is locked **automatically the moment an editor makes their first change**, and released again automatically when they save, leave, disconnect, or go idle.
+
+It is **opt-in** and disabled by default, so existing installs are unaffected until you turn it on.
+
+:::note[Requires]
+Auto Lock is available from **17.x** and is enabled via configuration — see [Auto Lock configuration](/configuration/auto-lock/).
+:::
+
+---
+
+## Lifecycle
+
+| When | What happens |
+|---|---|
+| Editor changes any property value | The node is **auto-locked** for that editor |
+| Editor saves | The lock is **released** (re-acquired automatically on the next change) |
+| Editor leaves the node | The lock is **released** |
+| Editor disconnects (closes the tab/browser, network drop) | The lock is **released** server-side |
+| Editor is idle for the configured timeout | The lock is **released** server-side |
+
+While an editor keeps making changes, the lock stays held — a small "heartbeat" keeps it alive, and the inactivity countdown resets on each edit.
+
+---
+
+## Coexistence with manual locking
+
+Auto Lock sits alongside the manual [Lock/Unlock actions](/features/content-locking/) — both can be used:
+
+- A node already **manually locked** is never auto-locked over, and is **never auto-released** by the leave / disconnect / inactivity logic. Manual locks always require an explicit unlock.
+- Auto-locks and manual locks are distinguished in the database (an `IsAutoLock` flag), so automatic cleanup only ever affects auto-locks.
+
+---
+
+## Notification when another user unlocks your node
+
+If you are editing a node held by an auto-lock and **another user removes that lock** (for example an administrator unlocking it from the [dashboard](/features/dashboard/)), you are shown a notification naming who unlocked it, so you know your changes are no longer protected.
+
+This does **not** fire for your own save, leaving the node, or the inactivity timeout — only when a *different* user removes the lock.
+
+---
+
+## How releasing works
+
+- **Leaving / saving** is detected in the browser and releases the lock immediately for a snappy experience.
+- **Disconnect** and **inactivity timeout** are enforced **server-side**, so a closed tab, a crash, or an editor who walked away will always have their lock cleaned up without anyone needing to act.
+
+See [Auto Lock configuration](/configuration/auto-lock/) to enable it and tune the timeout and heartbeat.

@@ -13,6 +13,11 @@ All ContentLock settings live under the `ContentLock` key in `appsettings.json`.
 {
   "ContentLock": {
     "SignalRClientLogLevel": "Info",
+    "AutoLock": {
+      "Enable": false,
+      "InactivityTimeoutSeconds": 300,
+      "HeartbeatSeconds": 60
+    },
     "OnlineUsers": {
       "Enable": true,
       "Sounds": {
@@ -49,6 +54,16 @@ All ContentLock settings live under the `ContentLock` key in `appsettings.json`.
 | Option | Type | Default | Reactive | Description |
 |---|---|---|---|---|
 | `SignalRClientLogLevel` | `string` | `"Info"` | ❌ No | Log level for the SignalR JavaScript client. Valid values: `Trace`, `Debug`, `Information`, `Warning`, `Error`, `Critical`, `None`. Requires a page reload to take effect. |
+
+---
+
+### AutoLock
+
+| Option | Type | Default | Reactive | Description |
+|---|---|---|---|---|
+| `AutoLock.Enable` | `bool` | `false` | ✅ Yes | Automatically lock a node when an editor first changes it, releasing it on save/leave/disconnect/inactivity. |
+| `AutoLock.InactivityTimeoutSeconds` | `int` | `300` | ✅ Yes | Seconds of editing inactivity after which an auto-lock is released. Resets on each edit. |
+| `AutoLock.HeartbeatSeconds` | `int` | `60` | ✅ Yes | How often the browser refreshes its auto-lock while editing. Should be less than `InactivityTimeoutSeconds`. |
 
 ---
 
@@ -111,6 +126,7 @@ All ContentLock settings live under the `ContentLock` key in `appsettings.json`.
 All options can also be set via environment variables using the standard .NET configuration provider format, replacing `:` with `__`:
 
 ```
+ContentLock__AutoLock__Enable=true
 ContentLock__OnlineUsers__Enable=false
 ContentLock__WebRTC__TurnServer__Provider=Cloudflare
 ContentLock__WebRTC__TurnServer__Cloudflare__KeyId=your-key-id
@@ -121,5 +137,6 @@ ContentLock__WebRTC__TurnServer__Cloudflare__ApiToken=your-api-token
 
 ## Related
 
+- [Auto Lock Configuration](/configuration/auto-lock/) — automatic locking on edit
 - [Online Users Configuration](/configuration/online-users/) — sounds deep-dive
 - [WebRTC Configuration](/configuration/webrtc/) — TURN server setup guide

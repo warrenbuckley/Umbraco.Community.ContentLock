@@ -22,6 +22,8 @@ export default {
         unlockedMessage: 'Het document is ontgrendeld zodat andere gebruikers het kunnen bewerken.',
         bulkUnlockHeader: 'Inhoud ontgrendeld',
         bulkUnlockMessage: 'De geselecteerde inhoud is succesvol ontgrendeld',
+        unlockedByOtherHeader: 'Vergrendeling verwijderd',
+        unlockedByOtherMessage: '{0} heeft deze pagina ontgrendeld. Je wijzigingen zijn niet langer beschermd.',
     },
     contentLockPermission: {
         group: 'Content Lock', // TODO: Currently not used in Umbraco but added for future use
