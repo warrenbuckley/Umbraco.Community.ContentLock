@@ -64,7 +64,7 @@
 - **`ContentLockHub`** — SignalR hub (route: `/umbraco/ContentLockHub`). Tracks connected users with a `ConcurrentDictionary<Guid, ConcurrentHashSet<string>>` (one user can have multiple tabs/connections). On connect, sends the caller the current lock list, connected user list, and current options. Uses `IOptionsMonitor` to reactively push option changes to all clients.
 - **`ContentLockHub.AutoLock.cs`** (partial) — Auto Lock hub methods `AcquireAutoLock` / `ReleaseAutoLock` / `AutoLockHeartbeat`. Tracks auto-locks per connection so `OnDisconnectedAsync` releases them, and runs a per-lock in-memory inactivity timer (mirrors the WebRTC ring-timeout pattern) that releases the lock server-side; the heartbeat resets it.
 - **`IsLockedFlagProvider`** — Implements `IFlagProvider` to attach a `Umbraco.ContentLock.Locked` flag to `DocumentTreeItemResponseModel`, `DocumentCollectionResponseModel`, and `DocumentItemResponseModel`. Used by the frontend to show visual lock indicators.
-- **Notification Handlers** — `ContentDeletingNotificationHandler` and `ContentMovingToRecycleBinHandler` auto-unlock items when they are deleted or moved to the recycle bin (cancels the operation if a different user tries to delete a locked item).
+- **Notification Handlers** — `ContentDeletingNotificationHandler` and `ContentMovingToRecycleBinHandler` auto-unlock items when they are deleted or moved to the recycle bin (cancels the operation if a different user tries to delete a locked item). `ContentSavedNotificationHandler` broadcasts `ReceiveSuggestReload` when a locked node is saved, so other users viewing it are prompted to reload.
 - **`ContentLockMigrationPlan`** — `PackageMigrationPlan`: create the DB table, add the `ContentLock.Unlocker` permission to the Administrators user group, and add the `IsAutoLock` column to `ContentLocks` (distinguishes auto-locks from manual ones).
 - **`ContentLockOptions`** — Bound to the `ContentLock` appsettings section. Supports reactive updates via `IOptionsMonitor`.
 
@@ -157,6 +157,7 @@ SignalR events (server → client):
 | `RemoveLockToClients` | When a single node is unlocked | `Guid` (content key) |
 | `RemoveLocksToClients` | Bulk unlock | `Guid[]` |
 | `ReceiveLockUnlockedByUser` | A user explicitly unlocks a node (sent before the removal) | `Guid` key, `string` name, `Guid` userKey |
+| `ReceiveSuggestReload` | A locked node is saved (content changed) — prompts other viewers to reload | `Guid` key, `Guid` changedByKey |
 | `RemoveAllLocksToClients` | E2E test cleanup only | (none) |
 | `UserConnected` | New user connects | `Guid` (user key) |
 | `UserDisconnected` | User disconnects (all tabs) | `Guid` (user key) |

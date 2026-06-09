@@ -16,9 +16,10 @@ ContentLock uses a SignalR hub (`ContentLockHub`) mounted at `/umbraco/ContentLo
 | `RemoveLockToClients` | When a single node is unlocked | `Guid` — the content key of the unlocked node |
 | `RemoveLocksToClients` | When bulk unlock is performed | `Guid[]` — the content keys of unlocked nodes |
 | `ReceiveLockUnlockedByUser` | When a user explicitly unlocks a node (single or bulk), sent just before the removal | `contentKey: Guid`, `unlockedByName: string`, `unlockedByKey: Guid` |
+| `ReceiveSuggestReload` | When a **locked** node is saved (content actually changed), so other users viewing it are prompted to reload | `contentKey: Guid`, `changedByKey: Guid` |
 | `RemoveAllLocksToClients` | E2E test cleanup only | *(no payload)* — instructs all clients to clear all locks |
 
-`ReceiveLockUnlockedByUser` lets a client holding an [auto-lock](/features/auto-lock/) on the node warn the editor who removed it. Auto-lock acquire/release reuse `AddLockToClients` / `RemoveLockToClients`.
+`ReceiveLockUnlockedByUser` lets a client holding an [auto-lock](/features/auto-lock/) on the node warn the editor who removed it. `ReceiveSuggestReload` is sent from the `ContentSaved` notification handler (only when the saved node was locked) and the editor who made the change is excluded client-side. Auto-lock acquire/release reuse `AddLockToClients` / `RemoveLockToClients`.
 
 ---
 

@@ -7,7 +7,6 @@ export interface ContentLockOptions {
 
 export interface AutoLockOptions {
     enable: boolean;
-    inactivityTimeoutSeconds: number;
     heartbeatSeconds: number;
 }
 

@@ -12,5 +12,6 @@ public class ContentLockNotificationComposer : IComposer
     {
         builder.AddNotificationAsyncHandler<ContentMovingToRecycleBinNotification, ContentMovingToRecycleBinHandler>();
         builder.AddNotificationAsyncHandler<ContentDeletingNotification, ContentDeletingNotificationHandler>();
+        builder.AddNotificationAsyncHandler<ContentSavedNotification, ContentSavedNotificationHandler>();
     }
 }
