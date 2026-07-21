@@ -10,10 +10,10 @@
     "astro": "astro"
   },
   "dependencies": {
-    "@astrojs/starlight": "^0.38.4",
-    "@catppuccin/starlight": "^2.0.1",
+    "@astrojs/starlight": "^0.41.3",
+    "@catppuccin/starlight": "^2.1.0",
     "@iconify/json": "^2.2.454",
-    "astro": "^6.1.9",
+    "astro": "^7.1.3",
     "sharp": "^0.34.2",
     "unplugin-icons": "^23.0.1"
   }
