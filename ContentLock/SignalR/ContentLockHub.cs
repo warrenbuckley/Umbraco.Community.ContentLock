@@ -1,12 +1,16 @@
 using System.Collections.Concurrent;
 using ContentLock.Interfaces;
+using ContentLock.Notifications;
 using ContentLock.Options;
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 using Umbraco.Cms.Core.Collections;
+using Umbraco.Cms.Core.Events;
+using Umbraco.Cms.Core.Services;
 using Umbraco.Cms.Web.Common.Authorization;
 using Umbraco.Extensions;
 
@@ -18,6 +22,9 @@ public class ContentLockHub : Hub<IContentLockHubEvents>
     private readonly IContentLockService _contentLockService;
     private readonly IOptionsMonitor<ContentLockOptions> _options;
     private readonly IHubContext<ContentLockHub, IContentLockHubEvents> _hubContext;
+    private readonly IEventAggregator _eventAggregator;
+    private readonly IUserService _userService;
+    private readonly ILogger<ContentLockHub> _logger;
 
     // Track 1 or more connection IDs per User Key (a user may have multiple tabs open)
     private static readonly ConcurrentDictionary<Guid, ConcurrentHashSet<string>> ConnectedUsers = new();
@@ -35,12 +42,35 @@ public class ContentLockHub : Hub<IContentLockHubEvents>
     public ContentLockHub(
         IContentLockService contentLockService,
         IOptionsMonitor<ContentLockOptions> options,
-        IHubContext<ContentLockHub, IContentLockHubEvents> hubContext)
+        IHubContext<ContentLockHub, IContentLockHubEvents> hubContext,
+        IEventAggregator eventAggregator,
+        IUserService userService,
+        ILogger<ContentLockHub> logger)
     {
         _contentLockService = contentLockService;
         _options = options;
         _hubContext = hubContext;
+        _eventAggregator = eventAggregator;
+        _userService = userService;
+        _logger = logger;
         _options.OnChange(OnOptionsChanged);
+    }
+
+    internal async Task PublishCallInitiatedAsync(Guid callerUserKey, string callerUserName, Guid calleeUserKey)
+    {
+        var callee = await _userService.GetAsync(calleeUserKey);
+        var calleeUserName = callee?.Name ?? "Unknown";
+
+        try
+        {
+            await _eventAggregator.PublishAsync(
+                new CallInitiatedNotification(callerUserKey, callerUserName, calleeUserKey, calleeUserName),
+                CancellationToken.None);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "A CallInitiatedNotification handler threw an exception for a call from {callerUserKey} to {calleeUserKey}", callerUserKey, calleeUserKey);
+        }
     }
 
     private void OnOptionsChanged(ContentLockOptions options)
@@ -119,6 +149,8 @@ public class ContentLockHub : Hub<IContentLockHubEvents>
         if (targetConnections.Length == 0) return;
 
         await Clients.Clients(targetConnections).ReceiveCallOffer(callerKey.Value, callerName, sdpOffer);
+
+        await PublishCallInitiatedAsync(callerKey.Value, callerName, targetUserKey);
 
         // Start ring timeout — fires CallNoAnswer to caller and MissedCall to callee if unanswered
         var cts = new CancellationTokenSource();
