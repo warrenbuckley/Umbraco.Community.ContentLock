@@ -2,9 +2,11 @@
 using ContentLock.Interfaces;
 using ContentLock.Models.Backoffice;
 using ContentLock.Models.Database;
+using ContentLock.Notifications;
 
 using Microsoft.Extensions.Logging;
 
+using Umbraco.Cms.Core.Events;
 using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Models.Entities;
 using Umbraco.Cms.Core.Services;
@@ -21,6 +23,7 @@ namespace ContentLock.Services
         private readonly IUserIdKeyResolver _userIdKeyResolver;
         private readonly IIdKeyMap _idKeyMap;
         private readonly IEntityService _entityService;
+        private readonly IEventAggregator _eventAggregator;
 
         public ContentLockService(ILogger<ContentLockService> logger,
             IScopeProvider scopeProvider,
@@ -28,7 +31,8 @@ namespace ContentLock.Services
             IAuditService auditService,
             IUserIdKeyResolver userIdKeyResolver,
             IIdKeyMap idKeyMap,
-            IEntityService entityService)
+            IEntityService entityService,
+            IEventAggregator eventAggregator)
         {
             _logger = logger;
             _scopeProvider = scopeProvider;
@@ -37,6 +41,23 @@ namespace ContentLock.Services
             _userIdKeyResolver = userIdKeyResolver;
             _idKeyMap = idKeyMap;
             _entityService = entityService;
+            _eventAggregator = eventAggregator;
+        }
+
+        /// <summary>
+        /// Publishes <see cref="ContentLockedNotification"/>. Wrapped so a third-party
+        /// handler that throws can never prevent a lock from succeeding.
+        /// </summary>
+        internal async Task PublishContentLockedAsync(ContentLockOverviewItem lockItem)
+        {
+            try
+            {
+                await _eventAggregator.PublishAsync(new ContentLockedNotification(lockItem), CancellationToken.None);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "A ContentLockedNotification handler threw an exception for content {contentKey}", lockItem.Key);
+            }
         }
 
         public async Task<ContentLockStatus> GetLockInfoAsync(Guid contentKey, Guid userKey)
@@ -170,6 +191,8 @@ namespace ContentLock.Services
                 LastEdited = contentNode.UpdateDate,
                 LockedAtDate = now
             };
+
+            await PublishContentLockedAsync(lockInfo);
 
             return lockInfo;
         }
