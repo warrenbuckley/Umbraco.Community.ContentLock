@@ -90,6 +90,23 @@ public class ContentLockHub : Hub<IContentLockHubEvents>
         }
     }
 
+    internal async Task PublishCallMissedAsync(Guid callerUserKey, string callerUserName, Guid calleeUserKey)
+    {
+        var callee = await _userService.GetAsync(calleeUserKey);
+        var calleeUserName = callee?.Name ?? "Unknown";
+
+        try
+        {
+            await _eventAggregator.PublishAsync(
+                new CallMissedNotification(callerUserKey, callerUserName, calleeUserKey, calleeUserName),
+                CancellationToken.None);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "A CallMissedNotification handler threw an exception for a call from {callerUserKey} to {calleeUserKey}", callerUserKey, calleeUserKey);
+        }
+    }
+
     private void OnOptionsChanged(ContentLockOptions options)
     {
         // Notify all connected clients of the new options values
@@ -356,6 +373,8 @@ public class ContentLockHub : Hub<IContentLockHubEvents>
 
         if (calleeConns.Length > 0)
             await _hubContext.Clients.Clients(calleeConns).MissedCall(callerKey, callerName);
+
+        await PublishCallMissedAsync(callerKey, callerName, calleeKey);
     }
 
     private static void CancelRingTimeout(Guid callerKey)

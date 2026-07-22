@@ -120,4 +120,42 @@ public class ContentLockHubTests
 
         await act.Should().NotThrowAsync();
     }
+
+    [Fact]
+    public async Task PublishCallMissedAsync_ResolvesCalleeNameAndPublishesNotification()
+    {
+        var (hub, eventAggregator, userService) = CreateHub();
+        var callerKey = Guid.NewGuid();
+        var calleeKey = Guid.NewGuid();
+
+        var callee = Substitute.For<IUser>();
+        callee.Name.Returns("Callee Name");
+        userService.GetAsync(calleeKey).Returns(callee);
+
+        await hub.PublishCallMissedAsync(callerKey, "Caller Name", calleeKey);
+
+        await eventAggregator.Received(1).PublishAsync(
+            Arg.Is<CallMissedNotification>(n =>
+                n.CallerUserKey == callerKey &&
+                n.CallerUserName == "Caller Name" &&
+                n.CalleeUserKey == calleeKey &&
+                n.CalleeUserName == "Callee Name"),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task PublishCallMissedAsync_WhenEventAggregatorThrows_DoesNotThrow()
+    {
+        var (hub, eventAggregator, userService) = CreateHub();
+        var callerKey = Guid.NewGuid();
+        var calleeKey = Guid.NewGuid();
+        userService.GetAsync(calleeKey).Returns((IUser?)null);
+        eventAggregator
+            .PublishAsync(Arg.Any<CallMissedNotification>(), Arg.Any<CancellationToken>())
+            .ThrowsForAnyArgs(new InvalidOperationException("Handler boom"));
+
+        var act = async () => await hub.PublishCallMissedAsync(callerKey, "Caller Name", calleeKey);
+
+        await act.Should().NotThrowAsync();
+    }
 }
