@@ -1,12 +1,16 @@
 using System.Collections.Concurrent;
 using ContentLock.Interfaces;
+using ContentLock.Notifications;
 using ContentLock.Options;
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 using Umbraco.Cms.Core.Collections;
+using Umbraco.Cms.Core.Events;
+using Umbraco.Cms.Core.Services;
 using Umbraco.Cms.Web.Common.Authorization;
 using Umbraco.Extensions;
 
@@ -18,6 +22,9 @@ public class ContentLockHub : Hub<IContentLockHubEvents>
     private readonly IContentLockService _contentLockService;
     private readonly IOptionsMonitor<ContentLockOptions> _options;
     private readonly IHubContext<ContentLockHub, IContentLockHubEvents> _hubContext;
+    private readonly IEventAggregator _eventAggregator;
+    private readonly IUserService _userService;
+    private readonly ILogger<ContentLockHub> _logger;
 
     // Track 1 or more connection IDs per User Key (a user may have multiple tabs open)
     private static readonly ConcurrentDictionary<Guid, ConcurrentHashSet<string>> ConnectedUsers = new();
@@ -32,15 +39,103 @@ public class ContentLockHub : Hub<IContentLockHubEvents>
     // Reverse index for pending rings: calleeKey → callerKey (used to look up on callee disconnect)
     private static readonly ConcurrentDictionary<Guid, Guid> _pendingRingByCallee = new();
 
+    // Maps each call participant's user key to the original caller's key for their current call.
+    // ActiveCalls is bidirectional (A→B and B→A) so by itself it can't tell you who initiated the
+    // call once it's answered — this dictionary preserves that distinction so CallEndedNotification
+    // always reports the correct caller/callee roles regardless of who hangs up.
+    internal static readonly ConcurrentDictionary<Guid, Guid> CallOriginator = new();
+
     public ContentLockHub(
         IContentLockService contentLockService,
         IOptionsMonitor<ContentLockOptions> options,
-        IHubContext<ContentLockHub, IContentLockHubEvents> hubContext)
+        IHubContext<ContentLockHub, IContentLockHubEvents> hubContext,
+        IEventAggregator eventAggregator,
+        IUserService userService,
+        ILogger<ContentLockHub> logger)
     {
         _contentLockService = contentLockService;
         _options = options;
         _hubContext = hubContext;
+        _eventAggregator = eventAggregator;
+        _userService = userService;
+        _logger = logger;
         _options.OnChange(OnOptionsChanged);
+    }
+
+    internal async Task PublishCallInitiatedAsync(Guid callerUserKey, string callerUserName, Guid calleeUserKey)
+    {
+        var callee = await _userService.GetAsync(calleeUserKey);
+        var calleeUserName = callee?.Name ?? "Unknown";
+
+        try
+        {
+            await _eventAggregator.PublishAsync(
+                new CallInitiatedNotification(callerUserKey, callerUserName, calleeUserKey, calleeUserName),
+                CancellationToken.None);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "A CallInitiatedNotification handler threw an exception for a call from {callerUserKey} to {calleeUserKey}", callerUserKey, calleeUserKey);
+        }
+    }
+
+    internal async Task PublishCallDeclinedAsync(Guid callerUserKey, Guid calleeUserKey, string calleeUserName)
+    {
+        var caller = await _userService.GetAsync(callerUserKey);
+        var callerUserName = caller?.Name ?? "Unknown";
+
+        try
+        {
+            await _eventAggregator.PublishAsync(
+                new CallDeclinedNotification(callerUserKey, callerUserName, calleeUserKey, calleeUserName),
+                CancellationToken.None);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "A CallDeclinedNotification handler threw an exception for a call from {callerUserKey} to {calleeUserKey}", callerUserKey, calleeUserKey);
+        }
+    }
+
+    internal async Task PublishCallMissedAsync(Guid callerUserKey, string callerUserName, Guid calleeUserKey)
+    {
+        var callee = await _userService.GetAsync(calleeUserKey);
+        var calleeUserName = callee?.Name ?? "Unknown";
+
+        try
+        {
+            await _eventAggregator.PublishAsync(
+                new CallMissedNotification(callerUserKey, callerUserName, calleeUserKey, calleeUserName),
+                CancellationToken.None);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "A CallMissedNotification handler threw an exception for a call from {callerUserKey} to {calleeUserKey}", callerUserKey, calleeUserKey);
+        }
+    }
+
+    internal async Task PublishCallEndedAsync(Guid userKeyA, Guid userKeyB)
+    {
+        CallOriginator.TryRemove(userKeyA, out var originatorForA);
+        CallOriginator.TryRemove(userKeyB, out _);
+
+        var callerUserKey = originatorForA == userKeyA ? userKeyA : userKeyB;
+        var calleeUserKey = callerUserKey == userKeyA ? userKeyB : userKeyA;
+
+        var caller = await _userService.GetAsync(callerUserKey);
+        var callee = await _userService.GetAsync(calleeUserKey);
+        var callerUserName = caller?.Name ?? "Unknown";
+        var calleeUserName = callee?.Name ?? "Unknown";
+
+        try
+        {
+            await _eventAggregator.PublishAsync(
+                new CallEndedNotification(callerUserKey, callerUserName, calleeUserKey, calleeUserName),
+                CancellationToken.None);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "A CallEndedNotification handler threw an exception for a call between {userKeyA} and {userKeyB}", userKeyA, userKeyB);
+        }
     }
 
     private void OnOptionsChanged(ContentLockOptions options)
@@ -120,6 +215,8 @@ public class ContentLockHub : Hub<IContentLockHubEvents>
 
         await Clients.Clients(targetConnections).ReceiveCallOffer(callerKey.Value, callerName, sdpOffer);
 
+        await PublishCallInitiatedAsync(callerKey.Value, callerName, targetUserKey);
+
         // Start ring timeout — fires CallNoAnswer to caller and MissedCall to callee if unanswered
         var cts = new CancellationTokenSource();
         _pendingRings[callerKey.Value] = (targetUserKey, cts);
@@ -144,6 +241,10 @@ public class ContentLockHub : Hub<IContentLockHubEvents>
         // Mark both users as in an active call (bidirectional so either can look up the other)
         ActiveCalls[callerUserKey] = calleeKey.Value;
         ActiveCalls[calleeKey.Value] = callerUserKey;
+
+        // Record which of the two was the original caller, for CallEndedNotification later
+        CallOriginator[callerUserKey] = callerUserKey;
+        CallOriginator[calleeKey.Value] = callerUserKey;
 
         // Relay the SDP answer to the caller
         var callerConnections = GetConnectionsForUser(callerUserKey);
@@ -181,6 +282,15 @@ public class ContentLockHub : Hub<IContentLockHubEvents>
         {
             await Clients.Clients(callerConnections).CallDeclined();
         }
+
+        var currentUmbUser = this.Context.User?.GetUmbracoIdentity();
+        var calleeKey = currentUmbUser?.GetUserKey();
+        var calleeName = currentUmbUser?.Name ?? "Unknown";
+
+        if (calleeKey.HasValue)
+        {
+            await PublishCallDeclinedAsync(callerUserKey, calleeKey.Value, calleeName);
+        }
     }
 
     /// <summary>
@@ -204,6 +314,8 @@ public class ContentLockHub : Hub<IContentLockHubEvents>
         // Remove both parties from the active calls dictionary
         ActiveCalls.TryRemove(currentUserKey.Value, out _);
         ActiveCalls.TryRemove(peerUserKey, out _);
+
+        await PublishCallEndedAsync(currentUserKey.Value, peerUserKey);
 
         // Broadcast the updated in-call user list to all connected clients
         await BroadcastInCallUsersAsync();
@@ -240,6 +352,8 @@ public class ContentLockHub : Hub<IContentLockHubEvents>
         {
             await Clients.Clients(peerConnections).CallEnded();
         }
+
+        await PublishCallEndedAsync(disconnectedUserKey, peerKey);
 
         // Broadcast updated in-call list (now empty for these two users)
         await BroadcastInCallUsersAsync();
@@ -298,6 +412,8 @@ public class ContentLockHub : Hub<IContentLockHubEvents>
 
         if (calleeConns.Length > 0)
             await _hubContext.Clients.Clients(calleeConns).MissedCall(callerKey, callerName);
+
+        await PublishCallMissedAsync(callerKey, callerName, calleeKey);
     }
 
     private static void CancelRingTimeout(Guid callerKey)
