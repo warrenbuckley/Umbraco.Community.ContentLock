@@ -60,6 +60,27 @@ namespace ContentLock.Services
             }
         }
 
+        /// <summary>
+        /// Resolves the acting user's display name and publishes <see cref="ContentUnlockedNotification"/>.
+        /// Wrapped so a third-party handler that throws can never prevent an unlock from succeeding.
+        /// </summary>
+        internal async Task PublishContentUnlockedAsync(Guid contentKey, Guid unlockedByUserKey)
+        {
+            var user = await _userService.GetAsync(unlockedByUserKey);
+            var userName = user?.Name ?? "Unknown";
+
+            try
+            {
+                await _eventAggregator.PublishAsync(
+                    new ContentUnlockedNotification(contentKey, unlockedByUserKey, userName),
+                    CancellationToken.None);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "A ContentUnlockedNotification handler threw an exception for content {contentKey}", contentKey);
+            }
+        }
+
         public async Task<ContentLockStatus> GetLockInfoAsync(Guid contentKey, Guid userKey)
         {
             try
@@ -217,6 +238,8 @@ namespace ContentLock.Services
                 _logger.LogError(ex, "Error unlocking content {contentKey} for user {userKey}", contentKey, userKey);
                 throw new ContentLockException($"Error unlocking content {contentKey} for user {userKey}", ex);
             }
+
+            await PublishContentUnlockedAsync(contentKey, userKey);
         }
 
         public async Task<IReadOnlySet<Guid>> GetLockedContentKeysAsync(IReadOnlySet<Guid> keys)

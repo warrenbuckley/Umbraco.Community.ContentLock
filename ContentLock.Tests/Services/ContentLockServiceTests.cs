@@ -85,4 +85,58 @@ public class ContentLockServiceTests
 
         await act.Should().NotThrowAsync();
     }
+
+    [Fact]
+    public async Task PublishContentUnlockedAsync_ResolvesUserNameAndPublishesNotification()
+    {
+        var (service, eventAggregator, userService) = CreateService();
+        var contentKey = Guid.NewGuid();
+        var userKey = Guid.NewGuid();
+
+        var user = Substitute.For<IUser>();
+        user.Name.Returns("Jane Editor");
+        userService.GetAsync(userKey).Returns(user);
+
+        await service.PublishContentUnlockedAsync(contentKey, userKey);
+
+        await eventAggregator.Received(1).PublishAsync(
+            Arg.Is<ContentUnlockedNotification>(n =>
+                n.ContentKey == contentKey &&
+                n.UnlockedByUserKey == userKey &&
+                n.UnlockedByUserName == "Jane Editor"),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task PublishContentUnlockedAsync_WhenUserNotFound_UsesUnknown()
+    {
+        var (service, eventAggregator, userService) = CreateService();
+        var contentKey = Guid.NewGuid();
+        var userKey = Guid.NewGuid();
+
+        userService.GetAsync(userKey).Returns((IUser?)null);
+
+        await service.PublishContentUnlockedAsync(contentKey, userKey);
+
+        await eventAggregator.Received(1).PublishAsync(
+            Arg.Is<ContentUnlockedNotification>(n => n.UnlockedByUserName == "Unknown"),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task PublishContentUnlockedAsync_WhenEventAggregatorThrows_DoesNotThrow()
+    {
+        var (service, eventAggregator, userService) = CreateService();
+        var contentKey = Guid.NewGuid();
+        var userKey = Guid.NewGuid();
+
+        userService.GetAsync(userKey).Returns((IUser?)null);
+        eventAggregator
+            .PublishAsync(Arg.Any<ContentUnlockedNotification>(), Arg.Any<CancellationToken>())
+            .ThrowsForAnyArgs(new InvalidOperationException("Handler boom"));
+
+        var act = async () => await service.PublishContentUnlockedAsync(contentKey, userKey);
+
+        await act.Should().NotThrowAsync();
+    }
 }
