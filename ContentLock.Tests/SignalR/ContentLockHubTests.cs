@@ -82,4 +82,42 @@ public class ContentLockHubTests
 
         await act.Should().NotThrowAsync();
     }
+
+    [Fact]
+    public async Task PublishCallDeclinedAsync_ResolvesCallerNameAndPublishesNotification()
+    {
+        var (hub, eventAggregator, userService) = CreateHub();
+        var callerKey = Guid.NewGuid();
+        var calleeKey = Guid.NewGuid();
+
+        var caller = Substitute.For<IUser>();
+        caller.Name.Returns("Caller Name");
+        userService.GetAsync(callerKey).Returns(caller);
+
+        await hub.PublishCallDeclinedAsync(callerKey, calleeKey, "Callee Name");
+
+        await eventAggregator.Received(1).PublishAsync(
+            Arg.Is<CallDeclinedNotification>(n =>
+                n.CallerUserKey == callerKey &&
+                n.CallerUserName == "Caller Name" &&
+                n.CalleeUserKey == calleeKey &&
+                n.CalleeUserName == "Callee Name"),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task PublishCallDeclinedAsync_WhenEventAggregatorThrows_DoesNotThrow()
+    {
+        var (hub, eventAggregator, userService) = CreateHub();
+        var callerKey = Guid.NewGuid();
+        var calleeKey = Guid.NewGuid();
+        userService.GetAsync(callerKey).Returns((IUser?)null);
+        eventAggregator
+            .PublishAsync(Arg.Any<CallDeclinedNotification>(), Arg.Any<CancellationToken>())
+            .ThrowsForAnyArgs(new InvalidOperationException("Handler boom"));
+
+        var act = async () => await hub.PublishCallDeclinedAsync(callerKey, calleeKey, "Callee Name");
+
+        await act.Should().NotThrowAsync();
+    }
 }

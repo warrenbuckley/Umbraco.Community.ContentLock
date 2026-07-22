@@ -73,6 +73,23 @@ public class ContentLockHub : Hub<IContentLockHubEvents>
         }
     }
 
+    internal async Task PublishCallDeclinedAsync(Guid callerUserKey, Guid calleeUserKey, string calleeUserName)
+    {
+        var caller = await _userService.GetAsync(callerUserKey);
+        var callerUserName = caller?.Name ?? "Unknown";
+
+        try
+        {
+            await _eventAggregator.PublishAsync(
+                new CallDeclinedNotification(callerUserKey, callerUserName, calleeUserKey, calleeUserName),
+                CancellationToken.None);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "A CallDeclinedNotification handler threw an exception for a call from {callerUserKey} to {calleeUserKey}", callerUserKey, calleeUserKey);
+        }
+    }
+
     private void OnOptionsChanged(ContentLockOptions options)
     {
         // Notify all connected clients of the new options values
@@ -212,6 +229,15 @@ public class ContentLockHub : Hub<IContentLockHubEvents>
         if (callerConnections.Length > 0)
         {
             await Clients.Clients(callerConnections).CallDeclined();
+        }
+
+        var currentUmbUser = this.Context.User?.GetUmbracoIdentity();
+        var calleeKey = currentUmbUser?.GetUserKey();
+        var calleeName = currentUmbUser?.Name ?? "Unknown";
+
+        if (calleeKey.HasValue)
+        {
+            await PublishCallDeclinedAsync(callerUserKey, calleeKey.Value, calleeName);
         }
     }
 
