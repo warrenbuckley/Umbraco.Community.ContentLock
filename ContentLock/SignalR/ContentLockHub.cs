@@ -39,6 +39,12 @@ public class ContentLockHub : Hub<IContentLockHubEvents>
     // Reverse index for pending rings: calleeKey → callerKey (used to look up on callee disconnect)
     private static readonly ConcurrentDictionary<Guid, Guid> _pendingRingByCallee = new();
 
+    // Maps each call participant's user key to the original caller's key for their current call.
+    // ActiveCalls is bidirectional (A→B and B→A) so by itself it can't tell you who initiated the
+    // call once it's answered — this dictionary preserves that distinction so CallEndedNotification
+    // always reports the correct caller/callee roles regardless of who hangs up.
+    internal static readonly ConcurrentDictionary<Guid, Guid> CallOriginator = new();
+
     public ContentLockHub(
         IContentLockService contentLockService,
         IOptionsMonitor<ContentLockOptions> options,
@@ -104,6 +110,31 @@ public class ContentLockHub : Hub<IContentLockHubEvents>
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "A CallMissedNotification handler threw an exception for a call from {callerUserKey} to {calleeUserKey}", callerUserKey, calleeUserKey);
+        }
+    }
+
+    internal async Task PublishCallEndedAsync(Guid userKeyA, Guid userKeyB)
+    {
+        CallOriginator.TryRemove(userKeyA, out var originatorForA);
+        CallOriginator.TryRemove(userKeyB, out _);
+
+        var callerUserKey = originatorForA == userKeyA ? userKeyA : userKeyB;
+        var calleeUserKey = callerUserKey == userKeyA ? userKeyB : userKeyA;
+
+        var caller = await _userService.GetAsync(callerUserKey);
+        var callee = await _userService.GetAsync(calleeUserKey);
+        var callerUserName = caller?.Name ?? "Unknown";
+        var calleeUserName = callee?.Name ?? "Unknown";
+
+        try
+        {
+            await _eventAggregator.PublishAsync(
+                new CallEndedNotification(callerUserKey, callerUserName, calleeUserKey, calleeUserName),
+                CancellationToken.None);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "A CallEndedNotification handler threw an exception for a call between {userKeyA} and {userKeyB}", userKeyA, userKeyB);
         }
     }
 
@@ -211,6 +242,10 @@ public class ContentLockHub : Hub<IContentLockHubEvents>
         ActiveCalls[callerUserKey] = calleeKey.Value;
         ActiveCalls[calleeKey.Value] = callerUserKey;
 
+        // Record which of the two was the original caller, for CallEndedNotification later
+        CallOriginator[callerUserKey] = callerUserKey;
+        CallOriginator[calleeKey.Value] = callerUserKey;
+
         // Relay the SDP answer to the caller
         var callerConnections = GetConnectionsForUser(callerUserKey);
         if (callerConnections.Length > 0)
@@ -280,6 +315,8 @@ public class ContentLockHub : Hub<IContentLockHubEvents>
         ActiveCalls.TryRemove(currentUserKey.Value, out _);
         ActiveCalls.TryRemove(peerUserKey, out _);
 
+        await PublishCallEndedAsync(currentUserKey.Value, peerUserKey);
+
         // Broadcast the updated in-call user list to all connected clients
         await BroadcastInCallUsersAsync();
     }
@@ -315,6 +352,8 @@ public class ContentLockHub : Hub<IContentLockHubEvents>
         {
             await Clients.Clients(peerConnections).CallEnded();
         }
+
+        await PublishCallEndedAsync(disconnectedUserKey, peerKey);
 
         // Broadcast updated in-call list (now empty for these two users)
         await BroadcastInCallUsersAsync();

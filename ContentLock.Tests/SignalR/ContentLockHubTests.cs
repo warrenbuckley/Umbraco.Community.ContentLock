@@ -158,4 +158,88 @@ public class ContentLockHubTests
 
         await act.Should().NotThrowAsync();
     }
+
+    [Fact]
+    public async Task PublishCallEndedAsync_WhenFirstArgIsOriginalCaller_PublishesWithCorrectRoles()
+    {
+        var (hub, eventAggregator, userService) = CreateHub();
+        var callerKey = Guid.NewGuid();
+        var calleeKey = Guid.NewGuid();
+        ContentLockHub.CallOriginator[callerKey] = callerKey;
+        ContentLockHub.CallOriginator[calleeKey] = callerKey;
+
+        var caller = Substitute.For<IUser>();
+        caller.Name.Returns("Caller Name");
+        userService.GetAsync(callerKey).Returns(caller);
+        var callee = Substitute.For<IUser>();
+        callee.Name.Returns("Callee Name");
+        userService.GetAsync(calleeKey).Returns(callee);
+
+        await hub.PublishCallEndedAsync(callerKey, calleeKey);
+
+        await eventAggregator.Received(1).PublishAsync(
+            Arg.Is<CallEndedNotification>(n =>
+                n.CallerUserKey == callerKey &&
+                n.CallerUserName == "Caller Name" &&
+                n.CalleeUserKey == calleeKey &&
+                n.CalleeUserName == "Callee Name"),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task PublishCallEndedAsync_WhenFirstArgIsOriginalCallee_StillPublishesWithOriginalRoles()
+    {
+        var (hub, eventAggregator, userService) = CreateHub();
+        var callerKey = Guid.NewGuid();
+        var calleeKey = Guid.NewGuid();
+        ContentLockHub.CallOriginator[callerKey] = callerKey;
+        ContentLockHub.CallOriginator[calleeKey] = callerKey;
+
+        userService.GetAsync(callerKey).Returns((IUser?)null);
+        userService.GetAsync(calleeKey).Returns((IUser?)null);
+
+        // Simulates the callee's connection being the one that calls EndCallAsync,
+        // so the (currentUserKey, peerUserKey) pair arrives as (calleeKey, callerKey).
+        await hub.PublishCallEndedAsync(calleeKey, callerKey);
+
+        await eventAggregator.Received(1).PublishAsync(
+            Arg.Is<CallEndedNotification>(n =>
+                n.CallerUserKey == callerKey &&
+                n.CalleeUserKey == calleeKey),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task PublishCallEndedAsync_RemovesCallOriginatorEntriesForBothParties()
+    {
+        var (hub, _, userService) = CreateHub();
+        var callerKey = Guid.NewGuid();
+        var calleeKey = Guid.NewGuid();
+        ContentLockHub.CallOriginator[callerKey] = callerKey;
+        ContentLockHub.CallOriginator[calleeKey] = callerKey;
+        userService.GetAsync(Arg.Any<Guid>()).Returns((IUser?)null);
+
+        await hub.PublishCallEndedAsync(callerKey, calleeKey);
+
+        ContentLockHub.CallOriginator.Should().NotContainKey(callerKey);
+        ContentLockHub.CallOriginator.Should().NotContainKey(calleeKey);
+    }
+
+    [Fact]
+    public async Task PublishCallEndedAsync_WhenEventAggregatorThrows_DoesNotThrow()
+    {
+        var (hub, eventAggregator, userService) = CreateHub();
+        var callerKey = Guid.NewGuid();
+        var calleeKey = Guid.NewGuid();
+        ContentLockHub.CallOriginator[callerKey] = callerKey;
+        ContentLockHub.CallOriginator[calleeKey] = callerKey;
+        userService.GetAsync(Arg.Any<Guid>()).Returns((IUser?)null);
+        eventAggregator
+            .PublishAsync(Arg.Any<CallEndedNotification>(), Arg.Any<CancellationToken>())
+            .ThrowsForAnyArgs(new InvalidOperationException("Handler boom"));
+
+        var act = async () => await hub.PublishCallEndedAsync(callerKey, calleeKey);
+
+        await act.Should().NotThrowAsync();
+    }
 }
