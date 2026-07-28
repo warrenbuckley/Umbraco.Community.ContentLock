@@ -5,7 +5,7 @@
 **Umbraco Community ContentLock** is an open-source NuGet package for **Umbraco CMS 17** (Bellissima backoffice) that prevents content editing conflicts. Editors can lock a content node while editing; locked nodes become read-only for everyone else, and publish/save/unpublish actions are hidden for other users. Real-time lock state is pushed to all connected backoffice users via **SignalR**.
 
 - NuGet package ID: `Umbraco.Community.ContentLock`
-- Current version: `17.0.0`
+- Current version: `17.2.0`
 - Target framework: `net10.0`
 - Umbraco CMS dependency: `17.0.0`
 - License: MIT

@@ -11,6 +11,11 @@ Full release history for `Umbraco.Community.ContentLock`. For full diff details 
 
 ## Umbraco 17
 
+### 17.2.0 <Badge text="28 Jul 2026" variant="note" size="small" />
+
+- **Notification events** — ContentLock now publishes standard Umbraco `INotification` events for lock/unlock and call activity (`ContentLockedNotification`, `ContentUnlockedNotification`, `CallInitiatedNotification`, `CallDeclinedNotification`, `CallMissedNotification`, `CallEndedNotification`), so consumers can react via ordinary `INotificationHandler<T>` handlers ([#113](https://github.com/warrenbuckley/Umbraco.Community.ContentLock/issues/113))
+- Added [Notifications reference documentation](/reference/notifications/)
+
 ### 17.1.1 <Badge text="14 May 2026" variant="note" size="small" />
 
 - Fixed SignalR hub connectivity issue ([#101](https://github.com/warrenbuckley/Umbraco.Community.ContentLock/issues/101))
