@@ -54,6 +54,7 @@ Every lock and unlock action is recorded in Umbraco's built-in audit log, visibl
 
 | Package Version | Umbraco Version | .NET Version |
 |---|---|---|
+| 18.x.x | 18.x | net10.0 |
 | 17.x.x | 17.x | net10.0 |
 | 16.x.x | 16.x | net9.0 |
 | 15.x.x | 15.x | net9.0 |
