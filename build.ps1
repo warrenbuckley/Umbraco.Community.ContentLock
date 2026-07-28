@@ -2,7 +2,7 @@
 $projectFile = "./ContentLock/ContentLock.csproj"
 $configuration = "Release"
 $outputDirectory = "./build.out"
-$version = "17.2.0"
+$version = "18.0.0"
 
 $clientDir = "./ContentLock/Client"
 $compiledPackageJsonPath = "./ContentLock/wwwroot/App_Plugins/ContentLock/umbraco-package.json"
