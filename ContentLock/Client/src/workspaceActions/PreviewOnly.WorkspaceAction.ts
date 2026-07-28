@@ -1,4 +1,5 @@
-import { UMB_DOCUMENT_WORKSPACE_CONTEXT, UmbDocumentPreviewRepository } from '@umbraco-cms/backoffice/document';
+import { UMB_DOCUMENT_WORKSPACE_CONTEXT } from '@umbraco-cms/backoffice/document';
+import { UmbPreviewRepository } from '@umbraco-cms/backoffice/preview';
 import { UmbWorkspaceActionBase } from '@umbraco-cms/backoffice/workspace';
 
 export default class ContentLockPreviewOnlyWorkspaceAction extends UmbWorkspaceActionBase {
@@ -9,12 +10,18 @@ export default class ContentLockPreviewOnlyWorkspaceAction extends UmbWorkspaceA
             const workspaceContext = await this.getContext(UMB_DOCUMENT_WORKSPACE_CONTEXT);
             const unique = workspaceContext?.getUnique();
 
-            // This does the cookie handhake etc AFAIK
-            await new UmbDocumentPreviewRepository(this).enter();
+            if (!unique) {
+                return;
+            }
 
-            // Open the browser tab & focus to it
-            const preview = window.open(`preview?id=${unique}`, 'umbpreview');
-            preview?.focus();
+            // Requesting the preview URL also does the cookie handshake to enter preview mode
+            const previewUrlData = await new UmbPreviewRepository(this).getPreviewUrl(unique, 'umbDocumentUrlProvider');
+
+            if (previewUrlData.url) {
+                // Open the browser tab & focus to it
+                const preview = window.open(previewUrlData.url, 'umbpreview');
+                preview?.focus();
+            }
         }
         catch (error) {
             console.error('Failed to open preview', error);
