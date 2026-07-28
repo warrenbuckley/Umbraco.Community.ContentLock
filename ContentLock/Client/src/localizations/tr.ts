@@ -21,7 +21,9 @@ export default {
         unlockedHeader: "İçerik Kilidi Açıldı",
         unlockedMessage: "Belgenin kilidi, diğer kullanıcıların düzenlemesine izin vermek için, açıldı.",
         bulkUnlockHeader: "İçerik Kilidi Açıldı",
-        bulkUnlockMessage: "Seçilen içeriğin kilidi başarıyla açıldı"
+        bulkUnlockMessage: "Seçilen içeriğin kilidi başarıyla açıldı",
+        unlockedByOtherHeader: "Kilit Kaldırıldı",
+        unlockedByOtherMessage: "{0} bu sayfanın kilidini açtı. Değişiklikleriniz artık korunmuyor."
     },
     contentLockPermission: {
         group: "İçerik Kilidi",

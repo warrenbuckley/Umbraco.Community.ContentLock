@@ -23,5 +23,9 @@ namespace ContentLock.Models.Database
         [NullSetting(NullSetting = NullSettings.NotNull)]
         public DateTime LockedAtDate { get; set; }
 
+        [Column("IsAutoLock")]
+        [NullSetting(NullSetting = NullSettings.NotNull)]
+        [Constraint(Default = 0)]
+        public bool IsAutoLock { get; set; }
     }
 }

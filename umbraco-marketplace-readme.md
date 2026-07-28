@@ -14,6 +14,9 @@
 ### Lock & Unlock Content
 Lock or unlock content nodes directly from the node actions menu (top right) or the tree view. Locked nodes are immediately read-only for all other editors — no accidental overwrites.
 
+### Auto Lock _(opt-in)_
+Optionally lock a node **automatically** the moment an editor changes it — no manual step. The lock is released automatically on save, when leaving the node, on disconnect, or after a configurable inactivity timeout. If another user removes the lock while you're editing, you're notified who did it. Disabled by default; coexists with manual locking.
+
 ### Real-Time Updates
 Lock state is broadcast instantly to all connected backoffice users via **SignalR**. When someone locks or unlocks a node, every editor sees it update in real time — no page refresh needed.
 
@@ -52,6 +55,8 @@ Most settings are **reactive** — changes apply instantly without an applicatio
 
 | Setting | Description | Default |
 | --- | --- | --- |
+| `AutoLock.Enable` | Automatically lock a node when an editor first changes it | `false` |
+| `AutoLock.InactivityTimeoutSeconds` | Seconds of inactivity before an auto-lock is released | `300` |
 | `OnlineUsers.Enable` | Show the online users count in the backoffice header | `true` |
 | `OnlineUsers.Sounds.Enable` | Play audio when editors join or leave | `true` |
 | `WebRTC.Enable` | Enable peer-to-peer audio calling | `true` |

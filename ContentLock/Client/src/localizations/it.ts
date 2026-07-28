@@ -22,6 +22,8 @@ export default {
         unlockedMessage: 'Il documento è stato sbloccato per consentire ad altri utenti di modificarlo.',
         bulkUnlockHeader: 'Contenuto sbloccato',
         bulkUnlockMessage: 'Il contenuto selezionato è stato sbloccato con successo',
+        unlockedByOtherHeader: 'Blocco rimosso',
+        unlockedByOtherMessage: '{0} ha sbloccato questa pagina. Le tue modifiche non sono più protette.',
     },
     contentLockPermission: {
         group: 'Content Lock', // TODO: Currently not used in Umbraco but added for future use

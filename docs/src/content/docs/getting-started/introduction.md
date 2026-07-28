@@ -24,6 +24,10 @@ Editors lock a content node via the tree right-click menu or the top actions men
 - A visual lock icon appears on the node in the content tree.
 - A footer banner shows who holds the lock.
 
+### Auto Lock
+
+Optionally, ContentLock can lock a node **automatically** the moment an editor makes their first change — no manual lock needed. The lock is released automatically when they save, leave the node, disconnect, or go idle for a configurable timeout. If another user removes the lock while you're still editing, you're notified who did it. Auto Lock is opt-in (disabled by default) and coexists with manual locking. See [Auto Lock](/features/auto-lock/).
+
 ### Real-Time Lock State
 
 Lock and unlock events are broadcast to **all connected backoffice users** via SignalR the moment they happen — no page refresh needed. If you're looking at a node and another editor locks it, it becomes read-only **immediately**.

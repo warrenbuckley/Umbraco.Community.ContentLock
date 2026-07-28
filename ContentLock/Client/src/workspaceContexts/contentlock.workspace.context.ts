@@ -31,6 +31,9 @@ export class ContentLockWorkspaceContext extends UmbContextBase {
 
     #localize = new UmbLocalizationController(this);
 
+    // Timestamp of the last reload event we acted on; ignores stale replays and the same event being re-emitted
+    #handledReloadAt = Date.now();
+
 	constructor(host: UmbControllerHost) {
 		super(host, CONTENTLOCK_WORKSPACE_CONTEXT.toString());
 
@@ -63,8 +66,26 @@ export class ContentLockWorkspaceContext extends UmbContextBase {
 
         if (this.#signalRContext) {
 
-            let previousState = { isLocked: false, isLockedBySelf: false }; 
-            
+            // Prompt to reload only when a released lock actually saved changes (and not for the editor who made them)
+            this.observe(this.#signalRContext.suggestReload, (evt) => {
+                if (!evt || evt.at <= this.#handledReloadAt) return;
+                if (evt.contentKey !== this.#unique?.toString()) return;
+                if (evt.changedByKey?.toLowerCase() === this.#currentUserKey?.toLowerCase()) return;
+
+                this.#handledReloadAt = evt.at;
+
+                umbOpenModal(this, UMB_CONFIRM_MODAL, {
+                    data: {
+                        headline: this.#localize.term('contentUnlockedModal_modalHeader'),
+                        content: this.#localize.term('contentUnlockedModal_modalContent'),
+                        color: 'positive',
+                        confirmLabel: this.#localize.term('contentUnlockedModal_reload'),
+                    }
+                })
+                .then(async () => { await this.#docWorkspaceCtx?.reload(); })
+                .catch(() => { });
+            }, 'contentLockSuggestReload');
+
             // Observe the 3 states from the SignalR context
             // isLocked: boolean - Is the item locked by anyone
             // isLockedBySelf: boolean - Is the item locked by the current user
@@ -73,7 +94,7 @@ export class ContentLockWorkspaceContext extends UmbContextBase {
                 this.#signalRContext.isNodeLocked(this.#unique.toString()),
                 this.#signalRContext.isNodeLockedByMe(this.#unique.toString(), this.#currentUserKey),
                 this.#signalRContext.getLock(this.#unique.toString())
-            ]), async ([isLocked, isLockedBySelf, lockInfo]) => {
+            ]), ([isLocked, isLockedBySelf, lockInfo]) => {
 
                 // Set the observables
                 this.setIsLocked(isLocked);
@@ -109,32 +130,6 @@ export class ContentLockWorkspaceContext extends UmbContextBase {
                     this.#docWorkspaceCtx?.readOnlyGuard.removeRules(ruleKeys);
                 }
 
-                // If previously the page was locked by someone else, we can alert the user its now unlocked
-                if (previousState.isLocked && !previousState.isLockedBySelf && !isLocked && !isLockedBySelf) {
-                    umbOpenModal(this, UMB_CONFIRM_MODAL,
-                        {
-                            data: {
-                                headline: this.#localize.term('contentUnlockedModal_modalHeader'),
-                                content: this.#localize.term('contentUnlockedModal_modalContent'),
-                                color: "positive",
-                                confirmLabel: this.#localize.term('contentUnlockedModal_reload'),
-                            }
-                        }
-                    )
-                    .then(async () => {
-                        // This will reload the entire page, so the user can see the latest version of the content
-                        // Might be nice if we can just ask a context to reload the node or something?
-
-                        // There is reload on Workspace context
-                        await this.#docWorkspaceCtx?.reload();
-                    })
-                    .catch(() => {
-                        // Do nothing if the user cancels the modal or presses escape etc
-                    });
-                }
-
-                // Update the previous state
-                previousState = { isLocked, isLockedBySelf };
             });
         }
     }

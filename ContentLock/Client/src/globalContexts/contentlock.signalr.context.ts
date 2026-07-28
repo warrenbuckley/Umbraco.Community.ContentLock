@@ -35,6 +35,14 @@ export default class ContentLockSignalrContext extends UmbContextBase
     // Tracks which users are currently in an active WebRTC call (by user key)
     #inCallUserKeys = new UmbArrayState<string>([], (item) => item);
 
+    // Last "lock unlocked by another user" event, so the auto-lock context can warn the holder
+    #lockUnlockedByUser = new UmbObjectState<{ contentKey: string; unlockedByName: string; unlockedByKey: string } | undefined>(undefined);
+    public lockUnlockedByUser = this.#lockUnlockedByUser.asObservable();
+
+    // Last "content was saved while locked, reload suggested" event, with the time it arrived so stale replays are ignored
+    #suggestReload = new UmbObjectState<{ contentKey: string; changedByKey: string; at: number } | undefined>(undefined);
+    public suggestReload = this.#suggestReload.asObservable();
+
     // Used to store the options for the content lock package
     // Sets the default values for the options
     #contentLockOptions = new UmbObjectState<ContentLockOptions>(
@@ -59,6 +67,10 @@ export default class ContentLockSignalrContext extends UmbContextBase
                     ringbackSound: '/App_Plugins/ContentLock/sounds/ringtone.mp3',
                     ringSound: '/App_Plugins/ContentLock/sounds/ringtone.mp3',
                 }
+            },
+            autoLock: {
+                enable: false,
+                heartbeatSeconds: 60,
             }
         });
 
@@ -102,6 +114,8 @@ export default class ContentLockSignalrContext extends UmbContextBase
 
     // The individual options as observables
     public EnableWebRTC = this.#contentLockOptions.asObservablePart(options => options.webRTC.enable);
+    public EnableAutoLock = this.#contentLockOptions.asObservablePart(options => options.autoLock.enable);
+    public AutoLockHeartbeatSeconds = this.#contentLockOptions.asObservablePart(options => options.autoLock.heartbeatSeconds);
     public EnableOnlineUsers = this.#contentLockOptions.asObservablePart(options => options.onlineUsers.enable);
     public EnableSounds = this.#contentLockOptions.asObservablePart(options => options.onlineUsers.sounds.enable);
     public LoginSound = this.#contentLockOptions.asObservablePart(options => options.onlineUsers.sounds.loginSound);
@@ -234,6 +248,16 @@ export default class ContentLockSignalrContext extends UmbContextBase
                     // Reload tree item - will fetch from server again and thus remove the Locked Flag/Sign info
                     this.#emitReloadTreeEvent(key);
                 }
+            });
+
+            // A user explicitly unlocked a node - surfaced so the auto-lock holder can be warned who removed it
+            this.signalrConnection.on('ReceiveLockUnlockedByUser', (contentKey: string, unlockedByName: string, unlockedByKey: string) => {
+                this.#lockUnlockedByUser.setValue({ contentKey, unlockedByName, unlockedByKey });
+            });
+
+            // A released lock had saved changes - other viewers of that node should be prompted to reload
+            this.signalrConnection.on('ReceiveSuggestReload', (contentKey: string, changedByKey: string) => {
+                this.#suggestReload.setValue({ contentKey, changedByKey, at: Date.now() });
             });
 
             // Purely for E2E tests only SignalR server will send out a 'RemoveAllLocksToClients'

@@ -9,7 +9,8 @@ namespace ContentLock.Interfaces
         /// </summary>
         /// <param name="contentKey">The content node key to lock</param>
         /// <param name="userKey">The user key, requesting to lock the node</param>
-        Task<ContentLockOverviewItem> LockContentAsync(Guid contentKey, Guid userKey);
+        /// <param name="isAutoLock">True when the lock is created automatically on edit rather than by an explicit user action</param>
+        Task<ContentLockOverviewItem> LockContentAsync(Guid contentKey, Guid userKey, bool isAutoLock = false);
 
         /// <summary>
         /// Unlock a content node
@@ -17,6 +18,13 @@ namespace ContentLock.Interfaces
         /// <param name="contentKey"></param>
         /// <param name="userKey"></param>
         Task UnlockContentAsync(Guid contentKey, Guid userKey);
+
+        /// <summary>
+        /// Releases a lock only if it is an auto-lock held by the given user.
+        /// Manual locks are never removed by this method.
+        /// </summary>
+        /// <returns>True if an auto-lock was removed; otherwise false.</returns>
+        Task<bool> ReleaseAutoLockAsync(Guid contentKey, Guid userKey);
 
         /// <summary>
         /// Gets a status of a lock
