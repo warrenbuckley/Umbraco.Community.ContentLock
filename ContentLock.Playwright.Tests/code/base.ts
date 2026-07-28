@@ -1,4 +1,4 @@
-import { test as base } from "@umbraco/playwright-testhelpers";
+import { test as base } from "@umbraco-cms/acceptance-test-helpers";
 import { Dashboard } from "./PageObjectModels/Dashboard";
 import { Api } from "./api";
 

@@ -19,7 +19,7 @@
     "tslib": "^2.8.1"
   },
   "dependencies": {
-    "@umbraco/playwright-testhelpers": "^18.0.0",
+    "@umbraco-cms/acceptance-test-helpers": "^18.0.0",
     "dotenv": "^17.2.0"
   }
 }

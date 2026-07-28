@@ -1,5 +1,5 @@
 import { expect, Locator, Page } from "@playwright/test";
-import { ConstantHelper, UiHelpers } from "@umbraco/playwright-testhelpers";
+import { ConstantHelper, UiHelpers } from "@umbraco-cms/acceptance-test-helpers";
 
 export class Dashboard {
     #page: Page;

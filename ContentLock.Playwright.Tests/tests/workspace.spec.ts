@@ -1,6 +1,6 @@
 import * as path from 'path';
 import { test } from '../code/base';
-import { ConstantHelper } from '@umbraco/playwright-testhelpers';
+import { ConstantHelper } from '@umbraco-cms/acceptance-test-helpers';
 import { expect } from '@playwright/test';
 
 const warrenAuthFile = path.join(__dirname, '../playwright/.auth/user.json');
