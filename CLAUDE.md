@@ -2,12 +2,12 @@
 
 ## Project Overview
 
-**Umbraco Community ContentLock** is an open-source NuGet package for **Umbraco CMS 17** (Bellissima backoffice) that prevents content editing conflicts. Editors can lock a content node while editing; locked nodes become read-only for everyone else, and publish/save/unpublish actions are hidden for other users. Real-time lock state is pushed to all connected backoffice users via **SignalR**.
+**Umbraco Community ContentLock** is an open-source NuGet package for **Umbraco CMS 18** (Bellissima backoffice) that prevents content editing conflicts. Editors can lock a content node while editing; locked nodes become read-only for everyone else, and publish/save/unpublish actions are hidden for other users. Real-time lock state is pushed to all connected backoffice users via **SignalR**.
 
 - NuGet package ID: `Umbraco.Community.ContentLock`
-- Current version: `17.2.0`
+- Current version: `18.0.0`
 - Target framework: `net10.0`
-- Umbraco CMS dependency: `17.0.0`
+- Umbraco CMS dependency: `[18.0.0,19.0.0)`
 - License: MIT
 
 ## Repository Structure
@@ -113,7 +113,7 @@ The TypeScript API client is auto-generated from the live Umbraco OpenAPI spec. 
 ```bash
 cd ContentLock/Client
 npm run generate-client
-# Runs: node scripts/generate-openapi.js https://localhost:44378/umbraco/swagger/contentlock/swagger.json
+# Runs: node scripts/generate-openapi.js https://localhost:44378/umbraco/openapi/contentlock.json
 ```
 
 The generated files in `src/api/` should then be committed. The `generate-client` script uses `@hey-api/openapi-ts`.

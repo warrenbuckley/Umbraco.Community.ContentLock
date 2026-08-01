@@ -6,10 +6,12 @@ on:
     branches:
       - v16/*
       - v17/*
+      - v18/*
   pull_request:
     branches:
       - v16/*
       - v17/*
+      - v18/*
 jobs:
   unit-tests:
     name: Unit Tests
