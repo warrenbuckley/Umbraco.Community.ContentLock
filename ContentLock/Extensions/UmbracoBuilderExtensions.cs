@@ -25,7 +25,10 @@ public static class UmbracoBuilderExtensions
         
         // Route for the SignalR Hub
         builder.Services.AddSingleton<ContentLockHubRoutes>();
-        
+
+        // Pushes options changes to connected clients (single OnChange subscription for the app lifetime)
+        builder.Services.AddHostedService<ContentLockOptionsBroadcaster>();
+
         // Configure Umbraco Pipeline Options
         builder.Services.Configure<UmbracoPipelineOptions>(opts =>
         {

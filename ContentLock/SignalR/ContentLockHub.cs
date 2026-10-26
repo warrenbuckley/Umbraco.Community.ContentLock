@@ -59,7 +59,6 @@ public class ContentLockHub : Hub<IContentLockHubEvents>
         _eventAggregator = eventAggregator;
         _userService = userService;
         _logger = logger;
-        _options.OnChange(OnOptionsChanged);
     }
 
     internal async Task PublishCallInitiatedAsync(Guid callerUserKey, string callerUserName, Guid calleeUserKey)
@@ -136,13 +135,6 @@ public class ContentLockHub : Hub<IContentLockHubEvents>
         {
             _logger.LogWarning(ex, "A CallEndedNotification handler threw an exception for a call between {userKeyA} and {userKeyB}", userKeyA, userKeyB);
         }
-    }
-
-    private void OnOptionsChanged(ContentLockOptions options)
-    {
-        // Notify all connected clients of the new options values
-        // As the value has been changed
-        this.Clients.All.ReceiveLatestOptions(options);
     }
 
     public override async Task<Task> OnConnectedAsync()
