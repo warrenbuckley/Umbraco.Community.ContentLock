@@ -22,6 +22,8 @@
         unlockedMessage: 'Mae\'r ddogfen wedi\'i datgloi i ganiatáu i ddefnyddwyr eraill ei golygu.',
         bulkUnlockHeader: 'Cynnwys wedi\'i Ddatgloi',
         bulkUnlockMessage: 'Mae\'r cynnwys a ddewiswyd wedi\'i ddatgloi\'n llwyddiannus',
+        unlockedByOtherHeader: 'Clo Wedi\'i Dynnu',
+        unlockedByOtherMessage: 'Mae {0} wedi datgloi\'r dudalen hon. Nid yw eich newidiadau wedi\'u diogelu mwyach.',
     },
     contentLockPermission: {
         group: 'Content Lock', // TODO: Currently not used in Umbraco but added for future use

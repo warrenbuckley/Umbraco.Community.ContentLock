@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using ContentLock.AutoLock;
 using ContentLock.Interfaces;
 using ContentLock.Notifications;
 using ContentLock.Options;
@@ -20,6 +21,7 @@ namespace ContentLock.SignalR;
 public class ContentLockHub : Hub<IContentLockHubEvents>
 {
     private readonly IContentLockService _contentLockService;
+    private readonly IAutoLockService _autoLockService;
     private readonly IOptionsMonitor<ContentLockOptions> _options;
     private readonly IHubContext<ContentLockHub, IContentLockHubEvents> _hubContext;
     private readonly IEventAggregator _eventAggregator;
@@ -47,6 +49,7 @@ public class ContentLockHub : Hub<IContentLockHubEvents>
 
     public ContentLockHub(
         IContentLockService contentLockService,
+        IAutoLockService autoLockService,
         IOptionsMonitor<ContentLockOptions> options,
         IHubContext<ContentLockHub, IContentLockHubEvents> hubContext,
         IEventAggregator eventAggregator,
@@ -54,6 +57,7 @@ public class ContentLockHub : Hub<IContentLockHubEvents>
         ILogger<ContentLockHub> logger)
     {
         _contentLockService = contentLockService;
+        _autoLockService = autoLockService;
         _options = options;
         _hubContext = hubContext;
         _eventAggregator = eventAggregator;
@@ -171,6 +175,9 @@ public class ContentLockHub : Hub<IContentLockHubEvents>
             // If this user was in an active call, notify the peer and clean up
             await CleanUpCallOnDisconnectAsync(currentUserKey.Value);
         }
+
+        // Releases the auto-locks this connection held (closed tab, network drop)
+        await _autoLockService.ReleaseConnectionAsync(this.Context.ConnectionId);
 
         // Removes the user who is disconnecting
         await RemoveUserFromListOfConnectedUsersAsync();
@@ -319,6 +326,42 @@ public class ContentLockHub : Hub<IContentLockHubEvents>
 
         // Broadcast the updated in-call user list to all connected clients
         await BroadcastInCallUsersAsync();
+    }
+
+    // ── Auto Lock Hub Methods (client → server) ───────────────────────────
+
+    /// <summary>
+    /// Auto-locks the node on the editor's first change.
+    /// Returns false when the node is already locked or Auto Lock is disabled.
+    /// </summary>
+    public async Task<bool> AcquireAutoLockAsync(Guid contentKey)
+    {
+        var currentUserKey = this.Context.User?.GetUmbracoIdentity()?.GetUserKey();
+        if (!currentUserKey.HasValue) return false;
+
+        return await _autoLockService.AcquireAsync(contentKey, currentUserKey.Value, this.Context.ConnectionId);
+    }
+
+    /// <summary>
+    /// Keeps the editor's auto-lock alive while they keep changing the node.
+    /// </summary>
+    public async Task AutoLockHeartbeatAsync(Guid contentKey)
+    {
+        var currentUserKey = this.Context.User?.GetUmbracoIdentity()?.GetUserKey();
+        if (!currentUserKey.HasValue) return;
+
+        await _autoLockService.HeartbeatAsync(contentKey, currentUserKey.Value, this.Context.ConnectionId);
+    }
+
+    /// <summary>
+    /// Releases the editor's auto-lock when they save or leave the node.
+    /// </summary>
+    public async Task ReleaseAutoLockAsync(Guid contentKey)
+    {
+        var currentUserKey = this.Context.User?.GetUmbracoIdentity()?.GetUserKey();
+        if (!currentUserKey.HasValue) return;
+
+        await _autoLockService.ReleaseAsync(contentKey, currentUserKey.Value);
     }
 
     // ── Private Helpers ───────────────────────────────────────────────────

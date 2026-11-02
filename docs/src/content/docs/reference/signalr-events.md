@@ -15,7 +15,11 @@ ContentLock uses a SignalR hub (`ContentLockHub`) mounted at `/umbraco/ContentLo
 | `AddLockToClients` | When any editor locks a node | `ContentLockOverviewItem` — the new lock |
 | `RemoveLockToClients` | When a single node is unlocked | `Guid` — the content key of the unlocked node |
 | `RemoveLocksToClients` | When bulk unlock is performed | `Guid[]` — the content keys of unlocked nodes |
+| `ReceiveLockUnlockedByUser` | On every unlock (from `ContentUnlockedNotification`), sent before the removal event | `contentKey: Guid`, `unlockedByName: string`, `unlockedByKey: Guid` |
+| `ReceiveSuggestReload` | When a **locked** node is saved (content actually changed), so other users viewing it are prompted to reload | `contentKey: Guid`, `changedByKey: Guid` |
 | `RemoveAllLocksToClients` | E2E test cleanup only | *(no payload)* — instructs all clients to clear all locks |
+
+`ReceiveLockUnlockedByUser` lets a client holding an [auto-lock](/features/auto-lock/) on the node warn the editor who removed it; a client ignores the event when it is the unlocker itself (its own save, leave, inactivity or disconnect release). `ReceiveSuggestReload` is sent from the `ContentSaved` notification handler (only when the saved node was locked) and the editor who made the change is excluded client-side. Auto-lock acquire/release reuse `AddLockToClients` / `RemoveLockToClients`.
 
 ---
 
@@ -56,6 +60,20 @@ These events handle WebRTC signalling between peers (offer/answer/ICE) and call 
 | `CallNoAnswer` | Sent to the caller when the ring timeout expires | *(no payload)* |
 | `MissedCall` | Sent to the recipient when the ring timeout expires | `callerKey: Guid`, `callerName: string` |
 | `ConnectedUsersInCallUpdated` | Broadcast to all clients when call participants change | `Guid[]` — keys of users currently in a call |
+
+---
+
+## Auto Lock Hub Methods (client → server)
+
+When [Auto Lock](/features/auto-lock/) is enabled, the browser invokes these hub methods (these are calls *to* the server, not broadcast events):
+
+| Method | Purpose |
+|---|---|
+| `AcquireAutoLockAsync(contentKey)` | Acquire an auto-lock on first edit. Returns `false` when the node is already locked or Auto Lock is disabled. |
+| `AutoLockHeartbeatAsync(contentKey)` | Refresh the auto-lock's last activity (and connection) while the editor keeps changing the node. |
+| `ReleaseAutoLockAsync(contentKey)` | Release the auto-lock on save or when leaving the node. |
+
+The server also releases auto-locks on disconnect (in `OnDisconnectedAsync`, on the server that owned the connection) and after `InactivityTimeoutSeconds` without activity (a recurring background job on the scheduling-publisher server). Only auto-locks are affected — manual locks are left untouched.
 
 ---
 

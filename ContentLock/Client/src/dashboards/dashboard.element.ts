@@ -10,11 +10,14 @@ import '../components/table/table.pagelink.element';
 import { ProblemDetailResponse } from "../interfaces/ProblemDetailResponse";
 import { CONTENTLOCK_SIGNALR_CONTEXT } from "../globalContexts/contentlock.signalr.context";
 import { observeMultiple } from "@umbraco-cms/backoffice/observable-api";
+import { sortByDate } from "./sortByDate";
 
 @customElement('contentlock-dashboard')
 export class ContentLockDashboardElement extends UmbElementMixin(LitElement) {
 
   #notificationCtx?: UmbNotificationContext;
+
+  #lockDates = new Map<string, { checkedOutAt: string; lastEdited: string }>();
 
   @state()
   private _totalLockedPages: number = 0;
@@ -42,6 +45,8 @@ export class ContentLockDashboardElement extends UmbElementMixin(LitElement) {
       this.observe(observeMultiple([lockCtx?.contentLocks, lockCtx?.totalContentLocks]), ([contentLocks, totalContentLocks]) => {
         // Our observable locks
         const locks = contentLocks;
+
+        this.#lockDates = new Map(locks.map(lockItem => [lockItem.key, { checkedOutAt: lockItem.lockedAtDate, lastEdited: lockItem.lastEdited }]));
 
         // Assign the observable locks from SignalR response to the table items
         this._tableItems = locks.map(lockItem => ({
@@ -119,29 +124,13 @@ export class ContentLockDashboardElement extends UmbElementMixin(LitElement) {
       name: this.localize.term('contentLockDashboard_checkedOutAtHeader'),
       alias: 'checkedOutAt',
       allowSorting: true,
-      sortFunc: (items: Array<UmbTableItem>, desc: boolean) => {
-        const sortedItems = [...items].sort((a, b) => {
-          const aValue = a.data.find(d => d.columnAlias === 'checkedOutAt')?.value || '';
-          const bValue = b.data.find(d => d.columnAlias === 'checkedOutAt')?.value || '';
-
-          return desc ? bValue.localeCompare(aValue) : aValue.localeCompare(bValue);
-        });
-        return sortedItems;
-      },
+      sortFunc: (items: Array<UmbTableItem>, desc: boolean) => sortByDate(items, desc, key => this.#lockDates.get(key)?.checkedOutAt),
     },
     {
       name: this.localize.term('contentLockDashboard_lastEditedHeader'),
       alias: 'lastEdited',
       allowSorting: true,
-      sortFunc: (items: Array<UmbTableItem>, desc: boolean) => {
-        const sortedItems = [...items].sort((a, b) => {
-          const aValue = a.data.find(d => d.columnAlias === 'lastEdited')?.value || '';
-          const bValue = b.data.find(d => d.columnAlias === 'lastEdited')?.value || '';
-
-          return desc ? bValue.localeCompare(aValue) : aValue.localeCompare(bValue);
-        });
-        return sortedItems;
-      },
+      sortFunc: (items: Array<UmbTableItem>, desc: boolean) => sortByDate(items, desc, key => this.#lockDates.get(key)?.lastEdited),
     }
   ];
 

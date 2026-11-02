@@ -1,6 +1,7 @@
 import * as path from 'path';
 import { ConstantHelper } from '@umbraco/playwright-testhelpers';
 import { test } from '../code/base';
+import { closeEntityActionsMenu } from '../code/entityActions';
 import { expect } from '@playwright/test';
 
 const userAuthFile = path.join(__dirname, '../playwright/.auth/user.json');
@@ -111,12 +112,7 @@ test.describe('Content Lock Dashboard', () => {
         await page.getByTestId('entity-action:contentlock.entityaction.document.lock').click();
         await lockResponsePromise;
 
-        // TODO: Remove this when bug is fixed that enttiy action will close the menu
-        // We are manually closing/toggling the actions menu closed
-        // https://github.com/umbraco/Umbraco-CMS/issues/19761
-        // ==========================================================================
-        await umbracoUi.content.clickActionsMenuForContent('Home');
-        // ==========================================================================
+        await closeEntityActionsMenu(page, umbracoUi, 'Home');
 
         // Verify the dashboard updated/changed
         await dashboard.showsNumberOfLocks(1);
@@ -135,12 +131,7 @@ test.describe('Content Lock Dashboard', () => {
         await page.getByTestId('entity-action:contentlock.entityaction.document.unlock').click();
         await unlockResponsePromise;
 
-        // TODO: Remove this when bug is fixed that enttiy action will close the menu
-        // We are manually closing/toggling the actions menu closed
-        // https://github.com/umbraco/Umbraco-CMS/issues/19761
-        // ==========================================================================
-        await umbracoUi.content.clickActionsMenuForContent('Home');
-        // ==========================================================================
+        await closeEntityActionsMenu(page, umbracoUi, 'Home');
 
         // Verify/assert stuff
         await dashboard.showsNumberOfLocks(0);
@@ -168,12 +159,7 @@ test.describe('Content Lock Dashboard', () => {
         await page.getByTestId('entity-action:contentlock.entityaction.document.lock').click();
         await lockResponsePromise;
 
-        // TODO: Remove this when bug is fixed that entity action will close the menu
-        // We are manually closing/toggling the actions menu closed
-        // https://github.com/umbraco/Umbraco-CMS/issues/19761
-        // ==========================================================================
-        await umbracoUi.content.clickActionsMenuForContent('Home');
-        // ==========================================================================
+        await closeEntityActionsMenu(page, umbracoUi, 'Home');
 
         // Verify dashboard shows 1 lock
         await dashboard.showsNumberOfLocks(1);
@@ -215,12 +201,7 @@ test.describe('Content Lock Dashboard', () => {
         const lockData = await lockResponse.json();
         const contentKey: string = lockData.key;
 
-        // TODO: Remove this when bug is fixed that entity action will close the menu
-        // We are manually closing/toggling the actions menu closed
-        // https://github.com/umbraco/Umbraco-CMS/issues/19761
-        // ==========================================================================
-        await umbracoUi.content.clickActionsMenuForContent('Home');
-        // ==========================================================================
+        await closeEntityActionsMenu(page, umbracoUi, 'Home');
 
         // Open a second browser context as the restricted user (no ContentLock.Unlocker permission)
         const restrictedContext = await browser.newContext({

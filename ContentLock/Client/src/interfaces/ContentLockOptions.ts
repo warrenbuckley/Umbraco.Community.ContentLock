@@ -2,6 +2,12 @@ export interface ContentLockOptions {
     onlineUsers: OnlineUsersOptions;
     signalRClientLogLevel: string;
     webRTC: WebRTCOptions;
+    autoLock: AutoLockOptions;
+}
+
+export interface AutoLockOptions {
+    enable: boolean;
+    heartbeatSeconds: number;
 }
 
 export interface OnlineUsersOptions {

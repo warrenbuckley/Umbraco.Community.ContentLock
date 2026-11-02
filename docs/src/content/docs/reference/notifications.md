@@ -14,6 +14,8 @@ ContentLock publishes standard Umbraco `INotification` events so you can react t
 | `ContentLockedNotification` | `ContentLockService.LockContentAsync()`, after a lock is created | `LockItem: ContentLockOverviewItem` |
 | `ContentUnlockedNotification` | `ContentLockService.UnlockContentAsync()`, after a lock is removed | `ContentKey: Guid`, `UnlockedByUserKey: Guid`, `UnlockedByUserName: string` |
 
+[Auto Lock](/features/auto-lock/) acquires and releases through the same service, so auto-locks raise these notifications too. For a release on save, leave, disconnect or inactivity, `UnlockedByUserKey` is the editor who held the lock.
+
 ---
 
 ## Call Notifications

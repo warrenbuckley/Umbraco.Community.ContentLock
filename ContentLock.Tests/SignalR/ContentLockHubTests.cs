@@ -1,3 +1,4 @@
+using ContentLock.AutoLock;
 using ContentLock.Interfaces;
 using ContentLock.Notifications;
 using ContentLock.Options;
@@ -36,6 +37,7 @@ public class ContentLockHubTests
 
         var hub = new ContentLockHub(
             contentLockService,
+            Substitute.For<IAutoLockService>(),
             options,
             hubContext,
             eventAggregator,

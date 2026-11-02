@@ -40,6 +40,7 @@ export default defineConfig({
 					label: 'Features',
 					items: [
 						{ label: 'Content Locking', slug: 'features/content-locking' },
+						{ label: 'Auto Lock', slug: 'features/auto-lock' },
 						{ label: 'Dashboard', slug: 'features/dashboard' },
 						{ label: 'Online Users', slug: 'features/online-users' },
 						{ label: 'Audio Calling', slug: 'features/audio-calling', badge: { text: '17.1.0+', variant: 'default'} },
@@ -49,6 +50,7 @@ export default defineConfig({
 					label: 'Configuration',
 					items: [
 						{ label: 'Overview', slug: 'configuration/overview' },
+						{ label: 'Auto Lock', slug: 'configuration/auto-lock' },
 						{ label: 'Online Users', slug: 'configuration/online-users' },
 						{ label: 'Audio Calling', slug: 'configuration/audio-calling', badge: { text: '17.1.0+', variant: 'default'} },
 					],
