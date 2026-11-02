@@ -30,6 +30,16 @@ public interface IContentLockHubEvents
     public Task RemoveLocksToClients(IEnumerable<Guid> contentKeys);
 
     /// <summary>
+    /// Sent when a user explicitly unlocks a node, so a user holding an auto-lock on it can be warned who removed it.
+    /// </summary>
+    public Task ReceiveLockUnlockedByUser(Guid contentKey, string unlockedByName, Guid unlockedByKey);
+
+    /// <summary>
+    /// Sent only when a released lock had actual saved changes, so other users viewing the node are prompted to reload.
+    /// </summary>
+    public Task ReceiveSuggestReload(Guid contentKey, Guid changedByKey);
+
+    /// <summary>
     /// This is used for E2E testing purposes only
     /// Where the ResetContentLocksAsync method will call this to get clients to remove all locks
     /// </summary>

@@ -105,7 +105,7 @@ namespace ContentLock.Services
                         LockedByKey = lockInfo.UserKey,
                         LockedByName = userName,
                         LockedBySelf = userKey == lockInfo.UserKey,
-                        LockedAtDate = lockInfo.LockedAtDate
+                        LockedAtDate = DateTime.SpecifyKind(lockInfo.LockedAtDate, DateTimeKind.Utc)
                     };
                 }
             }
@@ -145,7 +145,8 @@ namespace ContentLock.Services
                             CheckedOutBy = userName,
                             CheckedOutByKey = conLock.UserKey,
                             LastEdited = contentNode.UpdateDate,
-                            LockedAtDate = conLock.LockedAtDate
+                            // Stored as UTC; the database returns an unspecified kind, which clients would read as their own local time
+                            LockedAtDate = DateTime.SpecifyKind(conLock.LockedAtDate, DateTimeKind.Utc)
                         });
                     }
 
@@ -167,7 +168,7 @@ namespace ContentLock.Services
         {
             _logger.LogInformation("Locking content {contentKey} for user {userKey}", contentKey, userKey);
 
-            var now = DateTime.Now;
+            var now = DateTime.UtcNow;
             try
             {
                 using (var scope = _scopeProvider.CreateScope(autoComplete: true))

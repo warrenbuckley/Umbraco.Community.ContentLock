@@ -13,7 +13,12 @@ public class ContentLockOptions
     /// Settings related to the WebRTC audio calling feature between backoffice users
     /// </summary>
     public WebRTCOptions WebRTC { get; set; } = new();
-    
+
+    /// <summary>
+    /// Settings related to automatically locking a node while a user is editing it
+    /// </summary>
+    public AutoLockOptions AutoLock { get; set; } = new();
+
     /// <summary>
     /// Used to set the log level of the SignalR Javascript client
     /// </summary>
@@ -59,6 +64,32 @@ public class ContentLockOptions
             /// </summary>
             public string LogoutSound { get; set; } = "/App_Plugins/ContentLock/sounds/logout.mp3";
         }
+    }
+
+    public record AutoLockOptions
+    {
+        /// <summary>
+        /// Enable or disable automatically locking a node when a user starts editing it.
+        /// Reactively applied without restart. Disabled by default.
+        /// </summary>
+        public bool Enable { get; set; }
+
+        /// <summary>
+        /// Seconds of editing inactivity after which an auto-lock is released.
+        /// </summary>
+        public int InactivityTimeoutSeconds { get; set; } = 300;
+
+        /// <summary>
+        /// How often (seconds) the client refreshes its auto-lock while editing. Should be less than
+        /// <see cref="InactivityTimeoutSeconds"/> so an actively edited lock is not released.
+        /// </summary>
+        public int HeartbeatSeconds { get; set; } = 60;
+
+        /// <summary>
+        /// How often (seconds) inactive auto-locks are released; runs on one server in a load-balanced setup.
+        /// Reactively applied without restart.
+        /// </summary>
+        public int InactivityCheckSeconds { get; set; } = 15;
     }
 
     public class WebRTCOptions

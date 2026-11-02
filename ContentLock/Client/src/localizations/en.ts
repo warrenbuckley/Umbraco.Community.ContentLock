@@ -21,7 +21,9 @@ export default {
         unlockedHeader: 'Content Unlocked',
         unlockedMessage: 'The document has been unlocked, to allow other users to edit.',
         bulkUnlockHeader: 'Content Unlocked',
-        bulkUnlockMessage: 'The selected content has been unlocked successfully'
+        bulkUnlockMessage: 'The selected content has been unlocked successfully',
+        unlockedByOtherHeader: 'Lock Removed',
+        unlockedByOtherMessage: '{0} has unlocked this page. Your changes are no longer protected.'
     },
     contentLockPermission: {
         group: 'Content Lock', // TODO: Currently not used in Umbraco but added for future use

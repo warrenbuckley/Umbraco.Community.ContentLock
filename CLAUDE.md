@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-**Umbraco Community ContentLock** is an open-source NuGet package for **Umbraco CMS 17** (Bellissima backoffice) that prevents content editing conflicts. Editors can lock a content node while editing; locked nodes become read-only for everyone else, and publish/save/unpublish actions are hidden for other users. Real-time lock state is pushed to all connected backoffice users via **SignalR**.
+**Umbraco Community ContentLock** is an open-source NuGet package for **Umbraco CMS 17** (Bellissima backoffice) that prevents content editing conflicts. Editors can lock a content node while editing; locked nodes become read-only for everyone else, and publish/save/unpublish actions are hidden for other users. Real-time lock state is pushed to all connected backoffice users via **SignalR**. An optional **Auto Lock** mode (opt-in) locks a node automatically when an editor first changes it, and releases it on save, leaving the node, disconnect, or after an inactivity timeout.
 
 - NuGet package ID: `Umbraco.Community.ContentLock`
 - Current version: `17.2.0`
@@ -18,6 +18,7 @@
 │   ├── Client/                   # TypeScript frontend (Vite, Lit web components)
 │   │   ├── src/                  # Frontend source
 │   │   │   ├── api/              # Auto-generated OpenAPI TypeScript client (hey-api)
+│   │   │   ├── autoLock/         # Auto Lock workspace context (lock-on-edit + heartbeat)
 │   │   │   ├── bundle.manifests.ts  # Root manifest bundle
 │   │   │   ├── conditions/       # Umbraco extension conditions
 │   │   │   ├── dashboards/       # Content Lock dashboard (overview of all locks)
@@ -62,8 +63,13 @@
 - **`ContentLockApiController`** — Versioned Umbraco backoffice API (`/umbraco/api/contentlock/v1/`). Endpoints: `GET Lock/{key}`, `GET Unlock/{key}`, `POST BulkUnlock`. After each operation, broadcasts the change via SignalR to all connected clients.
 - **`ContentLockHub`** — SignalR hub (route: `/umbraco/ContentLockHub`). Tracks connected users with a `ConcurrentDictionary<Guid, ConcurrentHashSet<string>>` (one user can have multiple tabs/connections). On connect, sends the caller the current lock list, connected user list, and current options. Uses `IOptionsMonitor` to reactively push option changes to all clients.
 - **`IsLockedFlagProvider`** — Implements `IFlagProvider` to attach a `Umbraco.ContentLock.Locked` flag to `DocumentTreeItemResponseModel`, `DocumentCollectionResponseModel`, and `DocumentItemResponseModel`. Used by the frontend to show visual lock indicators.
-- **Notification Handlers** — `ContentDeletingNotificationHandler` and `ContentMovingToRecycleBinHandler` auto-unlock items when they are deleted or moved to the recycle bin (cancels the operation if a different user tries to delete a locked item).
-- **`ContentLockMigrationPlan`** — `PackageMigrationPlan` with two steps: create the DB table, add the `ContentLock.Unlocker` permission to the Administrators user group.
+- **Notification Handlers** — `ContentDeletingNotificationHandler` and `ContentMovingToRecycleBinHandler` auto-unlock items when they are deleted or moved to the recycle bin (cancels the operation if a different user tries to delete a locked item). `ContentSavedNotificationHandler` broadcasts `ReceiveSuggestReload` when a locked node is saved, so other users viewing it are prompted to reload.
+- **Auto Lock (`AutoLock/`)** — Built on the `ContentLockedNotification` / `ContentUnlockedNotification` events; does not change `ContentLockService`, its interface or the controller. All state lives on the `ContentLocks` row (`IsAutoLock`, `AutoLockConnectionId`, `AutoLockLastActivity`), so it is restart- and load-balancing-safe.
+  - `AutoLockService` — acquire / heartbeat / release through `IContentLockService`; a release first claims the row atomically (`IsAutoLock 1 → 0`), so manual locks are never released and two servers never release the same lock.
+  - `ContentLockHub` — hub methods `AcquireAutoLockAsync` / `AutoLockHeartbeatAsync` / `ReleaseAutoLockAsync` delegate to `IAutoLockService`; `OnDisconnectedAsync` releases the closed connection's auto-locks.
+  - `AutoLockInactivityJob` — `IRecurringBackgroundJob` on its own timer (scheduling-publisher server only) that releases inactive auto-locks every `InactivityCheckSeconds`.
+  - `AutoLockUnlockedNotificationHandler` — sends `ReceiveLockUnlockedByUser` on every unlock so an auto-lock holder can be warned.
+- **`ContentLockMigrationPlan`** — `PackageMigrationPlan`: create the DB table, add the `ContentLock.Unlocker` permission to the Administrators user group, add `IsAutoLock` (state `ContentLock.AddIsAutoLockColumn`, identical to the pre-notifications fork build so those sites upgrade cleanly), then `AutoLockConnectionId` / `AutoLockLastActivity`.
 - **`ContentLockOptions`** — Bound to the `ContentLock` appsettings section. Supports reactive updates via `IOptionsMonitor`.
 
 ### Frontend (TypeScript / Lit / Umbraco Bellissima)
@@ -72,6 +78,7 @@ All frontend extensions are registered as Umbraco extension manifests (loaded fr
 
 - **Entry point** — On init, appends a `CanShowCommonActions` condition to core Umbraco actions (SaveAndPublish, Save, Publish, Unpublish, RecycleBin.Trash, Rollback, MoveTo, Delete, DuplicateTo) so they are hidden when a node is locked by someone else.
 - **`ContentLockSignalrContext`** — Global Umbraco context that manages the SignalR connection. Maintains observable state for `contentLocks`, `connectedUserKeys`, and `contentLockOptions`. All UI components observe from this context.
+- **Auto Lock workspace context** (`autoLock/`) — Per-document workspace context (opt-in via `AutoLock.Enable`). Observes the document workspace's `data` + `getHasUnpersistedChanges()` to acquire on first edit, sends a throttled heartbeat while editing, releases on save/leave, and shows a notification (naming the user) when another user removes the lock.
 - **Conditions** — `ShowLock`, `ShowUnlock`, `ShowLockedStatus`, `ShowPreview`, `EnableOnlineUsers`, `CanShowCommonActions`
 - **Dashboard** — Shows a table of all locked nodes with bulk unlock capability.
 - **Header App** — Shows the number of other online backoffice users; clicking opens a modal listing them. Only shown when `OnlineUsers.Enable` is true.
@@ -153,17 +160,27 @@ SignalR events (server → client):
 | `AddLockToClients` | When a node is locked | `ContentLockOverviewItem` |
 | `RemoveLockToClients` | When a single node is unlocked | `Guid` (content key) |
 | `RemoveLocksToClients` | Bulk unlock | `Guid[]` |
+| `ReceiveLockUnlockedByUser` | Every unlock (from `ContentUnlockedNotification`), before the removal event | `Guid` key, `string` name, `Guid` userKey |
+| `ReceiveSuggestReload` | A locked node is saved — prompts other viewers to reload | `Guid` key, `Guid` changedByKey |
 | `RemoveAllLocksToClients` | E2E test cleanup only | (none) |
 | `UserConnected` | New user connects | `Guid` (user key) |
 | `UserDisconnected` | User disconnects (all tabs) | `Guid` (user key) |
 | `ReceiveListOfConnectedUsers` | On client connect | `Guid[]` |
 | `ReceiveLatestOptions` | On connect or options change | `ContentLockOptions` |
 
+Auto Lock also uses three client → server hub methods: `AcquireAutoLockAsync`, `AutoLockHeartbeatAsync`, `ReleaseAutoLockAsync`.
+
 ## Configuration (appsettings.json)
 
 ```json
 "ContentLock": {
   "SignalRClientLogLevel": "Info",
+  "AutoLock": {
+    "Enable": false,
+    "InactivityTimeoutSeconds": 300,
+    "HeartbeatSeconds": 60,
+    "InactivityCheckSeconds": 15
+  },
   "OnlineUsers": {
     "Enable": true,
     "Sounds": {
@@ -175,7 +192,7 @@ SignalR events (server → client):
 }
 ```
 
-`OnlineUsers.Enable` and `OnlineUsers.Sounds.*` are **reactively applied** without a restart (via `IOptionsMonitor` → SignalR push). `SignalRClientLogLevel` requires a page reload since the SignalR JS client is already initialized.
+`OnlineUsers.Enable`, `OnlineUsers.Sounds.*` and `AutoLock.*` are **reactively applied** without a restart (via `IOptionsMonitor` → SignalR push). `SignalRClientLogLevel` requires a page reload since the SignalR JS client is already initialized.
 
 ## Permissions
 

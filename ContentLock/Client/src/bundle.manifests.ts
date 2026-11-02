@@ -9,6 +9,7 @@ import { manifests as modals } from './modals/manifest';
 import { manifests as userPermissions } from './userpermissions/manifest';
 import { manifests as workspaceActions } from './workspaceActions/manifest';
 import { manifests as workspaceContexts } from './workspaceContexts/manifest';
+import { manifests as autoLock } from './autoLock/manifest';
 import { manifests as workspaceFooterApps } from './workspaceFooterApp/manifest';
 import { manifests as entitySigns } from './entitySigns/manifest';
 import { manifests as icons } from './icons/manifest';
@@ -27,6 +28,7 @@ export const manifests: Array<UmbExtensionManifest> = [
   ...userPermissions,
   ...workspaceActions,
   ...workspaceContexts,
+  ...autoLock,
   ...workspaceFooterApps,
   ...entitySigns,
   ...icons

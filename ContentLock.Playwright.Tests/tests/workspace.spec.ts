@@ -1,5 +1,6 @@
 import * as path from 'path';
 import { test } from '../code/base';
+import { closeEntityActionsMenu } from '../code/entityActions';
 import { ConstantHelper } from '@umbraco/playwright-testhelpers';
 import { expect } from '@playwright/test';
 
@@ -29,12 +30,7 @@ async function lockHomeNode(page: any, umbracoUi: any): Promise<string> {
     const lockResponse = await lockResponsePromise;
     const lockData = await lockResponse.json();
 
-    // TODO: Remove this when bug is fixed that entity action will close the menu
-    // We are manually closing/toggling the actions menu closed
-    // https://github.com/umbraco/Umbraco-CMS/issues/19761
-    // ==========================================================================
-    await umbracoUi.content.clickActionsMenuForContent('Home');
-    // ==========================================================================
+    await closeEntityActionsMenu(page, umbracoUi, 'Home');
 
     return lockData.key as string;
 }
